@@ -24,6 +24,13 @@ Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura mult
 
 ### ✅ Implementado (MVP Core)
 
+#### 🌐 Arquitectura Multi-Tenant
+- ✅ Cada barbearia tem URL própria: `/barbearia/{slug}`
+- ✅ Isolamento total de dados por tenant
+- ✅ Registo automático de clientes no contexto da barbearia
+- ✅ Sistema self-service para criação de barbearias
+- ✅ Página pública completa por barbearia
+
 #### 🔐 Sistema de Autenticação
 - **3 Tipos de Utilizadores:**
   - **Admin (Dono da Barbearia)**: Gestão completa
