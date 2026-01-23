@@ -79,6 +79,7 @@ Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura mult
 - **Backend**: Next.js API Routes
 - **Database**: MongoDB
 - **Autenticação**: JWT (jsonwebtoken + bcryptjs)
+- **Arquitectura**: Multi-tenant path-based
 - **Notificações**: Estrutura preparada para Resend (mockado)
 
 ---
@@ -88,17 +89,20 @@ Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura mult
 ```
 /app
 ├── app/
-│   ├── page.js                    # Landing page pública
-│   ├── admin/page.js              # Painel administrativo
-│   ├── barbeiro/page.js           # Painel do barbeiro
-│   ├── cliente/page.js            # Painel do cliente
-│   ├── setup/page.js              # Criar nova barbearia
-│   ├── layout.js                  # Layout principal
-│   ├── globals.css                # Estilos globais
-│   └── api/[[...path]]/route.js   # API Routes (todas as rotas)
-├── components/ui/                 # Componentes Shadcn
-├── lib/                           # Utilitários
-├── .env                           # Variáveis de ambiente
+│   ├── page.js                       # Landing page (marketing)
+│   ├── setup/page.js                 # Criar nova barbearia
+│   ├── barbearia/[slug]/page.js      # Página pública do tenant ⭐
+│   ├── admin/page.js                 # Painel administrativo
+│   ├── barbeiro/page.js              # Painel do barbeiro
+│   ├── cliente/page.js               # Painel do cliente
+│   ├── layout.js                     # Layout principal
+│   ├── globals.css                   # Estilos globais
+│   └── api/[[...path]]/route.js      # API Routes (todas as rotas)
+├── components/ui/                    # Componentes Shadcn
+├── lib/                              # Utilitários
+├── .env                              # Variáveis de ambiente
+├── README.md                         # Documentação principal
+├── MULTI_TENANT.md                   # Documentação arquitectura ⭐
 └── package.json
 ```
 
@@ -106,9 +110,9 @@ Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura mult
 
 ## 🚀 Como Usar
 
-### 1️⃣ Criar uma Nova Barbearia
+### 1️⃣ Criar uma Nova Barbearia (Self-Service)
 
-1. Acede a `/setup` ou clica em "Criar Nova Barbearia" no rodapé
+1. Acede a `/setup` ou clica em "Criar Minha Barbearia"
 2. Preenche:
    - Nome da barbearia
    - Descrição (opcional)
@@ -116,64 +120,77 @@ Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura mult
    - Palavra-passe do administrador
 3. A barbearia será criada automaticamente com:
    - Conta de admin
+   - URL pública única: `/barbearia/{slug}`
    - Horários padrão (Segunda a Sábado: 09:00-19:00)
    - Domingo fechado
 
-### 2️⃣ Acesso Inicial (Admin)
+**Exemplo:**
+- Nome: "Barbas & Estilos Porto"
+- URL gerada: `/barbearia/barbas-estilos-porto`
 
-**Credenciais de Teste:**
-```
-Email: admin@premium.pt
-Password: admin123
-```
+---
 
-### 3️⃣ Configuração Inicial no Painel Admin
+### 2️⃣ Configuração pelo Admin
 
-1. **Adicionar Barbeiros:**
-   - Tab "Barbeiros" → "Adicionar Barbeiro"
-   - Preencher nome, email e palavra-passe
+1. **Login Admin:**
+   - Acede à página inicial e faz login
 
-2. **Criar Serviços:**
-   - Tab "Serviços" → "Adicionar Serviço"
-   - Nome, preço (€) e duração (minutos)
+2. **Configurar no Painel:**
+   - **Adicionar Barbeiros:** Tab "Barbeiros" → "Adicionar Barbeiro"
+   - **Criar Serviços:** Tab "Serviços" → Nome, preço (€) e duração (min)
+   - **Adicionar Produtos:** Tab "Produtos" → Nome, preço e descrição
+   - **Ajustar Horários:** Tab "Horários" → Configurar dias e horários
 
-3. **Adicionar Produtos (opcional):**
-   - Tab "Produtos" → "Adicionar Produto"
-   - Nome, preço e descrição
+---
 
-4. **Ajustar Horários:**
-   - Tab "Horários"
-   - Configurar dias abertos e horários de funcionamento
+### 3️⃣ Clientes Finais (Marcação Online)
 
-### 4️⃣ Fluxo de Marcação (Cliente)
+1. **Cliente acede directamente à URL pública:**
+   ```
+   /barbearia/{slug}
+   ```
 
-1. **Registar como Cliente:**
-   - Página inicial → "Registar"
-   - Nome, email e palavra-passe
+2. **Vê página da barbearia:**
+   - Serviços com preços
+   - Equipa de barbeiros
+   - Produtos (opcional)
 
-2. **Fazer Marcação:**
-   - Painel Cliente → "Nova Marcação"
-   - Selecionar barbeiro
-   - Selecionar serviço
-   - Escolher data
-   - Ver horários disponíveis e confirmar
+3. **Faz marcação:**
+   - Clica "Marcar Agora"
+   - Regista-se (automático para aquela barbearia)
+   - Escolhe barbeiro, serviço, data e hora
+   - Confirma marcação
 
-3. **Gerir Marcações:**
-   - Ver histórico de marcações
-   - Status: confirmada/cancelada
+**Zero fricção!** O cliente não precisa "seleccionar" a barbearia.
 
-### 5️⃣ Gestão de Marcações (Barbeiro)
+---
+
+### 4️⃣ Barbeiros (Gestão de Agenda)
 
 1. **Login como Barbeiro:**
-   ```
-   Email: joao@premium.pt (exemplo)
-   Password: barbeiro123
-   ```
+   - Acede à página inicial com credenciais
 
 2. **Visualizar Agenda:**
-   - Vista semanal com todas as marcações
+   - Vista semanal organizada
    - Detalhes: cliente, serviço, duração, preço
-   - Organizado por data e hora
+
+---
+
+## 🌐 URLs da Plataforma
+
+```
+/                                    # Landing page (marketing)
+/setup                               # Criar nova barbearia
+/barbearia/{slug}                    # Página pública da barbearia ⭐
+/admin                               # Painel admin (protegido)
+/barbeiro                            # Painel barbeiro (protegido)
+/cliente                             # Painel cliente (protegido)
+```
+
+**Exemplo real:**
+```
+http://localhost:3000/barbearia/barbearia-premium-lisboa
+```
 
 ---
 
