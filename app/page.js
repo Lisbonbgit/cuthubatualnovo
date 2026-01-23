@@ -184,17 +184,31 @@ export default function App() {
         </div>
       </section>
 
+      {/* CTA Section */}
+      <section className="py-20 bg-zinc-900">
+        <div className="container text-center">
+          <h2 className="text-4xl font-bold text-white mb-6">
+            Tens uma Barbearia?
+          </h2>
+          <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
+            Cria a tua página online grátis e começa a gerir marcações hoje mesmo
+          </p>
+          <Button
+            size="lg"
+            className="bg-amber-600 hover:bg-amber-700 text-lg px-8"
+            onClick={() => router.push('/setup')}
+          >
+            <Scissors className="mr-2 h-5 w-5" />
+            Criar Minha Barbearia
+          </Button>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
         <div className="container text-center">
-          <p className="text-zinc-500 mb-4">&copy; 2025 Barbearia SaaS. Todos os direitos reservados.</p>
-          <Button
-            variant="link"
-            className="text-amber-600 hover:text-amber-500"
-            onClick={() => router.push('/setup')}
-          >
-            Criar Nova Barbearia
-          </Button>
+          <p className="text-zinc-500">&copy; 2025 Barbearia SaaS. Todos os direitos reservados.</p>
+          <p className="text-zinc-600 text-sm mt-2">Plataforma de gestão para barbearias em Portugal</p>
         </div>
       </footer>
     </div>
