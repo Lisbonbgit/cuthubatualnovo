@@ -37,8 +37,20 @@ export default function SetupPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Barbearia "${nome}" criada com sucesso!\n\nPodes fazer login com:\nEmail: ${emailAdmin}\nPalavra-passe: [a que definiste]`);
-        router.push('/');
+        const barbeariaUrl = `/barbearia/${data.barbearia.slug}`;
+        alert(
+          `✅ Barbearia "${nome}" criada com sucesso!\n\n` +
+          `🔗 URL Pública: ${window.location.origin}${barbeariaUrl}\n\n` +
+          `👨‍💼 Login Admin:\n` +
+          `Email: ${emailAdmin}\n` +
+          `Password: [a que definiste]\n\n` +
+          `Vais ser redirecionado para fazer login...`
+        );
+        
+        // Redirect to login
+        setTimeout(() => {
+          router.push('/');
+        }, 2000);
       } else {
         setError(data.error || 'Erro ao criar barbearia');
       }
