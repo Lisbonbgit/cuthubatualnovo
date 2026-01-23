@@ -1,6 +1,24 @@
 # 💈 Barbearia SaaS - Sistema de Gestão de Barbearias
 
-Uma plataforma SaaS completa para barbearias em Portugal, permitindo gestão de marcações, serviços, produtos e equipa.
+Uma plataforma SaaS completa para barbearias em Portugal com **arquitectura multi-tenant**, permitindo gestão de marcações, serviços, produtos e equipa.
+
+## 🌟 Arquitectura Multi-Tenant
+
+**Cada barbearia tem a sua própria URL pública:**
+```
+/barbearia/{slug}
+```
+
+**Exemplo:** `/barbearia/barbearia-premium-lisboa`
+
+✅ **Isolamento total de dados**  
+✅ **Zero fricção para clientes**  
+✅ **Self-service para donos**  
+✅ **SEO-friendly**
+
+📖 **[Ver documentação completa Multi-Tenant →](MULTI_TENANT.md)**
+
+---
 
 ## 🚀 Funcionalidades Principais
 
