@@ -186,8 +186,15 @@ export default function App() {
 
       {/* Footer */}
       <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
-        <div className="container text-center text-zinc-500">
-          <p>&copy; 2025 Barbearia SaaS. Todos os direitos reservados.</p>
+        <div className="container text-center">
+          <p className="text-zinc-500 mb-4">&copy; 2025 Barbearia SaaS. Todos os direitos reservados.</p>
+          <Button
+            variant="link"
+            className="text-amber-600 hover:text-amber-500"
+            onClick={() => router.push('/setup')}
+          >
+            Criar Nova Barbearia
+          </Button>
         </div>
       </footer>
     </div>
