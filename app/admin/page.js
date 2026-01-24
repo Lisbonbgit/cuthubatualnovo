@@ -208,55 +208,337 @@ export default function AdminPanel() {
 }
 
 function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
+  const [filtroStatus, setFiltroStatus] = useState('todas');
+  const [filtroBarbeiro, setFiltroBarbeiro] = useState('todos');
+  const [barbeiros, setBarbeiros] = useState([]);
+  const [viewMode, setViewMode] = useState('calendario'); // 'calendario' ou 'tabela'
+
+  useEffect(() => {
+    fetchBarbeiros();
+  }, []);
+
+  const fetchBarbeiros = async () => {
+    const response = await fetch('/api/barbeiros', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const data = await response.json();
+    setBarbeiros(data.barbeiros || []);
+  };
+
+  const handleUpdateStatus = async (marcacaoId, newStatus) => {
+    try {
+      await fetch(`/api/marcacoes/${marcacaoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      fetchMarcacoes();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const getWeekDays = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
+  const weekDays = getWeekDays();
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  const marcacoesFiltradas = marcacoes.filter(m => {
+    const matchStatus = filtroStatus === 'todas' || m.status === filtroStatus;
+    const matchBarbeiro = filtroBarbeiro === 'todos' || m.barbeiro_id === filtroBarbeiro;
+    return matchStatus && matchBarbeiro;
+  });
+
+  const getMarcacoesPorDia = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return marcacoesFiltradas.filter(m => m.data === dateStr);
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'pendente': return 'bg-yellow-900/50 border-yellow-600 text-yellow-400';
+      case 'aceita': return 'bg-green-900/50 border-green-600 text-green-400';
+      case 'concluida': return 'bg-blue-900/50 border-blue-600 text-blue-400';
+      case 'rejeitada': return 'bg-red-900/50 border-red-600 text-red-400';
+      case 'cancelada': return 'bg-gray-900/50 border-gray-600 text-gray-400';
+      default: return 'bg-zinc-900/50 border-zinc-600 text-zinc-400';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'pendente': return '⏳';
+      case 'aceita': return '✓';
+      case 'concluida': return '✓✓';
+      case 'rejeitada': return '✗';
+      case 'cancelada': return '⊘';
+      default: return '•';
+    }
+  };
+
   return (
-    <Card className="bg-zinc-800 border-zinc-700">
-      <CardHeader>
-        <CardTitle className="text-white">Todas as Marcações</CardTitle>
-        <CardDescription className="text-zinc-400">
-          Gestão de marcações da barbearia
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {marcacoes.length === 0 ? (
-          <p className="text-zinc-400 text-center py-8">Nenhuma marcação registada</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-zinc-700">
-                  <TableHead className="text-zinc-300">Data</TableHead>
-                  <TableHead className="text-zinc-300">Hora</TableHead>
-                  <TableHead className="text-zinc-300">Cliente</TableHead>
-                  <TableHead className="text-zinc-300">Barbeiro</TableHead>
-                  <TableHead className="text-zinc-300">Serviço</TableHead>
-                  <TableHead className="text-zinc-300">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {marcacoes.map((marcacao) => (
-                  <TableRow key={marcacao._id} className="border-zinc-700">
-                    <TableCell className="text-white">{new Date(marcacao.data).toLocaleDateString('pt-PT')}</TableCell>
-                    <TableCell className="text-white">{marcacao.hora}</TableCell>
-                    <TableCell className="text-white">{marcacao.cliente?.nome}</TableCell>
-                    <TableCell className="text-white">{marcacao.barbeiro?.nome}</TableCell>
-                    <TableCell className="text-white">{marcacao.servico?.nome}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        marcacao.status === 'confirmada' ? 'bg-green-900/50 text-green-400' :
-                        marcacao.status === 'cancelada' ? 'bg-red-900/50 text-red-400' :
-                        'bg-yellow-900/50 text-yellow-400'
-                      }`}>
-                        {marcacao.status}
-                      </span>
-                    </TableCell>
-                  </TableRow>
+    <div className="space-y-4">
+      {/* Filtros e Toggle View */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex gap-3 flex-wrap">
+              {/* Filtro Status */}
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'todas' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('todas')}
+                  className={filtroStatus === 'todas' ? 'bg-amber-600' : 'border-zinc-700'}
+                >
+                  Todas ({marcacoes.length})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'pendente' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('pendente')}
+                  className={filtroStatus === 'pendente' ? 'bg-yellow-600' : 'border-zinc-700'}
+                >
+                  ⏳ Pendentes
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'aceita' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('aceita')}
+                  className={filtroStatus === 'aceita' ? 'bg-green-600' : 'border-zinc-700'}
+                >
+                  ✓ Aceitas
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'concluida' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('concluida')}
+                  className={filtroStatus === 'concluida' ? 'bg-blue-600' : 'border-zinc-700'}
+                >
+                  ✓✓ Concluídas
+                </Button>
+              </div>
+
+              {/* Filtro Barbeiro */}
+              <select
+                value={filtroBarbeiro}
+                onChange={(e) => setFiltroBarbeiro(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-1.5 text-sm"
+              >
+                <option value="todos">Todos Barbeiros</option>
+                {barbeiros.map(b => (
+                  <option key={b._id} value={b._id}>{b.nome}</option>
                 ))}
-              </TableBody>
-            </Table>
+              </select>
+            </div>
+
+            {/* Toggle View */}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={viewMode === 'calendario' ? 'default' : 'outline'}
+                onClick={() => setViewMode('calendario')}
+                className={viewMode === 'calendario' ? 'bg-amber-600' : 'border-zinc-700'}
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Calendário
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'tabela' ? 'default' : 'outline'}
+                onClick={() => setViewMode('tabela')}
+                className={viewMode === 'tabela' ? 'bg-amber-600' : 'border-zinc-700'}
+              >
+                Tabela
+              </Button>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Vista Calendário */}
+      {viewMode === 'calendario' && (
+        <Card className="bg-zinc-800 border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-white">
+              Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-7 gap-2">
+              {/* Headers dos dias */}
+              {weekDays.map((day, index) => {
+                const isToday = day.toDateString() === new Date().toDateString();
+                return (
+                  <div key={index} className={`text-center p-2 rounded-t ${isToday ? 'bg-amber-600' : 'bg-zinc-700'}`}>
+                    <div className="text-white font-semibold">{diasSemana[day.getDay()]}</div>
+                    <div className={`text-sm ${isToday ? 'text-white' : 'text-zinc-400'}`}>
+                      {day.getDate()}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Marcações por dia */}
+              {weekDays.map((day, index) => {
+                const marcacoesDia = getMarcacoesPorDia(day);
+                const isToday = day.toDateString() === new Date().toDateString();
+
+                return (
+                  <div 
+                    key={index} 
+                    className={`min-h-[300px] border rounded-b p-2 space-y-2 ${
+                      isToday ? 'border-amber-600 bg-amber-900/10' : 'border-zinc-700 bg-zinc-900/50'
+                    }`}
+                  >
+                    {marcacoesDia.length === 0 ? (
+                      <div className="text-zinc-600 text-xs text-center mt-4">Sem marcações</div>
+                    ) : (
+                      marcacoesDia
+                        .sort((a, b) => a.hora.localeCompare(b.hora))
+                        .map(marcacao => (
+                          <div
+                            key={marcacao._id}
+                            className={`border-l-4 p-2 rounded text-xs ${getStatusColor(marcacao.status)}`}
+                          >
+                            <div className="font-semibold">{marcacao.hora}</div>
+                            <div className="text-white">{marcacao.cliente?.nome}</div>
+                            <div className="text-xs opacity-80">{marcacao.servico?.nome}</div>
+                            <div className="text-xs opacity-80">{marcacao.barbeiro?.nome}</div>
+                            
+                            {/* Botões de Ação */}
+                            {marcacao.status === 'pendente' && (
+                              <div className="flex gap-1 mt-2">
+                                <Button
+                                  size="sm"
+                                  className="h-6 text-xs bg-green-600 hover:bg-green-700"
+                                  onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
+                                >
+                                  ✓
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  className="h-6 text-xs bg-red-600 hover:bg-red-700"
+                                  onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
+                                >
+                                  ✗
+                                </Button>
+                              </div>
+                            )}
+                            {marcacao.status === 'aceita' && (
+                              <Button
+                                size="sm"
+                                className="h-6 text-xs w-full mt-2 bg-blue-600 hover:bg-blue-700"
+                                onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
+                              >
+                                Concluir
+                              </Button>
+                            )}
+                          </div>
+                        ))
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Vista Tabela (original) */}
+      {viewMode === 'tabela' && (
+        <Card className="bg-zinc-800 border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-white">Todas as Marcações</CardTitle>
+            <CardDescription className="text-zinc-400">
+              Gestão de marcações da barbearia
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {marcacoesFiltradas.length === 0 ? (
+              <p className="text-zinc-400 text-center py-8">Nenhuma marcação com os filtros selecionados</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-zinc-700">
+                      <TableHead className="text-zinc-300">Data</TableHead>
+                      <TableHead className="text-zinc-300">Hora</TableHead>
+                      <TableHead className="text-zinc-300">Cliente</TableHead>
+                      <TableHead className="text-zinc-300">Barbeiro</TableHead>
+                      <TableHead className="text-zinc-300">Serviço</TableHead>
+                      <TableHead className="text-zinc-300">Status</TableHead>
+                      <TableHead className="text-zinc-300">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {marcacoesFiltradas.map((marcacao) => (
+                      <TableRow key={marcacao._id} className="border-zinc-700">
+                        <TableCell className="text-white">{new Date(marcacao.data).toLocaleDateString('pt-PT')}</TableCell>
+                        <TableCell className="text-white font-semibold">{marcacao.hora}</TableCell>
+                        <TableCell className="text-white">{marcacao.cliente?.nome}</TableCell>
+                        <TableCell className="text-white">{marcacao.barbeiro?.nome}</TableCell>
+                        <TableCell className="text-white">{marcacao.servico?.nome}</TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs ${getStatusColor(marcacao.status)}`}>
+                            {getStatusIcon(marcacao.status)} {marcacao.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {marcacao.status === 'pendente' && (
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700"
+                                onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
+                              >
+                                Aceitar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
+                              >
+                                Rejeitar
+                              </Button>
+                            </div>
+                          )}
+                          {marcacao.status === 'aceita' && (
+                            <Button
+                              size="sm"
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
+                            >
+                              Concluir
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
