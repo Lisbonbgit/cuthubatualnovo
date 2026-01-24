@@ -62,7 +62,9 @@ export async function POST(request, { params }) {
         nome,
         tipo: tipo || 'cliente',
         barbearia_id: barbearia_id || null,
-        criado_em: new Date()
+        criado_em: new Date(),
+        // Donos precisam de subscription, clientes não
+        requires_subscription: tipo === 'owner' || (!tipo && !barbearia_id)
       };
 
       const result = await db.collection('utilizadores').insertOne(user);
