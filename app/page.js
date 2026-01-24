@@ -131,42 +131,82 @@ export default function App() {
       {/* Features Section */}
       <section className="py-20 bg-zinc-900">
         <div className="container">
-          <h2 className="text-4xl font-bold text-white text-center mb-16">
-            Porquê Escolher-nos?
+          <h2 className="text-4xl font-bold text-white text-center mb-4">
+            Tudo o Que Precisas Para Gerir a Tua Barbearia
           </h2>
+          <p className="text-zinc-400 text-center mb-16 text-lg">
+            Sistema completo para modernizar o teu negócio
+          </p>
+          
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
               <CardHeader>
-                <Scissors className="h-12 w-12 text-amber-600 mb-4" />
-                <CardTitle className="text-white">Profissionais Experientes</CardTitle>
+                <Calendar className="h-12 w-12 text-amber-600 mb-4" />
+                <CardTitle className="text-white">Marcações Online 24/7</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-zinc-400">
-                  Barbeiros qualificados com anos de experiência em cortes clássicos e modernos.
+                  Os teus clientes marcam horários a qualquer hora. Tu geres tudo num só painel.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
               <CardHeader>
-                <Clock className="h-12 w-12 text-amber-600 mb-4" />
-                <CardTitle className="text-white">Marcação Online</CardTitle>
+                <Users className="h-12 w-12 text-amber-600 mb-4" />
+                <CardTitle className="text-white">Gestão de Equipa</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-zinc-400">
-                  Sistema de marcação 24/7 para tua conveniência. Escolhe o melhor horário para ti.
+                  Adiciona barbeiros, define horários e acompanha o desempenho de cada um.
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-zinc-800 border-zinc-700">
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
               <CardHeader>
                 <Star className="h-12 w-12 text-amber-600 mb-4" />
-                <CardTitle className="text-white">Serviço Premium</CardTitle>
+                <CardTitle className="text-white">Página Profissional</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-zinc-400">
-                  Ambiente relaxante com produtos de alta qualidade para um resultado perfeito.
+                  URL própria para partilhares com os teus clientes. Moderno, rápido e mobile.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
+              <CardHeader>
+                <CheckCircle2 className="h-12 w-12 text-amber-600 mb-4" />
+                <CardTitle className="text-white">Sem Marcações Duplicadas</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-zinc-400">
+                  Sistema inteligente previne conflitos e sobremarcações automaticamente.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
+              <CardHeader>
+                <Clock className="h-12 w-12 text-amber-600 mb-4" />
+                <CardTitle className="text-white">Horários Personalizados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-zinc-400">
+                  Define os teus horários de funcionamento por dia da semana facilmente.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
+              <CardHeader>
+                <Scissors className="h-12 w-12 text-amber-600 mb-4" />
+                <CardTitle className="text-white">Gestão de Serviços</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-zinc-400">
+                  Cria e edita os teus serviços com preços e durações em minutos.
                 </p>
               </CardContent>
             </Card>
