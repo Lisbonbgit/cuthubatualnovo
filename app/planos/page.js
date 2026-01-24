@@ -91,8 +91,14 @@ export default function PlanosPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`✅ ${data.message}\n\nAgora pode criar a sua barbearia!`);
-        router.push('/setup');
+        const planName = plans.find(p => p.id === planId)?.name || 'Pro';
+        setSuccessData({
+          title: 'Assinatura Ativada!',
+          message: data.message,
+          planName: planName,
+          trialDays: '7 dias'
+        });
+        setShowSuccessModal(true);
       } else {
         alert(`❌ ${data.error}`);
       }
