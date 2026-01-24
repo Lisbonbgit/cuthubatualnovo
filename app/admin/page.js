@@ -2384,6 +2384,113 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
           </form>
         </CardContent>
       </Card>
+
+      {/* WhatsApp Configuration */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Phone className="h-5 w-5 text-green-500" />
+                Notificações WhatsApp
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Configure notificações automáticas por WhatsApp para as marcações
+              </CardDescription>
+            </div>
+            {barbearia.whatsapp_configured && whatsappEnabled && (
+              <span className="bg-green-900/50 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">
+                ✓ Ativo
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {whatsappSuccess && (
+            <div className="bg-green-900/20 border border-green-900 text-green-400 px-4 py-2 rounded mb-4">
+              {whatsappSuccess}
+            </div>
+          )}
+          {whatsappError && (
+            <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded mb-4">
+              {whatsappError}
+            </div>
+          )}
+
+          <form onSubmit={handleWhatsappSubmit} className="space-y-4">
+            <div className="bg-zinc-900 p-4 rounded-lg mb-4">
+              <p className="text-zinc-300 text-sm mb-2">
+                Para enviar notificações por WhatsApp, precisa de uma conta{' '}
+                <a href="https://www.twilio.com/whatsapp" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:underline">
+                  Twilio WhatsApp
+                </a>.
+              </p>
+              <p className="text-zinc-500 text-xs">
+                As credenciais podem ser encontradas na sua consola Twilio.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                type="checkbox"
+                id="whatsappEnabled"
+                checked={whatsappEnabled}
+                onChange={(e) => setWhatsappEnabled(e.target.checked)}
+                className="w-5 h-5 rounded border-zinc-700 bg-zinc-900 text-green-500"
+              />
+              <Label htmlFor="whatsappEnabled" className="text-zinc-300 cursor-pointer">
+                Ativar notificações WhatsApp
+              </Label>
+            </div>
+
+            {whatsappEnabled && (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Account SID (AC...)</Label>
+                  <Input
+                    value={twilioAccountSid}
+                    onChange={(e) => setTwilioAccountSid(e.target.value)}
+                    className="bg-zinc-900 border-zinc-700 text-white font-mono text-sm"
+                    placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Auth Token</Label>
+                  <Input
+                    type="password"
+                    value={twilioAuthToken}
+                    onChange={(e) => setTwilioAuthToken(e.target.value)}
+                    className="bg-zinc-900 border-zinc-700 text-white font-mono text-sm"
+                    placeholder={barbearia.whatsapp_configured ? '••••••••••••••••' : 'Seu Auth Token'}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Número WhatsApp Twilio</Label>
+                  <Input
+                    value={twilioWhatsappNumber}
+                    onChange={(e) => setTwilioWhatsappNumber(e.target.value)}
+                    className="bg-zinc-900 border-zinc-700 text-white"
+                    placeholder="+14155238886"
+                  />
+                  <p className="text-zinc-500 text-xs">
+                    Número WhatsApp fornecido pelo Twilio (com código do país)
+                  </p>
+                </div>
+              </>
+            )}
+
+            <Button 
+              type="submit" 
+              className="bg-green-600 hover:bg-green-700" 
+              disabled={whatsappLoading}
+            >
+              {whatsappLoading ? 'A guardar...' : 'Guardar Configuração WhatsApp'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
