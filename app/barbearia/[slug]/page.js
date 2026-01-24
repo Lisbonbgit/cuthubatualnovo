@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Scissors, Clock, Euro, Calendar, User, X, LogOut, Settings, Phone, Mail, Save } from 'lucide-react';
+import { CancelConfirmModal } from '@/components/ui/modals';
 
 export default function BarbeariaPublicPage() {
   const params = useParams();
@@ -45,6 +46,11 @@ export default function BarbeariaPublicPage() {
   const [clientTab, setClientTab] = useState('marcacoes');
   const [minhasMarcacoes, setMinhasMarcacoes] = useState([]);
   const [loadingMarcacoes, setLoadingMarcacoes] = useState(false);
+
+  // Cancel Modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [marcacaoToCancel, setMarcacaoToCancel] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   // Profile edit state
   const [editNome, setEditNome] = useState('');
