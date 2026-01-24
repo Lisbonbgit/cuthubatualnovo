@@ -809,3 +809,166 @@ function HorariosTab({ horarios, fetchHorarios }) {
     </Card>
   );
 }
+
+function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
+  const router = useRouter();
+  const [nome, setNome] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [emailContacto, setEmailContacto] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (barbearia) {
+      setNome(barbearia.nome || '');
+      setDescricao(barbearia.descricao || '');
+      setTelefone(barbearia.telefone || '');
+      setEmailContacto(barbearia.email_contacto || '');
+    }
+  }, [barbearia]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await fetch('/api/barbearia/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ nome, descricao, telefone, email_contacto: emailContacto })
+      });
+      alert('Configurações atualizadas com sucesso!');
+      fetchSettings();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro ao atualizar configurações');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!barbearia) {
+    return <div className="text-white">A carregar...</div>;
+  }
+
+  const trialDaysLeft = subscription && subscription.trial_end 
+    ? Math.ceil((new Date(subscription.trial_end) - new Date()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  return (
+    <div className="space-y-6">
+      {/* Subscription Info */}
+      {subscription && (
+        <Card className="bg-gradient-to-r from-amber-900/20 to-zinc-800 border-amber-600">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <span>Plano Ativo: {subscription.plan_name}</span>
+              {subscription.status === 'active' && trialDaysLeft > 0 && (
+                <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">
+                  Trial - {trialDaysLeft} dias restantes
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription className="text-zinc-300">
+              {subscription.price}€/mês • Próxima cobrança: {new Date(subscription.next_billing_date).toLocaleDateString('pt-PT')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white"
+                onClick={() => router.push('/planos')}
+              >
+                Gerir Plano
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Barbearia Info */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-white">Informações da Barbearia</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Edita as informações públicas da tua barbearia
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-zinc-300">URL Pública</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={`${window.location.origin}/barbearia/${barbearia.slug}`}
+                  className="bg-zinc-900 border-zinc-700 text-zinc-400"
+                  readOnly
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/barbearia/${barbearia.slug}`);
+                    alert('URL copiada!');
+                  }}
+                  variant="outline"
+                  className="border-zinc-700"
+                >
+                  Copiar
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Nome da Barbearia *</Label>
+              <Input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Descrição / Slogan</Label>
+              <Input
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white"
+                placeholder="Ex: A melhor barbearia de Lisboa"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Telemóvel</Label>
+              <Input
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white"
+                placeholder="+351 912 345 678"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Email de Contacto</Label>
+              <Input
+                value={emailContacto}
+                onChange={(e) => setEmailContacto(e.target.value)}
+                type="email"
+                className="bg-zinc-900 border-zinc-700 text-white"
+                placeholder="contacto@barbearia.pt"
+              />
+            </div>
+
+            <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
+              {loading ? 'A guardar...' : 'Guardar Alterações'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
