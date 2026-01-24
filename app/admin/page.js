@@ -1656,6 +1656,13 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [telefone, setTelefone] = useState('');
   const [emailContacto, setEmailContacto] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Stripe config
+  const [stripePublicKey, setStripePublicKey] = useState('');
+  const [stripeSecretKey, setStripeSecretKey] = useState('');
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeSuccess, setStripeSuccess] = useState('');
+  const [stripeError, setStripeError] = useState('');
 
   useEffect(() => {
     if (barbearia) {
@@ -1663,6 +1670,8 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       setDescricao(barbearia.descricao || '');
       setTelefone(barbearia.telefone || '');
       setEmailContacto(barbearia.email_contacto || '');
+      setStripePublicKey(barbearia.stripe_public_key || '');
+      // Secret key não é retornada por segurança - só mostramos se está configurada
     }
   }, [barbearia]);
 
@@ -1686,6 +1695,40 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       alert('Erro ao atualizar configurações');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStripeSubmit = async (e) => {
+    e.preventDefault();
+    setStripeLoading(true);
+    setStripeSuccess('');
+    setStripeError('');
+
+    try {
+      const response = await fetch('/api/barbearia/stripe-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ 
+          stripe_public_key: stripePublicKey, 
+          stripe_secret_key: stripeSecretKey 
+        })
+      });
+
+      if (response.ok) {
+        setStripeSuccess('Configuração do Stripe guardada com sucesso!');
+        setStripeSecretKey(''); // Limpar por segurança
+        fetchSettings();
+      } else {
+        const data = await response.json();
+        setStripeError(data.error || 'Erro ao guardar configuração');
+      }
+    } catch (error) {
+      setStripeError('Erro ao guardar configuração');
+    } finally {
+      setStripeLoading(false);
     }
   };
 
@@ -1743,7 +1786,7 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
               <Label className="text-zinc-300">URL Pública</Label>
               <div className="flex items-center gap-2">
                 <Input
-                  value={`${window.location.origin}/barbearia/${barbearia.slug}`}
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/barbearia/${barbearia.slug}`}
                   className="bg-zinc-900 border-zinc-700 text-zinc-400"
                   readOnly
                 />
@@ -1804,6 +1847,89 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
 
             <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
               {loading ? 'A guardar...' : 'Guardar Alterações'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Stripe Configuration */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white flex items-center gap-2">
+                <CreditCard className="h-5 w-5 text-amber-500" />
+                Configuração do Stripe
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Configure o Stripe para aceitar pagamentos de planos de assinatura dos seus clientes
+              </CardDescription>
+            </div>
+            {barbearia.stripe_configured && (
+              <span className="bg-green-900/50 text-green-400 px-3 py-1 rounded-full text-xs font-semibold">
+                ✓ Configurado
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {stripeSuccess && (
+            <div className="bg-green-900/20 border border-green-900 text-green-400 px-4 py-2 rounded mb-4">
+              {stripeSuccess}
+            </div>
+          )}
+          {stripeError && (
+            <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded mb-4">
+              {stripeError}
+            </div>
+          )}
+
+          <form onSubmit={handleStripeSubmit} className="space-y-4">
+            <div className="bg-zinc-900 p-4 rounded-lg mb-4">
+              <p className="text-zinc-300 text-sm mb-2">
+                Para configurar o Stripe, precisa de criar uma conta em{' '}
+                <a href="https://stripe.com" target="_blank" rel="noopener noreferrer" className="text-amber-500 hover:underline">
+                  stripe.com
+                </a>
+                {' '}e obter as suas chaves de API.
+              </p>
+              <p className="text-zinc-500 text-xs">
+                As chaves podem ser encontradas em Dashboard → Developers → API keys
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Publishable Key (pk_live_... ou pk_test_...)</Label>
+              <Input
+                value={stripePublicKey}
+                onChange={(e) => setStripePublicKey(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white font-mono text-sm"
+                placeholder="pk_live_xxxxxxxxxxxxxxxx"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Secret Key (sk_live_... ou sk_test_...)</Label>
+              <Input
+                type="password"
+                value={stripeSecretKey}
+                onChange={(e) => setStripeSecretKey(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white font-mono text-sm"
+                placeholder={barbearia.stripe_configured ? '••••••••••••••••' : 'sk_live_xxxxxxxxxxxxxxxx'}
+              />
+              <p className="text-zinc-500 text-xs">
+                {barbearia.stripe_configured 
+                  ? 'Deixe vazio para manter a chave atual. Preencha apenas se quiser alterar.'
+                  : 'A Secret Key é armazenada de forma segura e nunca é exposta.'}
+              </p>
+            </div>
+
+            <Button 
+              type="submit" 
+              className="bg-amber-600 hover:bg-amber-700" 
+              disabled={stripeLoading || (!stripePublicKey && !stripeSecretKey)}
+            >
+              {stripeLoading ? 'A guardar...' : (barbearia.stripe_configured ? 'Atualizar Configuração' : 'Configurar Stripe')}
             </Button>
           </form>
         </CardContent>
