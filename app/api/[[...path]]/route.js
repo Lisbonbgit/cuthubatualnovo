@@ -639,12 +639,130 @@ export async function POST(request, { params }) {
 
       const result = await db.collection('marcacoes').insertOne(marcacao);
 
+      // Enviar notificação WhatsApp se configurado
+      const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(decoded.barbearia_id || servico.barbearia_id) });
+      if (barbearia && barbearia.twilio_account_sid && barbearia.twilio_auth_token && cliente.telemovel) {
+        try {
+          await sendWhatsAppNotification(barbearia, cliente.telemovel, 'booking_confirmation', {
+            customerName: cliente.nome,
+            barbershopName: barbearia.nome,
+            date: data,
+            time: hora
+          });
+        } catch (whatsappError) {
+          console.error('Erro ao enviar WhatsApp:', whatsappError);
+        }
+      }
+
       console.log(`[MOCK EMAIL] Nova marcação manual criada para ${cliente.nome} em ${data} às ${hora}`);
 
       return NextResponse.json({ 
         marcacao: { ...marcacao, _id: result.insertedId },
         message: 'Marcação criada com sucesso'
       });
+    }
+
+    // STRIPE CHECKOUT - Criar sessão de pagamento para plano
+    if (path === 'checkout/create-session') {
+      const { plano_id, success_url, cancel_url, barbearia_id } = body;
+
+      if (!plano_id || !barbearia_id) {
+        return NextResponse.json({ error: 'plano_id e barbearia_id são obrigatórios' }, { status: 400 });
+      }
+
+      // Verificar autenticação do cliente
+      const authHeader = request.headers.get('authorization');
+      if (!authHeader) {
+        return NextResponse.json({ error: 'Token necessário' }, { status: 401 });
+      }
+      const decoded = verifyToken(authHeader.replace('Bearer ', ''));
+      if (!decoded) {
+        return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+      }
+
+      // Buscar a barbearia para obter as chaves Stripe
+      const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(barbearia_id) });
+      if (!barbearia) {
+        return NextResponse.json({ error: 'Barbearia não encontrada' }, { status: 404 });
+      }
+
+      if (!barbearia.stripe_secret_key) {
+        return NextResponse.json({ error: 'Esta barbearia ainda não configurou o Stripe' }, { status: 400 });
+      }
+
+      // Buscar o plano
+      const plano = await db.collection('planos_cliente').findOne({ _id: new ObjectId(plano_id) });
+      if (!plano) {
+        return NextResponse.json({ error: 'Plano não encontrado' }, { status: 404 });
+      }
+
+      // Buscar dados do cliente
+      const cliente = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
+
+      // Criar instância do Stripe com a chave secreta da barbearia
+      const stripe = new Stripe(barbearia.stripe_secret_key);
+
+      // Criar sessão de checkout
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'subscription',
+        line_items: [
+          {
+            price_data: {
+              currency: 'eur',
+              product_data: {
+                name: plano.nome,
+                description: plano.descricao || `Plano de assinatura - ${barbearia.nome}`,
+              },
+              unit_amount: Math.round(plano.preco * 100), // em cêntimos
+              recurring: {
+                interval: 'month',
+                interval_count: 1,
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        customer_email: cliente?.email,
+        metadata: {
+          barbearia_id: barbearia_id,
+          plano_id: plano_id,
+          cliente_id: decoded.userId,
+        },
+        success_url: success_url || `${request.headers.get('origin')}/barbearia/${barbearia.slug}?success=true`,
+        cancel_url: cancel_url || `${request.headers.get('origin')}/barbearia/${barbearia.slug}?canceled=true`,
+      });
+
+      return NextResponse.json({ 
+        sessionId: session.id,
+        url: session.url 
+      });
+    }
+
+    // WHATSAPP - Enviar notificação manual
+    if (path === 'notifications/whatsapp') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { phone, template, variables } = body;
+
+      if (!phone || !template) {
+        return NextResponse.json({ error: 'phone e template são obrigatórios' }, { status: 400 });
+      }
+
+      const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(decoded.barbearia_id) });
+      
+      if (!barbearia || !barbearia.twilio_account_sid || !barbearia.twilio_auth_token) {
+        return NextResponse.json({ error: 'WhatsApp não configurado. Configure nas definições.' }, { status: 400 });
+      }
+
+      try {
+        const result = await sendWhatsAppNotification(barbearia, phone, template, variables);
+        return NextResponse.json({ success: true, messageSid: result.sid });
+      } catch (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
 
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
