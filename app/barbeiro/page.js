@@ -62,6 +62,48 @@ export default function BarbeiroPanel() {
     router.push('/');
   };
 
+  const handleUpdateStatus = async (marcacaoId, newStatus) => {
+    try {
+      await fetch(`/api/marcacoes/${marcacaoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      fetchMarcacoes(localStorage.getItem('token'));
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const getWeekDays = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(monday);
+      day.setDate(monday.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'pendente': return 'bg-yellow-900/50 border-yellow-600 text-yellow-400';
+      case 'aceita': return 'bg-green-900/50 border-green-600 text-green-400';
+      case 'concluida': return 'bg-blue-900/50 border-blue-600 text-blue-400';
+      case 'rejeitada': return 'bg-red-900/50 border-red-600 text-red-400';
+      case 'cancelada': return 'bg-gray-900/50 border-gray-600 text-gray-400';
+      default: return 'bg-zinc-900/50 border-zinc-600 text-zinc-400';
+    }
+  };
+
   const groupMarcacoesByWeek = () => {
     const grouped = {};
     marcacoes.forEach(m => {
