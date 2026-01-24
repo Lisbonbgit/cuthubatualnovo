@@ -13,6 +13,7 @@ import { LogOut, Calendar, User, Save } from 'lucide-react';
 export default function BarbeiroPanel() {
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [marcacoes, setMarcacoes] = useState([]);
   const [viewMode, setViewMode] = useState('calendario');
@@ -20,6 +21,7 @@ export default function BarbeiroPanel() {
   const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
 
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) {
       router.push('/');
