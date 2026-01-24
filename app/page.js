@@ -336,7 +336,7 @@ export default function App() {
               size="lg"
               variant="outline"
               className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-lg px-10 py-7"
-              onClick={() => setActiveTab('login')}
+              onClick={() => setShowAuthModal(true)}
             >
               Já Tenho Conta
             </Button>
