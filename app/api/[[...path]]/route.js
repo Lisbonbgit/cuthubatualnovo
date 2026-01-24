@@ -484,7 +484,7 @@ export async function POST(request, { params }) {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      const { nome, descricao, telefone, email_contacto } = body;
+      const { nome, descricao, telefone, email_contacto, imagem_hero } = body;
 
       await db.collection('barbearias').updateOne(
         { _id: new ObjectId(decoded.barbearia_id) },
@@ -494,6 +494,7 @@ export async function POST(request, { params }) {
             descricao: descricao || '',
             telefone: telefone || '',
             email_contacto: email_contacto || '',
+            imagem_hero: imagem_hero || '',
             atualizado_em: new Date()
           } 
         }
@@ -540,6 +541,47 @@ export async function POST(request, { params }) {
       );
 
       return NextResponse.json({ success: true, message: 'Configuração do Stripe guardada com sucesso' });
+    }
+
+    // BARBEARIA - WhatsApp/Twilio Configuration
+    if (path === 'barbearia/whatsapp-config') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { twilio_account_sid, twilio_auth_token, twilio_whatsapp_number, whatsapp_enabled } = body;
+
+      const updateData = {
+        whatsapp_enabled: whatsapp_enabled || false,
+        atualizado_em: new Date()
+      };
+
+      // Se está a ativar, validar e guardar as credenciais
+      if (whatsapp_enabled) {
+        if (!twilio_account_sid || !twilio_auth_token || !twilio_whatsapp_number) {
+          return NextResponse.json({ error: 'Todas as credenciais Twilio são obrigatórias para ativar WhatsApp' }, { status: 400 });
+        }
+
+        // Validar formato básico
+        if (!twilio_account_sid.startsWith('AC')) {
+          return NextResponse.json({ error: 'Account SID inválido (deve começar com AC)' }, { status: 400 });
+        }
+
+        updateData.twilio_account_sid = twilio_account_sid;
+        updateData.twilio_auth_token = twilio_auth_token;
+        updateData.twilio_whatsapp_number = twilio_whatsapp_number;
+        updateData.whatsapp_configured = true;
+      } else {
+        // Se está a desativar, apenas marcar como desativado
+        updateData.whatsapp_enabled = false;
+      }
+
+      await db.collection('barbearias').updateOne(
+        { _id: new ObjectId(decoded.barbearia_id) },
+        { $set: updateData }
+      );
+
+      return NextResponse.json({ success: true, message: 'Configuração do WhatsApp guardada com sucesso' });
     }
 
     // PLANOS CLIENTE - Create
