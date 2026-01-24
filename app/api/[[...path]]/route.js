@@ -346,6 +346,88 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
+    // SUBSCRIPTIONS - Create (Mock Payment)
+    if (path === 'subscriptions') {
+      const { plan_id, payment_method } = body;
+
+      const plans = {
+        basic: { name: 'Básico', price: 29, barbearias_limit: 1, barbeiros_limit: 2 },
+        pro: { name: 'Pro', price: 49, barbearias_limit: 1, barbeiros_limit: 5 },
+        enterprise: { name: 'Enterprise', price: 99, barbearias_limit: 3, barbeiros_limit: 999 }
+      };
+
+      if (!plans[plan_id]) {
+        return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
+      }
+
+      // Check if user already has active subscription
+      const existingSubscription = await db.collection('subscriptions').findOne({
+        user_id: decoded.userId,
+        status: 'active'
+      });
+
+      if (existingSubscription) {
+        return NextResponse.json({ error: 'Já possui uma assinatura ativa' }, { status: 400 });
+      }
+
+      // Mock payment processing (always succeeds)
+      console.log(`[MOCK PAYMENT] Processing ${plans[plan_id].price}€ for user ${decoded.email}`);
+
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7); // 7 days trial
+
+      const nextBillingDate = new Date(trialEndDate);
+      nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+
+      const subscription = {
+        user_id: decoded.userId,
+        plan_id,
+        plan_name: plans[plan_id].name,
+        price: plans[plan_id].price,
+        status: 'active',
+        trial_end: trialEndDate,
+        next_billing_date: nextBillingDate,
+        payment_method: payment_method || 'mock',
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+
+      const result = await db.collection('subscriptions').insertOne(subscription);
+
+      console.log(`[MOCK PAYMENT] Payment successful! Subscription activated for ${decoded.email}`);
+      console.log(`[MOCK PAYMENT] Trial period: 7 days (ends ${trialEndDate.toLocaleDateString('pt-PT')})`);
+
+      return NextResponse.json({ 
+        subscription: { ...subscription, _id: result.insertedId },
+        message: 'Assinatura ativada com sucesso! Trial de 7 dias iniciado.'
+      });
+    }
+
+    // SUBSCRIPTIONS - Cancel
+    if (path === 'subscriptions/cancel') {
+      const subscription = await db.collection('subscriptions').findOne({
+        user_id: decoded.userId,
+        status: 'active'
+      });
+
+      if (!subscription) {
+        return NextResponse.json({ error: 'Nenhuma assinatura ativa encontrada' }, { status: 404 });
+      }
+
+      await db.collection('subscriptions').updateOne(
+        { _id: subscription._id },
+        { 
+          $set: { 
+            status: 'canceled',
+            canceled_at: new Date(),
+            updated_at: new Date()
+          } 
+        }
+      );
+
+      return NextResponse.json({ message: 'Assinatura cancelada com sucesso' });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
