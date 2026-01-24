@@ -1079,28 +1079,48 @@ function ServicosTab({ servicos, fetchServicos }) {
 
 function ProdutosTab({ produtos, fetchProdutos }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingProduto, setEditingProduto] = useState(null);
   const [nome, setNome] = useState('');
   const [preco, setPreco] = useState('');
   const [descricao, setDescricao] = useState('');
+  const [imagem, setImagem] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setNome('');
+    setPreco('');
+    setDescricao('');
+    setImagem('');
+    setEditingProduto(null);
+  };
+
+  const handleEdit = (produto) => {
+    setEditingProduto(produto);
+    setNome(produto.nome || '');
+    setPreco(produto.preco?.toString() || '');
+    setDescricao(produto.descricao || '');
+    setImagem(produto.imagem || '');
+    setShowForm(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await fetch('/api/produtos', {
-        method: 'POST',
+      const url = editingProduto ? `/api/produtos/${editingProduto._id}` : '/api/produtos';
+      const method = editingProduto ? 'PUT' : 'POST';
+
+      await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ nome, preco, descricao })
+        body: JSON.stringify({ nome, preco, descricao, imagem: imagem || null })
       });
 
-      setNome('');
-      setPreco('');
-      setDescricao('');
+      resetForm();
       setShowForm(false);
       fetchProdutos();
     } catch (error) {
@@ -1132,7 +1152,13 @@ function ProdutosTab({ produtos, fetchProdutos }) {
             <CardTitle className="text-white">Produtos</CardTitle>
             <CardDescription className="text-zinc-400">Gerir produtos para venda</CardDescription>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} className="bg-amber-600 hover:bg-amber-700">
+          <Button 
+            onClick={() => {
+              resetForm();
+              setShowForm(!showForm);
+            }} 
+            className="bg-amber-600 hover:bg-amber-700"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Produto
           </Button>
@@ -1141,42 +1167,80 @@ function ProdutosTab({ produtos, fetchProdutos }) {
       <CardContent>
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Nome do Produto</Label>
-              <Input
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
-                placeholder="Ex: Pomada para Cabelo"
-                required
-              />
+            <h3 className="text-white font-semibold text-lg mb-4">
+              {editingProduto ? 'Editar Produto' : 'Novo Produto'}
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Nome do Produto *</Label>
+                <Input
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Ex: Pomada para Cabelo"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Preço (€) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={preco}
+                  onChange={(e) => setPreco(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="25.00"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-zinc-300">Preço (€)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                value={preco}
-                onChange={(e) => setPreco(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
-                placeholder="25.00"
-                required
-              />
-            </div>
+            
             <div className="space-y-2">
               <Label className="text-zinc-300">Descrição</Label>
-              <Input
+              <textarea
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
-                placeholder="Descrição do produto"
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 min-h-[60px]"
+                placeholder="Descrição do produto..."
               />
             </div>
+
+            <div className="space-y-2">
+              <Label className="text-zinc-300">URL da Imagem</Label>
+              <Input
+                value={imagem}
+                onChange={(e) => setImagem(e.target.value)}
+                className="bg-zinc-800 border-zinc-700 text-white"
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <p className="text-zinc-500 text-xs">Cole o URL de uma imagem do produto (Unsplash, Imgur, etc.)</p>
+              {imagem && (
+                <div className="mt-2">
+                  <p className="text-zinc-400 text-xs mb-1">Pré-visualização:</p>
+                  <img 
+                    src={imagem} 
+                    alt="Preview" 
+                    className="h-20 w-20 object-cover rounded border border-zinc-700"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2">
               <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
-                {loading ? 'A adicionar...' : 'Adicionar'}
+                {loading ? 'A guardar...' : (editingProduto ? 'Guardar Alterações' : 'Adicionar')}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="border-zinc-700"
+                onClick={() => {
+                  resetForm();
+                  setShowForm(false);
+                }}
+              >
                 Cancelar
               </Button>
             </div>
@@ -1184,20 +1248,61 @@ function ProdutosTab({ produtos, fetchProdutos }) {
         )}
 
         {produtos.length === 0 ? (
-          <p className="text-zinc-400 text-center py-8">Nenhum produto registado</p>
+          <div className="text-center py-12">
+            <Package className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <p className="text-zinc-400">Nenhum produto registado</p>
+            <p className="text-zinc-500 text-sm mt-2">Adicione produtos para vender na sua barbearia</p>
+          </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-4">
             {produtos.map((produto) => (
-              <Card key={produto._id} className="bg-zinc-900 border-zinc-700">
-                <CardHeader>
+              <Card key={produto._id} className="bg-zinc-900 border-zinc-700 overflow-hidden">
+                {produto.imagem && (
+                  <div className="h-40 overflow-hidden">
+                    <img 
+                      src={produto.imagem} 
+                      alt={produto.nome}
+                      className="w-full h-full object-cover"
+                      onError={(e) => e.target.parentElement.style.display = 'none'}
+                    />
+                  </div>
+                )}
+                <CardHeader className={produto.imagem ? 'pt-3' : ''}>
                   <CardTitle className="text-white text-lg">{produto.nome}</CardTitle>
-                  <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
+                  {produto.descricao && (
+                    <CardDescription className="text-zinc-400 line-clamp-2">{produto.descricao}</CardDescription>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <div className="flex justify-between items-center">
-                    <span className="text-amber-500 text-xl font-bold">{produto.preco.toFixed(2)}€</span>
-                    <Button
-                      variant="destructive"
+                    <span className="text-amber-500 text-xl font-bold">{produto.preco?.toFixed(2)}€</span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-zinc-700"
+                        onClick={() => handleEdit(produto)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(produto._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
                       size="sm"
                       onClick={() => handleDelete(produto._id)}
                     >
