@@ -234,6 +234,9 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   const [barbeiros, setBarbeiros] = useState([]);
   const [viewMode, setViewMode] = useState('calendario'); // 'calendario' ou 'tabela'
   const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
+  const [selectedMarcacao, setSelectedMarcacao] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     fetchBarbeiros();
@@ -248,6 +251,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   };
 
   const handleUpdateStatus = async (marcacaoId, newStatus) => {
+    setUpdateLoading(true);
     try {
       await fetch(`/api/marcacoes/${marcacaoId}`, {
         method: 'PUT',
@@ -257,10 +261,19 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
         },
         body: JSON.stringify({ status: newStatus })
       });
+      setShowDetailModal(false);
+      setSelectedMarcacao(null);
       fetchMarcacoes();
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setUpdateLoading(false);
     }
+  };
+
+  const openMarcacaoDetail = (marcacao) => {
+    setSelectedMarcacao(marcacao);
+    setShowDetailModal(true);
   };
 
   const getWeekDays = (offset = 0) => {
