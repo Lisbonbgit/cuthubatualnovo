@@ -876,14 +876,37 @@ export async function PUT(request, { params }) {
     // UPDATE Marcação Status
     if (path.startsWith('marcacoes/')) {
       const marcacaoId = path.split('/')[1];
-      const { status } = body;
+      const { status, observacoes } = body;
+
+      const validStatus = ['pendente', 'aceita', 'concluida', 'cancelada', 'rejeitada'];
+      if (!validStatus.includes(status)) {
+        return NextResponse.json({ error: 'Status inválido' }, { status: 400 });
+      }
+
+      const updateData = { 
+        status, 
+        atualizado_em: new Date()
+      };
+
+      if (observacoes) {
+        updateData.observacoes = observacoes;
+      }
+
+      // Registrar quem atualizou
+      if (decoded.tipo === 'barbeiro') {
+        updateData.atualizado_por = 'barbeiro';
+      } else if (decoded.tipo === 'admin') {
+        updateData.atualizado_por = 'admin';
+      }
 
       const result = await db.collection('marcacoes').updateOne(
         { _id: new ObjectId(marcacaoId) },
-        { $set: { status, atualizado_em: new Date() } }
+        { $set: updateData }
       );
 
-      return NextResponse.json({ success: true });
+      console.log(`[MOCK EMAIL] Marcação ${status} - Cliente será notificado`);
+
+      return NextResponse.json({ success: true, message: `Marcação ${status} com sucesso` });
     }
 
     // UPDATE Serviço
