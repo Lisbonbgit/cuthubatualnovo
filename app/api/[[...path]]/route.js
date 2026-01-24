@@ -1028,6 +1028,38 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ user: updatedBarbeiro, success: true });
     }
 
+    // UPDATE Cliente Profile (próprio cliente pode editar o seu perfil)
+    if (path === 'cliente/perfil') {
+      if (decoded.tipo !== 'cliente') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { nome, telemovel, password } = body;
+
+      const updateData = {
+        nome,
+        telemovel: telemovel || '',
+        atualizado_em: new Date()
+      };
+
+      // Se uma nova password foi fornecida, hash e atualizar
+      if (password && password.length >= 6) {
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { $set: updateData }
+      );
+
+      const updatedCliente = await db.collection('utilizadores').findOne(
+        { _id: new ObjectId(decoded.userId) },
+        { projection: { password: 0 } }
+      );
+
+      return NextResponse.json({ user: updatedCliente, success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
