@@ -396,6 +396,182 @@ export default function BarbeiroPanel() {
               </CardContent>
             </Card>
 
+            {/* Modal Nova Marcação Manual */}
+            {showNovaModal && (
+              <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+                <Card className="bg-zinc-800 border-zinc-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle className="text-white">Nova Marcação Manual</CardTitle>
+                        <CardDescription className="text-zinc-400">
+                          Criar marcação para cliente existente ou novo
+                        </CardDescription>
+                      </div>
+                      <button 
+                        onClick={() => { setShowNovaModal(false); resetNovaForm(); }}
+                        className="text-zinc-400 hover:text-white text-2xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {marcacaoError && (
+                      <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded mb-4">
+                        {marcacaoError}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleNovaMarcacao} className="space-y-4">
+                      {/* Selecção Cliente */}
+                      <div className="space-y-3">
+                        <Label className="text-zinc-300">Cliente</Label>
+                        <div className="flex gap-2 mb-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={!novoClienteMode ? 'default' : 'outline'}
+                            onClick={() => setNovoClienteMode(false)}
+                            className={!novoClienteMode ? 'bg-amber-600' : 'border-zinc-700'}
+                          >
+                            Cliente Existente
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={novoClienteMode ? 'default' : 'outline'}
+                            onClick={() => setNovoClienteMode(true)}
+                            className={novoClienteMode ? 'bg-amber-600' : 'border-zinc-700'}
+                          >
+                            Novo Cliente
+                          </Button>
+                        </div>
+
+                        {!novoClienteMode ? (
+                          <select
+                            value={selectedClienteId}
+                            onChange={(e) => setSelectedClienteId(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2"
+                            required
+                          >
+                            <option value="">Selecione um cliente</option>
+                            {clientes.map(c => (
+                              <option key={c._id} value={c._id}>
+                                {c.nome} - {c.email} {c.telemovel ? `(${c.telemovel})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-zinc-900 rounded-lg">
+                            <div className="space-y-1">
+                              <Label className="text-zinc-400 text-sm">Nome *</Label>
+                              <Input
+                                value={novoCliente.nome}
+                                onChange={(e) => setNovoCliente({...novoCliente, nome: e.target.value})}
+                                className="bg-zinc-800 border-zinc-700 text-white"
+                                placeholder="Nome do cliente"
+                                required={novoClienteMode}
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-zinc-400 text-sm">Email</Label>
+                              <Input
+                                type="email"
+                                value={novoCliente.email}
+                                onChange={(e) => setNovoCliente({...novoCliente, email: e.target.value})}
+                                className="bg-zinc-800 border-zinc-700 text-white"
+                                placeholder="email@exemplo.com"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label className="text-zinc-400 text-sm">Telemóvel</Label>
+                              <Input
+                                type="tel"
+                                value={novoCliente.telemovel}
+                                onChange={(e) => setNovoCliente({...novoCliente, telemovel: e.target.value})}
+                                className="bg-zinc-800 border-zinc-700 text-white"
+                                placeholder="+351 912 345 678"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Serviço */}
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Serviço *</Label>
+                        <select
+                          value={selectedServicoId}
+                          onChange={(e) => setSelectedServicoId(e.target.value)}
+                          className="w-full bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2"
+                          required
+                        >
+                          <option value="">Selecione</option>
+                          {servicos.map(s => (
+                            <option key={s._id} value={s._id}>
+                              {s.nome} - {s.preco?.toFixed(2)}€ ({s.duracao}min)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Data e Hora */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-zinc-300">Data *</Label>
+                          <Input
+                            type="date"
+                            value={selectedData}
+                            onChange={(e) => setSelectedData(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="bg-zinc-900 border-zinc-700 text-white"
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-zinc-300">Hora *</Label>
+                          <select
+                            value={selectedHora}
+                            onChange={(e) => setSelectedHora(e.target.value)}
+                            className="w-full bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2"
+                            required
+                          >
+                            <option value="">Selecione</option>
+                            {availableSlots.length === 0 && selectedData && selectedServicoId ? (
+                              <option value="" disabled>Nenhum horário disponível</option>
+                            ) : (
+                              availableSlots.map(slot => (
+                                <option key={slot} value={slot}>{slot}</option>
+                              ))
+                            )}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 pt-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="flex-1 border-zinc-700"
+                          onClick={() => { setShowNovaModal(false); resetNovaForm(); }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          type="submit"
+                          className="flex-1 bg-amber-600 hover:bg-amber-700"
+                          disabled={marcacaoLoading || !selectedHora}
+                        >
+                          {marcacaoLoading ? 'A criar...' : 'Criar Marcação'}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             {/* Vista Calendário */}
             {viewMode === 'calendario' && (
               <Card className="bg-zinc-800 border-zinc-700">
