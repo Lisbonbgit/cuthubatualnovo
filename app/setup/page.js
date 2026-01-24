@@ -55,9 +55,13 @@ export default function SetupPage() {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch('/api/barbearias', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           nome,
           descricao,
@@ -84,7 +88,12 @@ export default function SetupPage() {
           router.push('/');
         }, 2000);
       } else {
-        setError(data.error || 'Erro ao criar barbearia');
+        if (data.requires_subscription) {
+          alert('❌ ' + data.error + '\n\nVais ser redirecionado para escolher um plano.');
+          router.push('/planos');
+        } else {
+          setError(data.error || 'Erro ao criar barbearia');
+        }
       }
     } catch (error) {
       setError('Erro de conexão');
@@ -92,6 +101,14 @@ export default function SetupPage() {
       setLoading(false);
     }
   };
+
+  if (checkingSubscription) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-amber-500 text-xl">A verificar assinatura...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
