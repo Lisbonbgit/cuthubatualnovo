@@ -2031,6 +2031,7 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [descricao, setDescricao] = useState('');
   const [telefone, setTelefone] = useState('');
   const [emailContacto, setEmailContacto] = useState('');
+  const [imagemHero, setImagemHero] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Stripe config
@@ -2040,13 +2041,27 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [stripeSuccess, setStripeSuccess] = useState('');
   const [stripeError, setStripeError] = useState('');
 
+  // WhatsApp/Twilio config
+  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
+  const [twilioAccountSid, setTwilioAccountSid] = useState('');
+  const [twilioAuthToken, setTwilioAuthToken] = useState('');
+  const [twilioWhatsappNumber, setTwilioWhatsappNumber] = useState('');
+  const [whatsappLoading, setWhatsappLoading] = useState(false);
+  const [whatsappSuccess, setWhatsappSuccess] = useState('');
+  const [whatsappError, setWhatsappError] = useState('');
+
   useEffect(() => {
     if (barbearia) {
       setNome(barbearia.nome || '');
       setDescricao(barbearia.descricao || '');
       setTelefone(barbearia.telefone || '');
       setEmailContacto(barbearia.email_contacto || '');
+      setImagemHero(barbearia.imagem_hero || '');
       setStripePublicKey(barbearia.stripe_public_key || '');
+      // WhatsApp
+      setWhatsappEnabled(barbearia.whatsapp_enabled || false);
+      setTwilioAccountSid(barbearia.twilio_account_sid || '');
+      setTwilioWhatsappNumber(barbearia.twilio_whatsapp_number || '');
       // Secret key não é retornada por segurança - só mostramos se está configurada
     }
   }, [barbearia]);
@@ -2058,6 +2073,21 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
     try {
       await fetch('/api/barbearia/settings', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ nome, descricao, telefone, email_contacto: emailContacto, imagem_hero: imagemHero })
+      });
+      alert('Configurações atualizadas com sucesso!');
+      fetchSettings();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro ao atualizar configurações');
+    } finally {
+      setLoading(false);
+    }
+  };
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
