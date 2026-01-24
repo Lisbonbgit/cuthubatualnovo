@@ -905,7 +905,7 @@ export default function BarbeariaPublicPage() {
                                   <Button
                                     size="sm"
                                     variant="destructive"
-                                    onClick={() => handleCancelMarcacao(marcacao._id)}
+                                    onClick={() => openCancelModal(marcacao)}
                                   >
                                     Cancelar
                                   </Button>
