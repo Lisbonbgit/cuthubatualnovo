@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogOut, Calendar, User, Save, Plus } from 'lucide-react';
+import { LogOut, Calendar, User, Save, Plus, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal } from '@/components/ui/modals';
 
 export default function BarbeiroPanel() {
@@ -37,6 +37,10 @@ export default function BarbeiroPanel() {
   const [novoCliente, setNovoCliente] = useState({ nome: '', email: '', telemovel: '' });
   const [marcacaoLoading, setMarcacaoLoading] = useState(false);
   const [marcacaoError, setMarcacaoError] = useState('');
+
+  // Polling state
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
