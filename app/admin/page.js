@@ -157,10 +157,14 @@ export default function AdminPanel() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="marcacoes" className="space-y-6">
-          <TabsList className="bg-zinc-800 grid grid-cols-6 w-full">
+          <TabsList className="bg-zinc-800 grid grid-cols-7 w-full">
             <TabsTrigger value="marcacoes" className="data-[state=active]:bg-amber-600">
               <Calendar className="mr-2 h-4 w-4" />
               Marcações
+            </TabsTrigger>
+            <TabsTrigger value="clientes" className="data-[state=active]:bg-amber-600">
+              <UserCheck className="mr-2 h-4 w-4" />
+              Clientes
             </TabsTrigger>
             <TabsTrigger value="barbeiros" className="data-[state=active]:bg-amber-600">
               <Users className="mr-2 h-4 w-4" />
