@@ -724,15 +724,10 @@ export default function BarbeariaPublicPage() {
                     </ul>
                     <Button 
                       className={`w-full ${index === 1 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-zinc-700 hover:bg-zinc-600'}`}
-                      onClick={() => {
-                        if (!user) {
-                          setShowAuthModal(true);
-                        } else {
-                          alert('Funcionalidade de pagamento em breve!');
-                        }
-                      }}
+                      onClick={() => handlePlanCheckout(plano)}
+                      disabled={checkoutLoading}
                     >
-                      Escolher Plano
+                      {checkoutLoading ? 'A processar...' : 'Escolher Plano'}
                     </Button>
                   </CardContent>
                 </Card>
