@@ -12,6 +12,7 @@ import { LogOut, Plus, Trash2, Users, Scissors, Package, Calendar, Clock, Settin
 
 export default function AdminPanel() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [barbeiros, setBarbeiros] = useState([]);
@@ -24,6 +25,7 @@ export default function AdminPanel() {
   const [subscription, setSubscription] = useState(null);
 
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) {
       router.push('/');
