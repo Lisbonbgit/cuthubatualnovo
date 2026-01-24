@@ -192,6 +192,10 @@ export default function AdminPanel() {
             <MarcacoesTab marcacoes={marcacoes} fetchMarcacoes={() => fetchMarcacoes(localStorage.getItem('token'))} />
           </TabsContent>
 
+          <TabsContent value="clientes">
+            <ClientesTab clientes={clientes} fetchClientes={() => fetchClientes(localStorage.getItem('token'))} />
+          </TabsContent>
+
           <TabsContent value="barbeiros">
             <BarbeirosTab barbeiros={barbeiros} fetchBarbeiros={() => fetchBarbeiros(localStorage.getItem('token'))} />
           </TabsContent>
