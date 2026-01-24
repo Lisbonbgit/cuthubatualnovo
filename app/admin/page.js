@@ -114,6 +114,14 @@ export default function AdminPanel() {
     setSubscription(data.subscription || null);
   };
 
+  const fetchClientes = async (token) => {
+    const response = await fetch('/api/clientes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setClientes(data.clientes || []);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
