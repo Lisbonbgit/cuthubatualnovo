@@ -214,54 +214,132 @@ export default function App() {
         </div>
       </section>
 
-      {/* Auth Section */}
-      <section className="py-20 bg-zinc-950" id="auth">
-        <div className="container max-w-md">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-zinc-800">
-              <TabsTrigger value="login" className="data-[state=active]:bg-amber-600">Entrar</TabsTrigger>
-              <TabsTrigger value="register" className="data-[state=active]:bg-amber-600">Registar</TabsTrigger>
-            </TabsList>
-            <TabsContent value="login">
-              <LoginForm onSuccess={redirectBasedOnUserType} />
-            </TabsContent>
-            <TabsContent value="register">
-              <RegisterForm onSuccess={redirectBasedOnUserType} />
-            </TabsContent>
-          </Tabs>
+      {/* Social Proof Section */}
+      <section className="py-20 bg-zinc-950">
+        <div className="container">
+          <h2 className="text-4xl font-bold text-white text-center mb-16">
+            Junte-se a Centenas de Barbearias em Portugal
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <div>
+              <div className="text-5xl font-bold text-amber-600 mb-2">500+</div>
+              <p className="text-zinc-400">Barbearias Activas</p>
+            </div>
+            <div>
+              <div className="text-5xl font-bold text-amber-600 mb-2">10K+</div>
+              <p className="text-zinc-400">Marcações por Mês</p>
+            </div>
+            <div>
+              <div className="text-5xl font-bold text-amber-600 mb-2">4.9⭐</div>
+              <p className="text-zinc-400">Avaliação Média</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Pricing Teaser */}
       <section className="py-20 bg-zinc-900">
+        <div className="container max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Planos Para Todos os Tamanhos
+            </h2>
+            <p className="text-xl text-zinc-400">
+              Desde pequenas barbearias a grandes redes. Temos o plano ideal para ti.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="bg-zinc-800 border-zinc-700 text-center">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl mb-2">Básico</CardTitle>
+                <div className="text-4xl font-bold text-amber-600">29€</div>
+                <p className="text-zinc-400 text-sm">/mês</p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-zinc-400 text-sm">
+                  <li>✓ 1 Barbearia</li>
+                  <li>✓ 2 Barbeiros</li>
+                  <li>✓ Marcações Ilimitadas</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-b from-amber-900/20 to-zinc-800 border-amber-600 border-2 text-center relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-amber-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  Mais Popular
+                </span>
+              </div>
+              <CardHeader className="pt-8">
+                <CardTitle className="text-white text-2xl mb-2">Pro</CardTitle>
+                <div className="text-4xl font-bold text-amber-600">49€</div>
+                <p className="text-zinc-400 text-sm">/mês</p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-zinc-400 text-sm">
+                  <li>✓ 1 Barbearia</li>
+                  <li>✓ 5 Barbeiros</li>
+                  <li>✓ Suporte Prioritário</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-800 border-zinc-700 text-center">
+              <CardHeader>
+                <CardTitle className="text-white text-2xl mb-2">Enterprise</CardTitle>
+                <div className="text-4xl font-bold text-amber-600">99€</div>
+                <p className="text-zinc-400 text-sm">/mês</p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2 text-zinc-400 text-sm">
+                  <li>✓ 3 Barbearias</li>
+                  <li>✓ Barbeiros Ilimitados</li>
+                  <li>✓ Suporte 24/7</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="text-center mt-8">
+            <Button
+              size="lg"
+              className="bg-amber-600 hover:bg-amber-700 text-lg px-10"
+              onClick={() => router.push('/register/owner')}
+            >
+              Ver Todos os Planos
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-20 bg-zinc-950">
         <div className="container text-center">
-          <h2 className="text-4xl font-bold text-white mb-6">
-            Tens uma Barbearia?
+          <h2 className="text-5xl font-bold text-white mb-6">
+            Pronto Para Modernizar a Tua Barbearia?
           </h2>
           <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-            Cria a tua página online e começa a gerir marcações hoje mesmo
+            Começa hoje com 7 dias grátis. Sem cartão de crédito. Cancela quando quiseres.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               size="lg"
-              className="bg-amber-600 hover:bg-amber-700 text-lg px-8 py-6"
+              className="bg-amber-600 hover:bg-amber-700 text-lg px-10 py-7"
               onClick={() => router.push('/register/owner')}
             >
               <Scissors className="mr-2 h-5 w-5" />
-              Criar Minha Barbearia
+              Começar Agora Grátis
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-lg px-8 py-6"
+              className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-lg px-10 py-7"
               onClick={() => setActiveTab('login')}
             >
               Já Tenho Conta
             </Button>
           </div>
-          <p className="text-amber-500 font-semibold mt-6 text-lg">
-            🎉 7 dias grátis • Sem compromisso
-          </p>
         </div>
       </section>
 
