@@ -987,6 +987,18 @@ export default function BarbeariaPublicPage() {
         </div>
       )}
 
+      {/* Cancel Confirmation Modal */}
+      <CancelConfirmModal
+        isOpen={showCancelModal}
+        onClose={() => {
+          setShowCancelModal(false);
+          setMarcacaoToCancel(null);
+        }}
+        onConfirm={() => handleCancelMarcacao(marcacaoToCancel?._id)}
+        marcacao={marcacaoToCancel}
+        loading={cancelLoading}
+      />
+
       {/* Footer */}
       <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
         <div className="container mx-auto px-4 text-center text-zinc-500">
