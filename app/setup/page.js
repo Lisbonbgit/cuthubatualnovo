@@ -102,7 +102,7 @@ export default function SetupPage() {
     }
   };
 
-  if (checkingSubscription) {
+  if (!mounted || checkingSubscription) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-amber-500 text-xl">A verificar assinatura...</div>
