@@ -601,10 +601,10 @@ export async function GET(request, { params }) {
       return NextResponse.json({ produtos });
     }
 
-    // GET Planos
-    if (path === 'planos') {
+    // GET Planos Cliente
+    if (path === 'planos-cliente') {
       const barbeariaId = searchParams.get('barbearia_id') || decoded.barbearia_id;
-      const planos = await db.collection('planos')
+      const planos = await db.collection('planos_cliente')
         .find({ barbearia_id: barbeariaId })
         .toArray();
       return NextResponse.json({ planos });
