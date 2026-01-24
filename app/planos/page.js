@@ -9,6 +9,7 @@ import { SuccessModal } from '@/components/ui/modals';
 
 export default function PlanosPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(null);
@@ -17,6 +18,7 @@ export default function PlanosPage() {
   const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
+    setMounted(true);
     checkAuth();
     fetchPlans();
   }, []);
