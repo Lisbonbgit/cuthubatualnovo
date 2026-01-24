@@ -11,9 +11,10 @@ import { Calendar, Scissors, Clock, Users, Star, CheckCircle2 } from 'lucide-rea
 
 export default function App() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState('login');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
