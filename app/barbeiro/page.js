@@ -129,7 +129,7 @@ export default function BarbeiroPanel() {
     );
   }
 
-  const weekDays = getWeekDays();
+  const weekDays = getWeekDays(weekOffset);
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   const marcacoesFiltradas = filtroStatus === 'todas' 
