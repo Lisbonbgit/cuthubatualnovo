@@ -4,51 +4,63 @@
 backend:
   - task: "POST /api/barbeiros - Create barber with new fields"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Initial assessment - needs testing for new fields (telemovel, biografia, especialidades)"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Successfully creates barbeiro with all new fields (nome, email, password, telemovel, biografia, especialidades). All fields properly stored and returned. Created test barbeiro 'Miguel Santos' with ID 697420f85fc0d87cedf3c1aa"
 
   - task: "PUT /api/barbeiros/{id} - Edit barber"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Initial assessment - needs testing for update functionality with new fields"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Successfully updates barbeiro with all fields including new ones (telemovel, biografia, especialidades, ativo). Password update also working correctly with proper hashing and exclusion from response. Email uniqueness validation working."
 
   - task: "GET /api/barbeiros - List barbers"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Initial assessment - needs testing to verify new fields are returned"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Successfully returns list of barbeiros with all required fields (nome, email, telemovel, biografia, especialidades, ativo). Found 2 barbeiros including newly created test barbeiro. All new fields properly included in response."
 
   - task: "PUT /api/marcacoes/{id} - Update booking status"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/app/api/[[...path]]/route.js"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "Initial assessment - needs testing for status updates (aceita, concluida, rejeitada)"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Successfully updates marcacao status to all tested values (aceita, concluida, rejeitada). Both admin and barbeiro tokens can update status. Proper authorization and response handling working correctly. All 3/3 status update tests passed."
 
 frontend:
   - task: "Frontend testing not required"
