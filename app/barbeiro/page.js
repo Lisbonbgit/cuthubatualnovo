@@ -23,6 +23,20 @@ export default function BarbeiroPanel() {
   const [selectedMarcacao, setSelectedMarcacao] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  
+  // Nova Marcação Manual
+  const [showNovaModal, setShowNovaModal] = useState(false);
+  const [novoClienteMode, setNovoClienteMode] = useState(false);
+  const [clientes, setClientes] = useState([]);
+  const [servicos, setServicos] = useState([]);
+  const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [selectedServicoId, setSelectedServicoId] = useState('');
+  const [selectedData, setSelectedData] = useState('');
+  const [selectedHora, setSelectedHora] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [novoCliente, setNovoCliente] = useState({ nome: '', email: '', telemovel: '' });
+  const [marcacaoLoading, setMarcacaoLoading] = useState(false);
+  const [marcacaoError, setMarcacaoError] = useState('');
 
   useEffect(() => {
     setMounted(true);
