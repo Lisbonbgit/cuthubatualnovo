@@ -392,6 +392,27 @@ export default function BarbeiroPanel() {
           </TabsList>
 
           <TabsContent value="marcacoes" className="space-y-6">
+            {/* Indicador de Atualização Automática */}
+            <div className="flex items-center justify-between bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2">
+              <div className="flex items-center gap-2 text-sm text-zinc-400">
+                <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-amber-500 animate-pulse' : 'bg-green-500'}`}></div>
+                <span>Atualização automática ativa</span>
+                {lastUpdate && (
+                  <span className="text-zinc-500">• Última atualização: {timeAgo}</span>
+                )}
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleManualRefresh}
+                disabled={isRefreshing}
+                className="text-zinc-400 hover:text-white"
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {isRefreshing ? 'A atualizar...' : 'Atualizar agora'}
+              </Button>
+            </div>
+
             {/* Filtros */}
             <Card className="bg-zinc-800 border-zinc-700">
               <CardContent className="pt-6">
