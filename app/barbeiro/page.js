@@ -14,6 +14,7 @@ export default function BarbeiroPanel() {
   const [marcacoes, setMarcacoes] = useState([]);
   const [viewMode, setViewMode] = useState('calendario');
   const [filtroStatus, setFiltroStatus] = useState('todas');
+  const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
 
   useEffect(() => {
     const token = localStorage.getItem('token');
