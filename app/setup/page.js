@@ -77,19 +77,15 @@ export default function SetupPage() {
 
       if (response.ok) {
         const barbeariaUrl = `/barbearia/${data.barbearia.slug}`;
-        alert(
-          `✅ Barbearia "${nome}" criada com sucesso!\n\n` +
-          `🔗 URL Pública: ${window.location.origin}${barbeariaUrl}\n\n` +
-          `👨‍💼 Login Admin:\n` +
-          `Email: ${emailAdmin}\n` +
-          `Password: [a que definiste]\n\n` +
-          `Vais ser redirecionado para fazer login...`
-        );
-        
-        // Redirect to login
-        setTimeout(() => {
-          router.push('/');
-        }, 2000);
+        setSuccessData({
+          title: 'Barbearia Criada com Sucesso!',
+          message: 'A tua barbearia está online e pronta para receber marcações.',
+          nome: nome,
+          url: `${window.location.origin}${barbeariaUrl}`,
+          slug: data.barbearia.slug,
+          adminEmail: emailAdmin
+        });
+        setShowSuccessModal(true);
       } else {
         if (data.requires_subscription) {
           alert('❌ ' + data.error + '\n\nVais ser redirecionado para escolher um plano.');
