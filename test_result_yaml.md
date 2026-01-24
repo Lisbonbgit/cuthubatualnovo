@@ -141,6 +141,36 @@ metadata:
         agent: "testing"
         comment: "✅ PASSED - Product update with image working perfectly. All fields including image properly updated and verified. Admin authorization working correctly."
 
+  - task: "POST /api/clientes/manual - Create manual client"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for manual client creation by admin and barbeiro"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Manual client creation working perfectly. Admin and barbeiro can create clients with nome (required), email (optional), telemovel (optional). Auto-generates fake email if not provided. Proper validation for required fields and duplicate email prevention. All authorization checks working correctly."
+
+  - task: "POST /api/marcacoes/manual - Create manual booking"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for manual booking creation with proper authorization"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Manual booking creation working perfectly. Admin can create bookings for any barbeiro, barbeiro can only create for themselves (403 correctly returned for other barbeiros). Manual bookings start with status 'aceita'. All validations working: required fields, time conflicts, existing entities. Proper authorization and error handling implemented."
+
 test_plan:
   current_focus: []
   stuck_tasks: []
