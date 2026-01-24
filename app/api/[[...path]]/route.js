@@ -884,7 +884,7 @@ export async function GET(request, { params }) {
 
     // GET Clientes (CRM)
     if (path === 'clientes') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -895,9 +895,24 @@ export async function GET(request, { params }) {
 
       const clienteIds = [...new Set(marcacoes.map(m => m.cliente_id))];
 
+      // Também incluir clientes criados manualmente
+      const clientesManuais = await db.collection('utilizadores')
+        .find({ 
+          barbearia_id: decoded.barbearia_id, 
+          tipo: 'cliente',
+          criado_manualmente: true 
+        })
+        .project({ password: 0 })
+        .toArray();
+
+      const clientesManuaisIds = clientesManuais.map(c => c._id.toString());
+      const todosClienteIds = [...new Set([...clienteIds, ...clientesManuaisIds])];
+
       const clientes = await db.collection('utilizadores')
         .find({ 
-          _id: { $in: clienteIds.map(id => new ObjectId(id)) }
+          _id: { $in: todosClienteIds.map(id => {
+            try { return new ObjectId(id); } catch { return null; }
+          }).filter(id => id !== null) }
         })
         .project({ password: 0 })
         .toArray();
