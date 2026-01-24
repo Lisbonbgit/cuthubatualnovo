@@ -1937,3 +1937,257 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
     </div>
   );
 }
+function PlanosClienteTab({ planos, fetchPlanos, stripeConfigured }) {
+  const [showForm, setShowForm] = useState(false);
+  const [editingPlano, setEditingPlano] = useState(null);
+  const [nome, setNome] = useState('');
+  const [preco, setPreco] = useState('');
+  const [duracao, setDuracao] = useState('30');
+  const [descricao, setDescricao] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const resetForm = () => {
+    setNome('');
+    setPreco('');
+    setDuracao('30');
+    setDescricao('');
+    setEditingPlano(null);
+    setError('');
+  };
+
+  const handleEdit = (plano) => {
+    setEditingPlano(plano);
+    setNome(plano.nome || '');
+    setPreco(plano.preco?.toString() || '');
+    setDuracao(plano.duracao?.toString() || '30');
+    setDescricao(plano.descricao || '');
+    setShowForm(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const url = editingPlano ? `/api/planos-cliente/${editingPlano._id}` : '/api/planos-cliente';
+      const method = editingPlano ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ nome, preco: parseFloat(preco), duracao: parseInt(duracao), descricao })
+      });
+
+      if (response.ok) {
+        resetForm();
+        setShowForm(false);
+        fetchPlanos();
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Erro ao guardar plano');
+      }
+    } catch (error) {
+      setError('Erro ao guardar plano');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Tem certeza que deseja remover este plano?')) return;
+
+    try {
+      await fetch(`/api/planos-cliente/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      fetchPlanos();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  if (!stripeConfigured) {
+    return (
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardContent className="pt-6">
+          <div className="text-center py-12">
+            <CreditCard className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <p className="text-zinc-400 mb-2">Stripe não configurado</p>
+            <p className="text-zinc-500 text-sm mb-4">
+              Para criar planos de assinatura, precisa primeiro configurar o Stripe na aba Configurações.
+            </p>
+            <Button
+              onClick={() => {
+                // Switch to configuracoes tab - this would need to be implemented
+                // For now, just show an alert
+                alert('Vá para a aba Configurações para configurar o Stripe');
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Configurar Stripe
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-zinc-800 border-zinc-700">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="text-white">Planos de Assinatura</CardTitle>
+            <CardDescription className="text-zinc-400">
+              Gerir planos de assinatura para clientes (requer Stripe configurado)
+            </CardDescription>
+          </div>
+          <Button 
+            onClick={() => {
+              resetForm();
+              setShowForm(!showForm);
+            }} 
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Adicionar Plano
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {showForm && (
+          <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
+            <h3 className="text-white font-semibold text-lg mb-4">
+              {editingPlano ? 'Editar Plano' : 'Novo Plano'}
+            </h3>
+            {error && (
+              <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
+                {error}
+              </div>
+            )}
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Nome do Plano *</Label>
+                <Input
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Ex: Plano Mensal"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Preço (€/mês) *</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={preco}
+                  onChange={(e) => setPreco(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="29.99"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Duração (dias) *</Label>
+                <Input
+                  type="number"
+                  value={duracao}
+                  onChange={(e) => setDuracao(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="30"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Descrição</Label>
+              <textarea
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+                className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 min-h-[60px]"
+                placeholder="Descrição do plano..."
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
+                {loading ? 'A guardar...' : (editingPlano ? 'Guardar Alterações' : 'Adicionar')}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="border-zinc-700"
+                onClick={() => {
+                  resetForm();
+                  setShowForm(false);
+                }}
+              >
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        )}
+
+        {planos.length === 0 ? (
+          <div className="text-center py-12">
+            <CreditCard className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <p className="text-zinc-400">Nenhum plano registado</p>
+            <p className="text-zinc-500 text-sm mt-2">Adicione planos de assinatura para os seus clientes</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {planos.map((plano) => (
+              <Card key={plano._id} className="bg-zinc-900 border-zinc-700">
+                <CardHeader>
+                  <CardTitle className="text-white text-lg">{plano.nome}</CardTitle>
+                  {plano.descricao && (
+                    <CardDescription className="text-zinc-400">{plano.descricao}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-400">Preço:</span>
+                      <span className="text-amber-500 text-xl font-bold">{plano.preco?.toFixed(2)}€/mês</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-400">Duração:</span>
+                      <span className="text-white">{plano.duracao} dias</span>
+                    </div>
+                    <div className="flex gap-2 pt-3 border-t border-zinc-800">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 border-zinc-700"
+                        onClick={() => handleEdit(plano)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(plano._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
