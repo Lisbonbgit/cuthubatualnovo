@@ -87,7 +87,63 @@ export default function BarbeiroPanel() {
     });
     const data = await response.json();
     setMarcacoes(data.marcacoes || []);
+    setLastUpdate(new Date());
   };
+
+  // Polling automático a cada 20 segundos
+  useEffect(() => {
+    if (!user) return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const interval = setInterval(async () => {
+      setIsRefreshing(true);
+      try {
+        await fetchMarcacoes(token);
+      } catch (error) {
+        console.error('Erro no polling:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }, 20000); // 20 segundos
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Função para refresh manual
+  const handleManualRefresh = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    setIsRefreshing(true);
+    try {
+      await fetchMarcacoes(token);
+    } catch (error) {
+      console.error('Erro no refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Formatador de tempo relativo
+  const getTimeAgo = (date) => {
+    if (!date) return '';
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return `há ${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `há ${minutes}m`;
+    return `há ${Math.floor(minutes / 60)}h`;
+  };
+
+  const [timeAgo, setTimeAgo] = useState('');
+  
+  useEffect(() => {
+    const updateTimeAgo = () => setTimeAgo(getTimeAgo(lastUpdate));
+    updateTimeAgo();
+    const interval = setInterval(updateTimeAgo, 5000);
+    return () => clearInterval(interval);
+  }, [lastUpdate]);
 
   const fetchClientes = async (token) => {
     const response = await fetch('/api/clientes', {
