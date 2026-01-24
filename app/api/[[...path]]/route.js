@@ -853,11 +853,11 @@ export async function GET(request, { params }) {
         marcacoes.map(async (m) => {
           const cliente = await db.collection('utilizadores').findOne(
             { _id: new ObjectId(m.cliente_id) },
-            { projection: { nome: 1, email: 1 } }
+            { projection: { nome: 1, email: 1, telemovel: 1 } }
           );
           const barbeiro = await db.collection('utilizadores').findOne(
             { _id: new ObjectId(m.barbeiro_id) },
-            { projection: { nome: 1 } }
+            { projection: { nome: 1, foto: 1 } }
           );
           const servico = await db.collection('servicos').findOne(
             { _id: new ObjectId(m.servico_id) },
