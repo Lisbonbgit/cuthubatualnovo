@@ -528,6 +528,123 @@ export async function POST(request, { params }) {
       return NextResponse.json({ plano: { ...plano, _id: result.insertedId } });
     }
 
+    // CLIENTES MANUAL - Criar cliente manualmente (Admin/Barbeiro)
+    if (path === 'clientes/manual') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { nome, email, telemovel } = body;
+
+      if (!nome) {
+        return NextResponse.json({ error: 'Nome é obrigatório' }, { status: 400 });
+      }
+
+      // Verificar se já existe um cliente com este email (se fornecido)
+      if (email) {
+        const existingUser = await db.collection('utilizadores').findOne({ email });
+        if (existingUser) {
+          return NextResponse.json({ error: 'Já existe um cliente com este email' }, { status: 400 });
+        }
+      }
+
+      // Gerar email fictício se não fornecido (para clientes sem email)
+      const emailFinal = email || `cliente_${Date.now()}@manual.local`;
+
+      // Criar cliente sem password (conta manual)
+      const cliente = {
+        email: emailFinal,
+        nome,
+        telemovel: telemovel || '',
+        tipo: 'cliente',
+        barbearia_id: decoded.barbearia_id,
+        criado_manualmente: true,
+        criado_por: decoded.userId,
+        criado_em: new Date()
+      };
+
+      const result = await db.collection('utilizadores').insertOne(cliente);
+      
+      console.log(`[MOCK EMAIL] Novo cliente criado manualmente: ${nome}`);
+
+      return NextResponse.json({ cliente: { ...cliente, _id: result.insertedId } });
+    }
+
+    // MARCAÇÕES MANUAL - Criar marcação manual (Admin/Barbeiro)
+    if (path === 'marcacoes/manual') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { cliente_id, barbeiro_id, servico_id, data, hora } = body;
+
+      // Validações
+      if (!cliente_id || !barbeiro_id || !servico_id || !data || !hora) {
+        return NextResponse.json({ 
+          error: 'Todos os campos são obrigatórios (cliente, barbeiro, serviço, data e hora)' 
+        }, { status: 400 });
+      }
+
+      // Verificar se o cliente existe
+      const cliente = await db.collection('utilizadores').findOne({ _id: new ObjectId(cliente_id) });
+      if (!cliente) {
+        return NextResponse.json({ error: 'Cliente não encontrado' }, { status: 404 });
+      }
+
+      // Verificar se o barbeiro existe
+      const barbeiro = await db.collection('utilizadores').findOne({ _id: new ObjectId(barbeiro_id), tipo: 'barbeiro' });
+      if (!barbeiro) {
+        return NextResponse.json({ error: 'Barbeiro não encontrado' }, { status: 404 });
+      }
+
+      // Se é barbeiro, só pode criar marcações para si próprio
+      if (decoded.tipo === 'barbeiro' && barbeiro_id !== decoded.userId) {
+        return NextResponse.json({ error: 'Só pode criar marcações para si próprio' }, { status: 403 });
+      }
+
+      // Verificar se o serviço existe
+      const servico = await db.collection('servicos').findOne({ _id: new ObjectId(servico_id) });
+      if (!servico) {
+        return NextResponse.json({ error: 'Serviço não encontrado' }, { status: 404 });
+      }
+
+      // Verificar se o horário está disponível
+      const existingMarcacao = await db.collection('marcacoes').findOne({
+        barbeiro_id,
+        data,
+        hora,
+        status: { $nin: ['cancelada', 'rejeitada'] }
+      });
+
+      if (existingMarcacao) {
+        return NextResponse.json({ error: 'Este horário já está ocupado' }, { status: 400 });
+      }
+
+      // Criar marcação com status 'aceita' (já que é manual)
+      const marcacao = {
+        cliente_id,
+        barbeiro_id,
+        servico_id,
+        barbearia_id: decoded.barbearia_id || servico.barbearia_id,
+        data,
+        hora,
+        status: 'aceita', // Marcações manuais já começam aceitas
+        criado_manualmente: true,
+        criado_por: decoded.userId,
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      };
+
+      const result = await db.collection('marcacoes').insertOne(marcacao);
+
+      console.log(`[MOCK EMAIL] Nova marcação manual criada para ${cliente.nome} em ${data} às ${hora}`);
+
+      return NextResponse.json({ 
+        marcacao: { ...marcacao, _id: result.insertedId },
+        message: 'Marcação criada com sucesso'
+      });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
