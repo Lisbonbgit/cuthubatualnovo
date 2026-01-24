@@ -104,6 +104,44 @@ export async function POST(request, { params }) {
     if (path === 'barbearias') {
       const { nome, descricao, email_admin, password_admin } = body;
       
+      // Verificar se usuário tem subscription ativa
+      const authHeader = request.headers.get('authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.substring(7);
+        const decoded = verifyToken(token);
+        
+        if (decoded) {
+          // Verificar subscription
+          const subscription = await db.collection('subscriptions').findOne({
+            user_id: decoded.userId,
+            status: 'active'
+          });
+
+          if (!subscription) {
+            return NextResponse.json({ 
+              error: 'Precisa de uma assinatura ativa para criar uma barbearia',
+              requires_subscription: true 
+            }, { status: 403 });
+          }
+
+          // Verificar limite de barbearias do plano
+          const existingBarbearias = await db.collection('barbearias')
+            .countDocuments({ owner_id: decoded.userId });
+
+          const planLimits = {
+            'basic': 1,
+            'pro': 1,
+            'enterprise': 3
+          };
+
+          if (existingBarbearias >= (planLimits[subscription.plan_id] || 1)) {
+            return NextResponse.json({ 
+              error: 'Limite de barbearias do seu plano atingido' 
+            }, { status: 403 });
+          }
+        }
+      }
+      
       const slug = nome.toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -120,6 +158,7 @@ export async function POST(request, { params }) {
         slug,
         descricao: descricao || '',
         logo: null,
+        owner_id: decoded ? decoded.userId : null,
         criado_em: new Date()
       };
 
