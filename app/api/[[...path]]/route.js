@@ -791,8 +791,8 @@ export async function POST(request, { params }) {
             price_data: {
               currency: 'eur',
               product_data: {
-                name: plano.nome,
-                description: plano.descricao || `Plano de assinatura - ${barbearia.nome}`,
+                name: `${plano.nome} - Assinatura Mensal`,
+                description: `Assinatura mensal: ${plano.descricao || plano.nome} - ${barbearia.nome}. Renovação automática todos os meses.`,
               },
               unit_amount: Math.round(plano.preco * 100), // em cêntimos
               recurring: {
@@ -803,6 +803,9 @@ export async function POST(request, { params }) {
             quantity: 1,
           },
         ],
+        subscription_data: {
+          description: `Assinatura do plano "${plano.nome}" - ${barbearia.nome}`,
+        },
         customer_email: cliente?.email,
         metadata: {
           barbearia_id: barbearia_id,
