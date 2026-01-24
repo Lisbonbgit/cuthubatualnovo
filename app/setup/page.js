@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Scissors } from 'lucide-react';
+import { Scissors, ArrowLeft } from 'lucide-react';
+import { SuccessModal } from '@/components/ui/modals';
 
 export default function SetupPage() {
   const router = useRouter();
