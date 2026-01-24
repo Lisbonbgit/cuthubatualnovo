@@ -254,7 +254,13 @@ export default function AdminPanel() {
           </TabsList>
 
           <TabsContent value="marcacoes">
-            <MarcacoesTab marcacoes={marcacoes} fetchMarcacoes={() => fetchMarcacoes(localStorage.getItem('token'))} />
+            <MarcacoesTab 
+              marcacoes={marcacoes} 
+              fetchMarcacoes={() => fetchMarcacoes(localStorage.getItem('token'))} 
+              lastUpdate={lastUpdate}
+              isRefreshing={isRefreshing}
+              onManualRefresh={handleManualRefresh}
+            />
           </TabsContent>
 
           <TabsContent value="clientes">
