@@ -218,6 +218,22 @@ export default function SetupPage() {
           </p>
         </div>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          router.push('/');
+        }}
+        title={successData?.title || 'Sucesso!'}
+        message={successData?.message}
+        details={successData ? [
+          { label: 'Barbearia', value: successData.nome },
+          { label: 'URL Pública', value: `/barbearia/${successData.slug}` },
+          { label: 'Email Admin', value: successData.adminEmail }
+        ] : null}
+      />
     </div>
   );
 }
