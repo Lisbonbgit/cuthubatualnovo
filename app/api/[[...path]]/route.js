@@ -213,7 +213,7 @@ export async function POST(request, { params }) {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      const { email, password, nome } = body;
+      const { email, password, nome, telemovel, biografia, especialidades } = body;
       
       const existingUser = await db.collection('utilizadores').findOne({ email });
       if (existingUser) {
@@ -225,8 +225,12 @@ export async function POST(request, { params }) {
         email,
         password: hashedPassword,
         nome,
+        telemovel: telemovel || '',
+        biografia: biografia || '',
+        especialidades: especialidades || [],
         tipo: 'barbeiro',
         barbearia_id: decoded.barbearia_id,
+        ativo: true,
         criado_em: new Date()
       };
 
