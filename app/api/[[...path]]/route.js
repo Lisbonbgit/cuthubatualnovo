@@ -971,18 +971,18 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
-    // UPDATE Produto
-    if (path.startsWith('produtos/')) {
+    // UPDATE Plano Cliente
+    if (path.startsWith('planos-cliente/')) {
       if (decoded.tipo !== 'admin') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      const produtoId = path.split('/')[1];
-      const { nome, preco, descricao, imagem } = body;
+      const planoId = path.split('/')[1];
+      const { nome, preco, duracao, descricao } = body;
 
-      await db.collection('produtos').updateOne(
-        { _id: new ObjectId(produtoId) },
-        { $set: { nome, preco: parseFloat(preco), descricao, imagem } }
+      await db.collection('planos_cliente').updateOne(
+        { _id: new ObjectId(planoId) },
+        { $set: { nome, preco: parseFloat(preco), duracao: parseInt(duracao), descricao } }
       );
 
       return NextResponse.json({ success: true });
