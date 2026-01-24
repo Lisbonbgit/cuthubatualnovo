@@ -114,7 +114,7 @@ export default function App() {
               size="lg" 
               variant="outline" 
               className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white text-lg px-10 py-7"
-              onClick={() => setActiveTab('login')}
+              onClick={() => setShowAuthModal(true)}
             >
               Já Tenho Conta
             </Button>
@@ -128,6 +128,36 @@ export default function App() {
           </div>
         </div>
       </section>
+
+      {/* Login Modal */}
+      {showAuthModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle className="text-white">Entrar na Conta</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAuthModal(false)}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  ✕
+                </Button>
+              </div>
+              <CardDescription className="text-zinc-400">
+                Acede ao teu painel de gestão
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <LoginForm onSuccess={(user) => {
+                setShowAuthModal(false);
+                redirectBasedOnUserType(user);
+              }} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Features Section */}
       <section className="py-20 bg-zinc-900">
