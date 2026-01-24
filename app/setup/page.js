@@ -81,7 +81,6 @@ export default function SetupPage() {
           title: 'Barbearia Criada com Sucesso!',
           message: 'A tua barbearia está online e pronta para receber marcações.',
           nome: nome,
-          url: `${window.location.origin}${barbeariaUrl}`,
           slug: data.barbearia.slug,
           adminEmail: emailAdmin
         });
