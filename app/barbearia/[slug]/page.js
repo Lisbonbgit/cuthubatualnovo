@@ -316,6 +316,53 @@ export default function BarbeariaPublicPage() {
     }
   };
 
+  // Função para checkout de plano
+  const handlePlanCheckout = async (plano) => {
+    // Se não está logado, mostrar modal de autenticação
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    // Verificar se o Stripe está configurado
+    if (!barbearia?.stripe_configured) {
+      alert('Esta barbearia ainda não configurou os pagamentos. Por favor, contacte a barbearia.');
+      return;
+    }
+
+    setCheckoutLoading(true);
+
+    try {
+      const response = await fetch('/api/checkout/create-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          plano_id: plano._id,
+          barbearia_id: barbearia._id,
+          success_url: `${window.location.origin}/barbearia/${slug}?success=true&plano=${plano.nome}`,
+          cancel_url: `${window.location.origin}/barbearia/${slug}?canceled=true`
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        // Redirecionar para o Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Erro ao iniciar checkout');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Erro ao processar pagamento');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'pendente': return 'bg-yellow-900/50 text-yellow-400';
