@@ -502,6 +502,32 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true, message: 'Configuração do Stripe guardada com sucesso' });
     }
 
+    // PLANOS CLIENTE - Create
+    if (path === 'planos-cliente') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { nome, preco, duracao, descricao } = body;
+
+      if (!nome || !preco) {
+        return NextResponse.json({ error: 'Nome e preço são obrigatórios' }, { status: 400 });
+      }
+
+      const plano = {
+        nome,
+        preco: parseFloat(preco),
+        duracao: parseInt(duracao) || 30,
+        descricao: descricao || '',
+        barbearia_id: decoded.barbearia_id,
+        ativo: true,
+        criado_em: new Date()
+      };
+
+      const result = await db.collection('planos_cliente').insertOne(plano);
+      return NextResponse.json({ plano: { ...plano, _id: result.insertedId } });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
