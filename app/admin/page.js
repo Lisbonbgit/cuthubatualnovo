@@ -1303,21 +1303,6 @@ function ProdutosTab({ produtos, fetchProdutos }) {
     </Card>
   );
 }
-                      size="sm"
-                      onClick={() => handleDelete(produto._id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
 
 function HorariosTab({ horarios, fetchHorarios }) {
   const [editedHorarios, setEditedHorarios] = useState([]);
