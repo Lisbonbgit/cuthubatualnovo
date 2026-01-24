@@ -2272,6 +2272,29 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label className="text-zinc-300">Imagem de Capa (URL)</Label>
+              <Input
+                value={imagemHero}
+                onChange={(e) => setImagemHero(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white"
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
+              <p className="text-zinc-500 text-xs">
+                URL da imagem que aparece na página pública da sua barbearia. Recomendado: 1920x800 pixels
+              </p>
+              {imagemHero && (
+                <div className="mt-2 rounded-lg overflow-hidden h-32">
+                  <img 
+                    src={imagemHero} 
+                    alt="Preview" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => e.target.style.display = 'none'}
+                  />
+                </div>
+              )}
+            </div>
+
             <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
               {loading ? 'A guardar...' : 'Guardar Alterações'}
             </Button>
