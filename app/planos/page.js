@@ -300,19 +300,21 @@ export default function PlanosPage() {
       </div>
 
       {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => {
-          setShowSuccessModal(false);
-          router.push('/setup');
-        }}
-        title={successData?.title || 'Sucesso!'}
-        message={successData?.message}
-        details={successData ? [
-          { label: 'Plano Escolhido', value: successData.planName },
-          { label: 'Trial Grátis', value: successData.trialDays }
-        ] : null}
-      />
+      {showSuccessModal && successData && (
+        <SuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => {
+            setShowSuccessModal(false);
+            router.push('/setup');
+          }}
+          title={successData.title || 'Sucesso!'}
+          message={successData.message}
+          details={[
+            { label: 'Plano Escolhido', value: successData.planName },
+            { label: 'Trial Grátis', value: successData.trialDays }
+          ]}
+        />
+      )}
     </div>
   );
 }
