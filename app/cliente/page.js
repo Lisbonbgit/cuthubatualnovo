@@ -12,6 +12,7 @@ import { LogOut, Calendar, Plus } from 'lucide-react';
 
 export default function ClientePanel() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [marcacoes, setMarcacoes] = useState([]);
@@ -27,6 +28,7 @@ export default function ClientePanel() {
   const [availableSlots, setAvailableSlots] = useState([]);
 
   useEffect(() => {
+    setMounted(true);
     const token = localStorage.getItem('token');
     if (!token) {
       router.push('/');
