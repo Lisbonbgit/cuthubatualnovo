@@ -694,6 +694,60 @@ export async function GET(request, { params }) {
       });
     }
 
+    // GET Clientes (CRM)
+    if (path === 'clientes') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      // Buscar todos os clientes que já fizeram marcações nesta barbearia
+      const marcacoes = await db.collection('marcacoes')
+        .find({ barbearia_id: decoded.barbearia_id })
+        .toArray();
+
+      const clienteIds = [...new Set(marcacoes.map(m => m.cliente_id))];
+
+      const clientes = await db.collection('utilizadores')
+        .find({ 
+          _id: { $in: clienteIds.map(id => new ObjectId(id)) }
+        })
+        .project({ password: 0 })
+        .toArray();
+
+      // Adicionar estatísticas de cada cliente
+      const clientesComStats = await Promise.all(
+        clientes.map(async (cliente) => {
+          const clienteMarcacoes = await db.collection('marcacoes')
+            .find({ 
+              cliente_id: cliente._id.toString(),
+              barbearia_id: decoded.barbearia_id 
+            })
+            .toArray();
+
+          const totalGasto = await Promise.all(
+            clienteMarcacoes
+              .filter(m => m.status === 'concluida')
+              .map(async (m) => {
+                const servico = await db.collection('servicos').findOne({ _id: new ObjectId(m.servico_id) });
+                return servico ? servico.preco : 0;
+              })
+          );
+
+          return {
+            ...cliente,
+            total_marcacoes: clienteMarcacoes.length,
+            marcacoes_concluidas: clienteMarcacoes.filter(m => m.status === 'concluida').length,
+            total_gasto: totalGasto.reduce((a, b) => a + b, 0),
+            ultima_visita: clienteMarcacoes.length > 0 
+              ? clienteMarcacoes.sort((a, b) => new Date(b.data) - new Date(a.data))[0].data
+              : null
+          };
+        })
+      );
+
+      return NextResponse.json({ clientes: clientesComStats });
+    }
+
     // GET Marcações
     if (path === 'marcacoes') {
       let query = {};
