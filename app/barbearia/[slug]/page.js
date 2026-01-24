@@ -543,26 +543,106 @@ export default function BarbeariaPublicPage() {
       {produtos.length > 0 && (
         <section className="py-16 bg-zinc-900">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">
-              Produtos
-            </h2>
+            <div className="text-center mb-12">
+              <Package className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Produtos
+              </h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                Os melhores produtos para cuidar do seu visual em casa
+              </p>
+            </div>
             <div className="grid md:grid-cols-4 gap-6">
               {produtos.map((produto) => (
-                <Card key={produto._id} className="bg-zinc-800 border-zinc-700 overflow-hidden">
+                <Card key={produto._id} className="bg-zinc-800 border-zinc-700 overflow-hidden hover:border-amber-600 transition-all group">
                   {produto.imagem && (
                     <div 
-                      className="h-48 bg-cover bg-center"
+                      className="h-48 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
                       style={{ backgroundImage: `url(${produto.imagem})` }}
                     />
                   )}
                   <CardHeader>
                     <CardTitle className="text-white">{produto.nome}</CardTitle>
-                    <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
+                    {produto.descricao && (
+                      <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="text-amber-500 font-bold text-2xl">
                       {produto.preco?.toFixed(2)}€
                     </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Plans Section */}
+      {planos.length > 0 && (
+        <section className="py-16 bg-zinc-950">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <CreditCard className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Planos & Assinaturas
+              </h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                Escolha o plano ideal para si e aproveite benefícios exclusivos
+              </p>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+              {planos.map((plano, index) => (
+                <Card 
+                  key={plano._id} 
+                  className={`bg-zinc-800 border-zinc-700 relative overflow-hidden ${
+                    index === 1 ? 'border-amber-600 scale-105 shadow-xl shadow-amber-600/20' : 'hover:border-amber-600'
+                  } transition-all`}
+                >
+                  {index === 1 && (
+                    <div className="absolute top-0 left-0 right-0 bg-amber-600 text-white text-center py-1 text-sm font-semibold">
+                      <Star className="h-4 w-4 inline mr-1" />
+                      Mais Popular
+                    </div>
+                  )}
+                  <CardHeader className={index === 1 ? 'pt-10' : ''}>
+                    <CardTitle className="text-white text-2xl text-center">{plano.nome}</CardTitle>
+                    <div className="text-center mt-4">
+                      <span className="text-4xl font-bold text-amber-500">{plano.preco?.toFixed(2)}€</span>
+                      <span className="text-zinc-400">/{plano.duracao || 30} dias</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {plano.descricao && (
+                      <p className="text-zinc-400 text-center mb-6">{plano.descricao}</p>
+                    )}
+                    <ul className="space-y-3 mb-6">
+                      <li className="flex items-center gap-2 text-zinc-300">
+                        <Check className="h-5 w-5 text-green-500" />
+                        Acesso a todos os serviços
+                      </li>
+                      <li className="flex items-center gap-2 text-zinc-300">
+                        <Check className="h-5 w-5 text-green-500" />
+                        Marcação prioritária
+                      </li>
+                      <li className="flex items-center gap-2 text-zinc-300">
+                        <Check className="h-5 w-5 text-green-500" />
+                        Descontos exclusivos
+                      </li>
+                    </ul>
+                    <Button 
+                      className={`w-full ${index === 1 ? 'bg-amber-600 hover:bg-amber-700' : 'bg-zinc-700 hover:bg-zinc-600'}`}
+                      onClick={() => {
+                        if (!user) {
+                          setShowAuthModal(true);
+                        } else {
+                          alert('Funcionalidade de pagamento em breve!');
+                        }
+                      }}
+                    >
+                      Escolher Plano
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
