@@ -40,6 +40,49 @@ export default function AdminPanel() {
     fetchUserData(token);
   }, []);
 
+  // Polling automático a cada 20 segundos
+  useEffect(() => {
+    if (!user) return;
+    
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const interval = setInterval(async () => {
+      setIsRefreshing(true);
+      try {
+        await Promise.all([
+          fetchMarcacoes(token),
+          fetchClientes(token)
+        ]);
+      } catch (error) {
+        console.error('Erro no polling:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    }, 20000); // 20 segundos
+
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Função para refresh manual
+  const handleManualRefresh = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchMarcacoes(token),
+        fetchClientes(token),
+        fetchBarbeiros(token)
+      ]);
+    } catch (error) {
+      console.error('Erro no refresh:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const fetchUserData = async (token) => {
     try {
       const response = await fetch('/api/auth/me', {
