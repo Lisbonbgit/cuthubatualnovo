@@ -678,12 +678,14 @@ export async function GET(request, { params }) {
         .find({ barbearia_id: barbearia._id.toString() })
         .toArray();
 
-      const planos = await db.collection('planos')
-        .find({ barbearia_id: barbearia._id.toString() })
+      // Buscar planos de cliente (para assinaturas dos clientes)
+      const planos = await db.collection('planos_cliente')
+        .find({ barbearia_id: barbearia._id.toString(), ativo: { $ne: false } })
         .toArray();
 
+      // Buscar apenas barbeiros ativos
       const barbeiros = await db.collection('utilizadores')
-        .find({ barbearia_id: barbearia._id.toString(), tipo: 'barbeiro' })
+        .find({ barbearia_id: barbearia._id.toString(), tipo: 'barbeiro', ativo: { $ne: false } })
         .project({ password: 0 })
         .toArray();
 
