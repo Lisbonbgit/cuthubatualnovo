@@ -368,6 +368,14 @@ export default function BarbeiroPanel() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
+                      onClick={() => setShowNovaModal(true)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Nova Marcação
+                    </Button>
+                    <Button
+                      size="sm"
                       variant={viewMode === 'calendario' ? 'default' : 'outline'}
                       onClick={() => setViewMode('calendario')}
                       className={viewMode === 'calendario' ? 'bg-amber-600' : 'border-zinc-700'}
