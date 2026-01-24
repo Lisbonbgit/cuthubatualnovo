@@ -1137,10 +1137,10 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
-    // DELETE Produto
-    if (path.startsWith('produtos/')) {
-      const produtoId = path.split('/')[1];
-      await db.collection('produtos').deleteOne({ _id: new ObjectId(produtoId) });
+    // DELETE Plano Cliente
+    if (path.startsWith('planos-cliente/')) {
+      const planoId = path.split('/')[1];
+      await db.collection('planos_cliente').deleteOne({ _id: new ObjectId(planoId) });
       return NextResponse.json({ success: true });
     }
 
