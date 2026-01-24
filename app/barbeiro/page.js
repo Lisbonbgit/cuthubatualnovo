@@ -344,46 +344,16 @@ export default function BarbeiroPanel() {
                               .map(marcacao => (
                                 <div
                                   key={marcacao._id}
-                                  className={`border-l-4 p-2 rounded text-xs ${getStatusColor(marcacao.status)}`}
+                                  className={`border-l-4 p-2 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(marcacao.status)}`}
+                                  onClick={() => openMarcacaoDetail(marcacao)}
                                 >
                                   <div className="font-semibold text-base">{marcacao.hora}</div>
                                   <div className="text-white font-medium">{marcacao.cliente?.nome}</div>
                                   <div className="text-xs opacity-80 mb-1">{marcacao.servico?.nome}</div>
-                                  {marcacao.cliente?.email && (
-                                    <div className="text-xs opacity-70">{marcacao.cliente.email}</div>
-                                  )}
                                   <div className="text-xs opacity-80 mt-1">
                                     {marcacao.servico?.duracao} min • {marcacao.servico?.preco}€
                                   </div>
-                                  
-                                  {/* Botões de Ação */}
-                                  {marcacao.status === 'pendente' && (
-                                    <div className="flex gap-1 mt-2">
-                                      <Button
-                                        size="sm"
-                                        className="h-6 text-xs flex-1 bg-green-600 hover:bg-green-700"
-                                        onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
-                                      >
-                                        ✓ Aceitar
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        className="h-6 text-xs flex-1 bg-red-600 hover:bg-red-700"
-                                        onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
-                                      >
-                                        ✗ Rejeitar
-                                      </Button>
-                                    </div>
-                                  )}
-                                  {marcacao.status === 'aceita' && (
-                                    <Button
-                                      size="sm"
-                                      className="h-6 text-xs w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                      onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
-                                    >
-                                      ✓✓ Concluir
-                                    </Button>
-                                  )}
+                                  <div className="text-xs text-zinc-400 mt-1">📞 Clique para ver contacto</div>
                                 </div>
                               ))
                           )}
@@ -394,6 +364,18 @@ export default function BarbeiroPanel() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Modal de Detalhes da Marcação */}
+            <MarcacaoDetailModal
+              isOpen={showDetailModal}
+              onClose={() => {
+                setShowDetailModal(false);
+                setSelectedMarcacao(null);
+              }}
+              marcacao={selectedMarcacao}
+              onUpdateStatus={handleUpdateStatus}
+              loading={updateLoading}
+            />
 
             {/* Vista Tabela */}
             {viewMode === 'tabela' && (
