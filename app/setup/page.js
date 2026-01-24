@@ -11,6 +11,7 @@ import { SuccessModal } from '@/components/ui/modals';
 
 export default function SetupPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [emailAdmin, setEmailAdmin] = useState('');
@@ -22,6 +23,7 @@ export default function SetupPage() {
   const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
+    setMounted(true);
     checkSubscription();
   }, []);
 
