@@ -193,6 +193,14 @@ export default function AdminPanel() {
           <TabsContent value="horarios">
             <HorariosTab horarios={horarios} fetchHorarios={() => fetchHorarios(localStorage.getItem('token'))} />
           </TabsContent>
+
+          <TabsContent value="configuracoes">
+            <ConfiguracoesTab 
+              barbearia={barbeariaSettings} 
+              subscription={subscription}
+              fetchSettings={() => fetchBarbeariaSettings(localStorage.getItem('token'))}
+            />
+          </TabsContent>
         </Tabs>
       </div>
     </div>
