@@ -304,7 +304,7 @@ export default function AdminPanel() {
   );
 }
 
-function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
+function MarcacoesTab({ marcacoes, fetchMarcacoes, lastUpdate, isRefreshing, onManualRefresh }) {
   const [filtroStatus, setFiltroStatus] = useState('todas');
   const [filtroBarbeiro, setFiltroBarbeiro] = useState('todos');
   const [barbeiros, setBarbeiros] = useState([]);
@@ -328,6 +328,25 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   const [novoCliente, setNovoCliente] = useState({ nome: '', email: '', telemovel: '' });
   const [marcacaoLoading, setMarcacaoLoading] = useState(false);
   const [marcacaoError, setMarcacaoError] = useState('');
+
+  // Formatador de tempo relativo
+  const getTimeAgo = (date) => {
+    if (!date) return '';
+    const seconds = Math.floor((new Date() - date) / 1000);
+    if (seconds < 60) return `há ${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `há ${minutes}m`;
+    return `há ${Math.floor(minutes / 60)}h`;
+  };
+
+  const [timeAgo, setTimeAgo] = useState('');
+  
+  useEffect(() => {
+    const updateTimeAgo = () => setTimeAgo(getTimeAgo(lastUpdate));
+    updateTimeAgo();
+    const interval = setInterval(updateTimeAgo, 5000);
+    return () => clearInterval(interval);
+  }, [lastUpdate]);
 
   useEffect(() => {
     fetchBarbeiros();
