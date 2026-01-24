@@ -103,6 +103,15 @@ export default function AdminPanel() {
     setHorarios(data.horarios || []);
   };
 
+  const fetchBarbeariaSettings = async (token) => {
+    const response = await fetch('/api/barbearia/settings', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setBarbeariaSettings(data.barbearia || null);
+    setSubscription(data.subscription || null);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
