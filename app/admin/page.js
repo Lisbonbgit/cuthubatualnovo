@@ -212,6 +212,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   const [filtroBarbeiro, setFiltroBarbeiro] = useState('todos');
   const [barbeiros, setBarbeiros] = useState([]);
   const [viewMode, setViewMode] = useState('calendario'); // 'calendario' ou 'tabela'
+  const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
 
   useEffect(() => {
     fetchBarbeiros();
@@ -241,11 +242,11 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
     }
   };
 
-  const getWeekDays = () => {
+  const getWeekDays = (offset = 0) => {
     const today = new Date();
     const currentDay = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1) + (offset * 7));
 
     const days = [];
     for (let i = 0; i < 7; i++) {
@@ -256,7 +257,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
     return days;
   };
 
-  const weekDays = getWeekDays();
+  const weekDays = getWeekDays(weekOffset);
   const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
   const marcacoesFiltradas = marcacoes.filter(m => {
@@ -292,6 +293,14 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
     }
   };
 
+  // Contar marcações por status
+  const contagem = {
+    todas: marcacoes.length,
+    pendente: marcacoes.filter(m => m.status === 'pendente').length,
+    aceita: marcacoes.filter(m => m.status === 'aceita').length,
+    concluida: marcacoes.filter(m => m.status === 'concluida').length
+  };
+
   return (
     <div className="space-y-4">
       {/* Filtros e Toggle View */}
@@ -307,7 +316,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
                   onClick={() => setFiltroStatus('todas')}
                   className={filtroStatus === 'todas' ? 'bg-amber-600' : 'border-zinc-700'}
                 >
-                  Todas ({marcacoes.length})
+                  Todas ({contagem.todas})
                 </Button>
                 <Button
                   size="sm"
@@ -315,7 +324,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
                   onClick={() => setFiltroStatus('pendente')}
                   className={filtroStatus === 'pendente' ? 'bg-yellow-600' : 'border-zinc-700'}
                 >
-                  ⏳ Pendentes
+                  ⏳ Pendentes ({contagem.pendente})
                 </Button>
                 <Button
                   size="sm"
@@ -323,7 +332,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
                   onClick={() => setFiltroStatus('aceita')}
                   className={filtroStatus === 'aceita' ? 'bg-green-600' : 'border-zinc-700'}
                 >
-                  ✓ Aceitas
+                  ✓ Aceitas ({contagem.aceita})
                 </Button>
                 <Button
                   size="sm"
@@ -331,7 +340,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
                   onClick={() => setFiltroStatus('concluida')}
                   className={filtroStatus === 'concluida' ? 'bg-blue-600' : 'border-zinc-700'}
                 >
-                  ✓✓ Concluídas
+                  ✓✓ Concluídas ({contagem.concluida})
                 </Button>
               </div>
 
@@ -376,9 +385,38 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
       {viewMode === 'calendario' && (
         <Card className="bg-zinc-800 border-zinc-700">
           <CardHeader>
-            <CardTitle className="text-white">
-              Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
-            </CardTitle>
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-white">
+                Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </CardTitle>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-zinc-700"
+                  onClick={() => setWeekOffset(weekOffset - 1)}
+                >
+                  ← Anterior
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-zinc-700"
+                  onClick={() => setWeekOffset(0)}
+                  disabled={weekOffset === 0}
+                >
+                  Hoje
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-zinc-700"
+                  onClick={() => setWeekOffset(weekOffset + 1)}
+                >
+                  Próxima →
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-2">
