@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { LogOut, Plus, Trash2, Users, Scissors, Package, Calendar, Clock, Settings, UserCheck, Phone, Mail, Euro, Edit, CreditCard } from 'lucide-react';
+import { LogOut, Plus, Trash2, Users, Scissors, Package, Calendar, Clock, Settings, UserCheck, Phone, Mail, Euro, Edit, CreditCard, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal } from '@/components/ui/modals';
 
 export default function AdminPanel() {
@@ -25,6 +25,10 @@ export default function AdminPanel() {
   const [planosCliente, setPlanosCliente] = useState([]);
   const [barbeariaSettings, setBarbeariaSettings] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  
+  // Polling state
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
