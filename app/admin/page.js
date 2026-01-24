@@ -598,6 +598,220 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   );
 }
 
+function ClientesTab({ clientes, fetchClientes }) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('ultima_visita'); // 'nome', 'total_gasto', 'total_marcacoes', 'ultima_visita'
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  const clientesFiltrados = clientes
+    .filter(c => 
+      c.nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => {
+      let valueA, valueB;
+      
+      switch(sortBy) {
+        case 'nome':
+          valueA = a.nome || '';
+          valueB = b.nome || '';
+          return sortOrder === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+        case 'total_gasto':
+          valueA = a.total_gasto || 0;
+          valueB = b.total_gasto || 0;
+          break;
+        case 'total_marcacoes':
+          valueA = a.total_marcacoes || 0;
+          valueB = b.total_marcacoes || 0;
+          break;
+        case 'ultima_visita':
+          valueA = a.ultima_visita ? new Date(a.ultima_visita).getTime() : 0;
+          valueB = b.ultima_visita ? new Date(b.ultima_visita).getTime() : 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      return sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
+    });
+
+  const totalGastoGeral = clientes.reduce((sum, c) => sum + (c.total_gasto || 0), 0);
+  const totalMarcacoes = clientes.reduce((sum, c) => sum + (c.total_marcacoes || 0), 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card className="bg-zinc-800 border-zinc-700">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-amber-900/30 rounded-lg">
+                <Users className="h-6 w-6 text-amber-500" />
+              </div>
+              <div>
+                <p className="text-zinc-400 text-sm">Total Clientes</p>
+                <p className="text-white text-2xl font-bold">{clientes.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-zinc-800 border-zinc-700">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-green-900/30 rounded-lg">
+                <Euro className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-zinc-400 text-sm">Receita Total</p>
+                <p className="text-white text-2xl font-bold">{totalGastoGeral.toFixed(2)}€</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-zinc-800 border-zinc-700">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-900/30 rounded-lg">
+                <Calendar className="h-6 w-6 text-blue-500" />
+              </div>
+              <div>
+                <p className="text-zinc-400 text-sm">Total Marcações</p>
+                <p className="text-white text-2xl font-bold">{totalMarcacoes}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 items-center justify-between">
+            <div className="flex-1 max-w-md">
+              <Input
+                placeholder="Pesquisar por nome ou email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-zinc-900 border-zinc-700 text-white"
+              />
+            </div>
+            <div className="flex gap-2 items-center">
+              <span className="text-zinc-400 text-sm">Ordenar por:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-2 text-sm"
+              >
+                <option value="ultima_visita">Última Visita</option>
+                <option value="nome">Nome</option>
+                <option value="total_gasto">Total Gasto</option>
+                <option value="total_marcacoes">Nº Marcações</option>
+              </select>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-zinc-700"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortOrder === 'asc' ? '↑' : '↓'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de Clientes */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-white">Clientes ({clientesFiltrados.length})</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Gestão de clientes que já fizeram marcações
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {clientesFiltrados.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400">
+                {searchTerm ? 'Nenhum cliente encontrado' : 'Ainda não tem clientes'}
+              </p>
+              <p className="text-zinc-500 text-sm mt-2">
+                Os clientes aparecerão aqui após fazerem marcações
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-zinc-700">
+                    <TableHead className="text-zinc-300">Cliente</TableHead>
+                    <TableHead className="text-zinc-300">Contacto</TableHead>
+                    <TableHead className="text-zinc-300 text-center">Marcações</TableHead>
+                    <TableHead className="text-zinc-300 text-center">Concluídas</TableHead>
+                    <TableHead className="text-zinc-300 text-right">Total Gasto</TableHead>
+                    <TableHead className="text-zinc-300">Última Visita</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {clientesFiltrados.map((cliente) => (
+                    <TableRow key={cliente._id} className="border-zinc-700">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center text-white font-bold">
+                            {cliente.nome?.charAt(0).toUpperCase() || 'C'}
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">{cliente.nome}</div>
+                            <div className="text-zinc-500 text-xs">ID: {cliente._id?.slice(-6)}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                            <Mail className="h-3 w-3 text-zinc-500" />
+                            {cliente.email}
+                          </div>
+                          {cliente.telemovel && (
+                            <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                              <Phone className="h-3 w-3 text-zinc-500" />
+                              {cliente.telemovel}
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-white font-semibold">{cliente.total_marcacoes || 0}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="text-green-400 font-semibold">{cliente.marcacoes_concluidas || 0}</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-amber-500 font-bold">{(cliente.total_gasto || 0).toFixed(2)}€</span>
+                      </TableCell>
+                      <TableCell>
+                        {cliente.ultima_visita ? (
+                          <span className="text-zinc-300">
+                            {new Date(cliente.ultima_visita).toLocaleDateString('pt-PT')}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-500">-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
   const [showForm, setShowForm] = useState(false);
   const [editingBarbeiro, setEditingBarbeiro] = useState(null);
