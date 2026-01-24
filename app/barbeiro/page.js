@@ -128,6 +128,18 @@ export default function BarbeiroPanel() {
     );
   }
 
+  const weekDays = getWeekDays();
+  const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  const marcacoesFiltradas = filtroStatus === 'todas' 
+    ? marcacoes 
+    : marcacoes.filter(m => m.status === filtroStatus);
+
+  const getMarcacoesPorDia = (date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return marcacoesFiltradas.filter(m => m.data === dateStr);
+  };
+
   const marcacoesPorSemana = groupMarcacoesByWeek();
 
   return (
@@ -149,23 +161,184 @@ export default function BarbeiroPanel() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 space-y-6">
+        {/* Filtros */}
         <Card className="bg-zinc-800 border-zinc-700">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Calendar className="h-6 w-6" />
-              Minhas Marcações
-            </CardTitle>
-            <CardDescription className="text-zinc-400">
-              Gestão das tuas marcações
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {marcacoes.length === 0 ? (
-              <p className="text-zinc-400 text-center py-8">Nenhuma marcação agendada</p>
-            ) : (
-              <div className="space-y-8">
-                {Object.entries(marcacoesPorSemana).map(([weekStart, weekMarcacoes]) => {
+          <CardContent className="pt-6">
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'todas' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('todas')}
+                  className={filtroStatus === 'todas' ? 'bg-amber-600' : 'border-zinc-700'}
+                >
+                  Todas ({marcacoes.length})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'pendente' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('pendente')}
+                  className={filtroStatus === 'pendente' ? 'bg-yellow-600' : 'border-zinc-700'}
+                >
+                  ⏳ Pendentes
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'aceita' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('aceita')}
+                  className={filtroStatus === 'aceita' ? 'bg-green-600' : 'border-zinc-700'}
+                >
+                  ✓ Aceitas
+                </Button>
+                <Button
+                  size="sm"
+                  variant={filtroStatus === 'concluida' ? 'default' : 'outline'}
+                  onClick={() => setFiltroStatus('concluida')}
+                  className={filtroStatus === 'concluida' ? 'bg-blue-600' : 'border-zinc-700'}
+                >
+                  ✓✓ Concluídas
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'calendario' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('calendario')}
+                  className={viewMode === 'calendario' ? 'bg-amber-600' : 'border-zinc-700'}
+                >
+                  <Calendar className="h-4 w-4 mr-1" />
+                  Calendário
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'tabela' ? 'default' : 'outline'}
+                  onClick={() => setViewMode('tabela')}
+                  className={viewMode === 'tabela' ? 'bg-amber-600' : 'border-zinc-700'}
+                >
+                  Tabela
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Vista Calendário */}
+        {viewMode === 'calendario' && (
+          <Card className="bg-zinc-800 border-zinc-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Calendar className="h-6 w-6" />
+                Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Gestão semanal das tuas marcações
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-7 gap-2">
+                {/* Headers dos dias */}
+                {weekDays.map((day, index) => {
+                  const isToday = day.toDateString() === new Date().toDateString();
+                  return (
+                    <div key={index} className={`text-center p-2 rounded-t ${isToday ? 'bg-amber-600' : 'bg-zinc-700'}`}>
+                      <div className="text-white font-semibold">{diasSemana[day.getDay()]}</div>
+                      <div className={`text-sm ${isToday ? 'text-white' : 'text-zinc-400'}`}>
+                        {day.getDate()}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* Marcações por dia */}
+                {weekDays.map((day, index) => {
+                  const marcacoesDia = getMarcacoesPorDia(day);
+                  const isToday = day.toDateString() === new Date().toDateString();
+
+                  return (
+                    <div 
+                      key={index} 
+                      className={`min-h-[300px] border rounded-b p-2 space-y-2 ${
+                        isToday ? 'border-amber-600 bg-amber-900/10' : 'border-zinc-700 bg-zinc-900/50'
+                      }`}
+                    >
+                      {marcacoesDia.length === 0 ? (
+                        <div className="text-zinc-600 text-xs text-center mt-4">Sem marcações</div>
+                      ) : (
+                        marcacoesDia
+                          .sort((a, b) => a.hora.localeCompare(b.hora))
+                          .map(marcacao => (
+                            <div
+                              key={marcacao._id}
+                              className={`border-l-4 p-2 rounded text-xs ${getStatusColor(marcacao.status)}`}
+                            >
+                              <div className="font-semibold text-base">{marcacao.hora}</div>
+                              <div className="text-white font-medium">{marcacao.cliente?.nome}</div>
+                              <div className="text-xs opacity-80 mb-1">{marcacao.servico?.nome}</div>
+                              {marcacao.cliente?.email && (
+                                <div className="text-xs opacity-70">{marcacao.cliente.email}</div>
+                              )}
+                              <div className="text-xs opacity-80 mt-1">
+                                {marcacao.servico?.duracao} min • {marcacao.servico?.preco}€
+                              </div>
+                              
+                              {/* Botões de Ação */}
+                              {marcacao.status === 'pendente' && (
+                                <div className="flex gap-1 mt-2">
+                                  <Button
+                                    size="sm"
+                                    className="h-6 text-xs flex-1 bg-green-600 hover:bg-green-700"
+                                    onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
+                                  >
+                                    ✓ Aceitar
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    className="h-6 text-xs flex-1 bg-red-600 hover:bg-red-700"
+                                    onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
+                                  >
+                                    ✗ Rejeitar
+                                  </Button>
+                                </div>
+                              )}
+                              {marcacao.status === 'aceita' && (
+                                <Button
+                                  size="sm"
+                                  className="h-6 text-xs w-full mt-2 bg-blue-600 hover:bg-blue-700"
+                                  onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
+                                >
+                                  ✓✓ Concluir
+                                </Button>
+                              )}
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Vista Tabela (original melhorada) */}
+        {viewMode === 'tabela' && (
+          <Card className="bg-zinc-800 border-zinc-700">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Calendar className="h-6 w-6" />
+                Minhas Marcações
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Gestão das tuas marcações
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {marcacoesFiltradas.length === 0 ? (
+                <p className="text-zinc-400 text-center py-8">Nenhuma marcação agendada</p>
+              ) : (
+                <div className="space-y-8">{Object.entries(marcacoesPorSemana).map(([weekStart, weekMarcacoes]) => {
                   const startDate = new Date(weekStart);
                   const endDate = new Date(startDate);
                   endDate.setDate(startDate.getDate() + 6);
