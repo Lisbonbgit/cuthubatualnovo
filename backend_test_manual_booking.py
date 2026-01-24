@@ -28,7 +28,7 @@ ADMIN_CREDENTIALS = {
 }
 
 BARBEIRO_CREDENTIALS = {
-    "email": "joao@premium.pt", 
+    "email": "test.barbeiro@premium.pt", 
     "password": "barbeiro123"
 }
 
