@@ -2088,10 +2088,7 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       setLoading(false);
     }
   };
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
+
   const handleStripeSubmit = async (e) => {
     e.preventDefault();
     setStripeLoading(true);
