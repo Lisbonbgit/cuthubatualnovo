@@ -104,16 +104,20 @@ export async function POST(request, { params }) {
     if (path === 'barbearias') {
       const { nome, descricao, email_admin, password_admin } = body;
       
+      let userId = null;
+      
       // Verificar se usuário tem subscription ativa
       const authHeader = request.headers.get('authorization');
       if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.substring(7);
-        const decoded = verifyToken(token);
+        const decodedToken = verifyToken(token);
         
-        if (decoded) {
+        if (decodedToken) {
+          userId = decodedToken.userId;
+          
           // Verificar subscription
           const subscription = await db.collection('subscriptions').findOne({
-            user_id: decoded.userId,
+            user_id: userId,
             status: 'active'
           });
 
@@ -126,7 +130,7 @@ export async function POST(request, { params }) {
 
           // Verificar limite de barbearias do plano
           const existingBarbearias = await db.collection('barbearias')
-            .countDocuments({ owner_id: decoded.userId });
+            .countDocuments({ owner_id: userId });
 
           const planLimits = {
             'basic': 1,
@@ -158,7 +162,7 @@ export async function POST(request, { params }) {
         slug,
         descricao: descricao || '',
         logo: null,
-        owner_id: decoded ? decoded.userId : null,
+        owner_id: userId,
         criado_em: new Date()
       };
 
