@@ -487,41 +487,14 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
                         .map(marcacao => (
                           <div
                             key={marcacao._id}
-                            className={`border-l-4 p-2 rounded text-xs ${getStatusColor(marcacao.status)}`}
+                            className={`border-l-4 p-2 rounded text-xs cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(marcacao.status)}`}
+                            onClick={() => openMarcacaoDetail(marcacao)}
                           >
                             <div className="font-semibold">{marcacao.hora}</div>
                             <div className="text-white">{marcacao.cliente?.nome}</div>
                             <div className="text-xs opacity-80">{marcacao.servico?.nome}</div>
                             <div className="text-xs opacity-80">{marcacao.barbeiro?.nome}</div>
-                            
-                            {/* Botões de Ação */}
-                            {marcacao.status === 'pendente' && (
-                              <div className="flex gap-1 mt-2">
-                                <Button
-                                  size="sm"
-                                  className="h-6 text-xs bg-green-600 hover:bg-green-700"
-                                  onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
-                                >
-                                  ✓
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  className="h-6 text-xs bg-red-600 hover:bg-red-700"
-                                  onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
-                                >
-                                  ✗
-                                </Button>
-                              </div>
-                            )}
-                            {marcacao.status === 'aceita' && (
-                              <Button
-                                size="sm"
-                                className="h-6 text-xs w-full mt-2 bg-blue-600 hover:bg-blue-700"
-                                onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
-                              >
-                                Concluir
-                              </Button>
-                            )}
+                            <div className="text-xs text-zinc-400 mt-1">Clique para detalhes</div>
                           </div>
                         ))
                     )}
@@ -532,6 +505,18 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Modal de Detalhes da Marcação */}
+      <MarcacaoDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedMarcacao(null);
+        }}
+        marcacao={selectedMarcacao}
+        onUpdateStatus={handleUpdateStatus}
+        loading={updateLoading}
+      />
 
       {/* Vista Tabela (original) */}
       {viewMode === 'tabela' && (
