@@ -461,6 +461,46 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true, message: 'Configurações atualizadas' });
     }
 
+    // BARBEARIA - Stripe Configuration
+    if (path === 'barbearia/stripe-config') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { stripe_public_key, stripe_secret_key } = body;
+
+      if (!stripe_public_key || !stripe_secret_key) {
+        return NextResponse.json({ error: 'Chaves do Stripe são obrigatórias' }, { status: 400 });
+      }
+
+      // Validar formato das chaves
+      if (!stripe_public_key.startsWith('pk_')) {
+        return NextResponse.json({ error: 'Publishable Key inválida (deve começar com pk_)' }, { status: 400 });
+      }
+
+      if (!stripe_secret_key.startsWith('sk_')) {
+        return NextResponse.json({ error: 'Secret Key inválida (deve começar com sk_)' }, { status: 400 });
+      }
+
+      const updateData = {
+        stripe_public_key,
+        stripe_configured: true,
+        atualizado_em: new Date()
+      };
+
+      // Só atualizar a secret key se foi fornecida (por segurança)
+      if (stripe_secret_key && stripe_secret_key.length > 10) {
+        updateData.stripe_secret_key = stripe_secret_key;
+      }
+
+      await db.collection('barbearias').updateOne(
+        { _id: new ObjectId(decoded.barbearia_id) },
+        { $set: updateData }
+      );
+
+      return NextResponse.json({ success: true, message: 'Configuração do Stripe guardada com sucesso' });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
