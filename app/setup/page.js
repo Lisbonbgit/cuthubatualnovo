@@ -16,6 +16,38 @@ export default function SetupPage() {
   const [passwordAdmin, setPasswordAdmin] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checkingSubscription, setCheckingSubscription] = useState(true);
+
+  useEffect(() => {
+    checkSubscription();
+  }, []);
+
+  const checkSubscription = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/subscriptions/status', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.has_subscription || data.subscription.status !== 'active') {
+          // No active subscription, redirect to plans
+          router.push('/planos');
+          return;
+        }
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+    } finally {
+      setCheckingSubscription(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
