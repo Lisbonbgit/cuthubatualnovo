@@ -48,6 +48,9 @@ export default function BarbeariaPublicPage() {
   const [minhasMarcacoes, setMinhasMarcacoes] = useState([]);
   const [loadingMarcacoes, setLoadingMarcacoes] = useState(false);
 
+  // Checkout state
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // Cancel Modal state
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [marcacaoToCancel, setMarcacaoToCancel] = useState(null);
