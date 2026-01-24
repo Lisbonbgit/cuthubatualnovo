@@ -628,7 +628,47 @@ export default function BarbeariaPublicPage() {
         </section>
       )}
 
-      {/* Barbers Section */}
+      {/* Products Section - Depois dos Planos */}
+      {produtos.length > 0 && (
+        <section className="py-16 bg-zinc-900">
+          <div className="container mx-auto px-4">
+            <div className="text-center mb-12">
+              <Package className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Produtos
+              </h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                Os melhores produtos para cuidar do seu visual em casa
+              </p>
+            </div>
+            <div className="grid md:grid-cols-4 gap-6">
+              {produtos.map((produto) => (
+                <Card key={produto._id} className="bg-zinc-800 border-zinc-700 overflow-hidden hover:border-amber-600 transition-all group">
+                  {produto.imagem && (
+                    <div 
+                      className="h-48 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
+                      style={{ backgroundImage: `url(${produto.imagem})` }}
+                    />
+                  )}
+                  <CardHeader>
+                    <CardTitle className="text-white">{produto.nome}</CardTitle>
+                    {produto.descricao && (
+                      <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-amber-500 font-bold text-2xl">
+                      {produto.preco?.toFixed(2)}€
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Barbers Section - Por último */}
       {barbeiros.length > 0 && (
         <section className="py-16 bg-zinc-950">
           <div className="container mx-auto px-4">
@@ -689,46 +729,6 @@ export default function BarbeariaPublicPage() {
                     >
                       Marcar com {barbeiro.nome.split(' ')[0]}
                     </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Products Section */}
-      {produtos.length > 0 && (
-        <section className="py-16 bg-zinc-900">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <Package className="h-12 w-12 text-amber-600 mx-auto mb-4" />
-              <h2 className="text-4xl font-bold text-white mb-4">
-                Produtos
-              </h2>
-              <p className="text-zinc-400 max-w-2xl mx-auto">
-                Os melhores produtos para cuidar do seu visual em casa
-              </p>
-            </div>
-            <div className="grid md:grid-cols-4 gap-6">
-              {produtos.map((produto) => (
-                <Card key={produto._id} className="bg-zinc-800 border-zinc-700 overflow-hidden hover:border-amber-600 transition-all group">
-                  {produto.imagem && (
-                    <div 
-                      className="h-48 bg-cover bg-center group-hover:scale-105 transition-transform duration-300"
-                      style={{ backgroundImage: `url(${produto.imagem})` }}
-                    />
-                  )}
-                  <CardHeader>
-                    <CardTitle className="text-white">{produto.nome}</CardTitle>
-                    {produto.descricao && (
-                      <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-amber-500 font-bold text-2xl">
-                      {produto.preco?.toFixed(2)}€
-                    </div>
                   </CardContent>
                 </Card>
               ))}
