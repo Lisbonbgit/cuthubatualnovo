@@ -229,13 +229,44 @@ export default function BarbeiroPanel() {
         {viewMode === 'calendario' && (
           <Card className="bg-zinc-800 border-zinc-700">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Calendar className="h-6 w-6" />
-                Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
-              </CardTitle>
-              <CardDescription className="text-zinc-400">
-                Gestão semanal das tuas marcações
-              </CardDescription>
+              <div className="flex justify-between items-center flex-wrap gap-4">
+                <div>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Calendar className="h-6 w-6" />
+                    Semana: {weekDays[0].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short' })} - {weekDays[6].toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })}
+                  </CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Gestão semanal das tuas marcações
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-zinc-700"
+                    onClick={() => setWeekOffset(weekOffset - 1)}
+                  >
+                    ← Anterior
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-zinc-700"
+                    onClick={() => setWeekOffset(0)}
+                    disabled={weekOffset === 0}
+                  >
+                    Hoje
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-zinc-700"
+                    onClick={() => setWeekOffset(weekOffset + 1)}
+                  >
+                    Próxima →
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-7 gap-2">
