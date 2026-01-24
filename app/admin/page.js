@@ -129,7 +129,7 @@ export default function AdminPanel() {
     router.push('/');
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-amber-500 text-xl">A carregar...</div>
