@@ -432,6 +432,30 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Assinatura cancelada com sucesso' });
     }
 
+    // BARBEARIA - Update Settings
+    if (path === 'barbearia/settings') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { nome, descricao, telefone, email_contacto } = body;
+
+      await db.collection('barbearias').updateOne(
+        { _id: new ObjectId(decoded.barbearia_id) },
+        { 
+          $set: { 
+            nome,
+            descricao: descricao || '',
+            telefone: telefone || '',
+            email_contacto: email_contacto || '',
+            atualizado_em: new Date()
+          } 
+        }
+      );
+
+      return NextResponse.json({ success: true, message: 'Configurações atualizadas' });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
