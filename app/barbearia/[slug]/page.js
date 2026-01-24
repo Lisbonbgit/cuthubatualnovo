@@ -455,7 +455,7 @@ export default function BarbeariaPublicPage() {
         <div 
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1920&q=80)',
+            backgroundImage: `url(${barbearia.imagem_hero || 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=1920&q=80'})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
