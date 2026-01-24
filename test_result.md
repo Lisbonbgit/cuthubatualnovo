@@ -245,3 +245,31 @@ http://localhost:3000/setup
 
 **Última Actualização:** 23 de Janeiro de 2026  
 **Versão:** 1.0.0 (MVP Core Completo)
+
+---
+
+## Testing Protocol
+
+### Communication Protocol with Testing Sub-agent
+When the testing agent is invoked, the main agent should:
+1. Provide clear context about what needs to be tested
+2. Share relevant credentials and API endpoints
+3. Wait for the testing agent to complete and report back
+4. Review findings and implement necessary fixes
+
+### Backend Testing Instructions
+For testing the new manual booking feature:
+
+**New Endpoints to Test:**
+1. `POST /api/clientes/manual` - Create manual client (admin/barbeiro only)
+2. `POST /api/marcacoes/manual` - Create manual booking (admin/barbeiro only)
+
+**Test Credentials:**
+- Admin: admin@premium.pt / admin123
+- Barbeiro: joao@premium.pt / barbeiro123
+
+**Expected Behavior:**
+- Admin can create clients and bookings for any barber
+- Barber can create clients and bookings only for themselves
+- Manual bookings start with status 'aceita'
+- Manual clients have `criado_manualmente: true` flag
