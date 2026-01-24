@@ -665,6 +665,34 @@ export async function GET(request, { params }) {
       return NextResponse.json({ plans });
     }
 
+    // GET Barbearia Settings
+    if (path === 'barbearia/settings') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const barbearia = await db.collection('barbearias').findOne({
+        _id: new ObjectId(decoded.barbearia_id)
+      });
+
+      if (!barbearia) {
+        return NextResponse.json({ error: 'Barbearia não encontrada' }, { status: 404 });
+      }
+
+      // Get subscription if owner_id exists
+      let subscription = null;
+      if (barbearia.owner_id) {
+        subscription = await db.collection('subscriptions').findOne({
+          user_id: barbearia.owner_id
+        }, { sort: { created_at: -1 } });
+      }
+
+      return NextResponse.json({ 
+        barbearia,
+        subscription 
+      });
+    }
+
     // GET Marcações
     if (path === 'marcacoes') {
       let query = {};
