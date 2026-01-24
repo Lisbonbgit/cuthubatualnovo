@@ -61,7 +61,11 @@ export default function BarbeiroPanel() {
           return;
         }
         setUser(data.user);
-        await fetchMarcacoes(token);
+        await Promise.all([
+          fetchMarcacoes(token),
+          fetchClientes(token),
+          fetchServicos(token)
+        ]);
       } else {
         router.push('/');
       }
