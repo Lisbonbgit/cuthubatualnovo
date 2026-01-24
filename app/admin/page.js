@@ -1170,18 +1170,37 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
 
 function ServicosTab({ servicos, fetchServicos }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingServico, setEditingServico] = useState(null);
   const [nome, setNome] = useState('');
   const [preco, setPreco] = useState('');
   const [duracao, setDuracao] = useState('30');
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setNome('');
+    setPreco('');
+    setDuracao('30');
+    setEditingServico(null);
+  };
+
+  const handleEdit = (servico) => {
+    setEditingServico(servico);
+    setNome(servico.nome || '');
+    setPreco(servico.preco?.toString() || '');
+    setDuracao(servico.duracao?.toString() || '30');
+    setShowForm(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      await fetch('/api/servicos', {
-        method: 'POST',
+      const url = editingServico ? `/api/servicos/${editingServico._id}` : '/api/servicos';
+      const method = editingServico ? 'PUT' : 'POST';
+
+      await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1189,9 +1208,7 @@ function ServicosTab({ servicos, fetchServicos }) {
         body: JSON.stringify({ nome, preco, duracao })
       });
 
-      setNome('');
-      setPreco('');
-      setDuracao('30');
+      resetForm();
       setShowForm(false);
       fetchServicos();
     } catch (error) {
@@ -1223,7 +1240,13 @@ function ServicosTab({ servicos, fetchServicos }) {
             <CardTitle className="text-white">Serviços</CardTitle>
             <CardDescription className="text-zinc-400">Gerir serviços da barbearia</CardDescription>
           </div>
-          <Button onClick={() => setShowForm(!showForm)} className="bg-amber-600 hover:bg-amber-700">
+          <Button 
+            onClick={() => {
+              resetForm();
+              setShowForm(!showForm);
+            }} 
+            className="bg-amber-600 hover:bg-amber-700"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Adicionar Serviço
           </Button>
@@ -1232,6 +1255,9 @@ function ServicosTab({ servicos, fetchServicos }) {
       <CardContent>
         {showForm && (
           <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
+            <h3 className="text-white font-semibold text-lg mb-4">
+              {editingServico ? 'Editar Serviço' : 'Novo Serviço'}
+            </h3>
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-zinc-300">Nome do Serviço</Label>
@@ -1268,9 +1294,17 @@ function ServicosTab({ servicos, fetchServicos }) {
             </div>
             <div className="flex gap-2">
               <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
-                {loading ? 'A adicionar...' : 'Adicionar'}
+                {loading ? 'A guardar...' : (editingServico ? 'Guardar Alterações' : 'Adicionar')}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                className="border-zinc-700"
+                onClick={() => {
+                  resetForm();
+                  setShowForm(false);
+                }}
+              >
                 Cancelar
               </Button>
             </div>
@@ -1278,7 +1312,11 @@ function ServicosTab({ servicos, fetchServicos }) {
         )}
 
         {servicos.length === 0 ? (
-          <p className="text-zinc-400 text-center py-8">Nenhum serviço registado</p>
+          <div className="text-center py-12">
+            <Scissors className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+            <p className="text-zinc-400">Nenhum serviço registado</p>
+            <p className="text-zinc-500 text-sm mt-2">Adicione serviços que oferece na sua barbearia</p>
+          </div>
         ) : (
           <Table>
             <TableHeader>
@@ -1292,17 +1330,27 @@ function ServicosTab({ servicos, fetchServicos }) {
             <TableBody>
               {servicos.map((servico) => (
                 <TableRow key={servico._id} className="border-zinc-700">
-                  <TableCell className="text-white">{servico.nome}</TableCell>
-                  <TableCell className="text-white">{servico.preco.toFixed(2)}€</TableCell>
-                  <TableCell className="text-white">{servico.duracao} min</TableCell>
+                  <TableCell className="text-white font-medium">{servico.nome}</TableCell>
+                  <TableCell className="text-amber-500 font-semibold">{servico.preco?.toFixed(2)}€</TableCell>
+                  <TableCell className="text-zinc-300">{servico.duracao} min</TableCell>
                   <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(servico._id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-zinc-700"
+                        onClick={() => handleEdit(servico)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(servico._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
