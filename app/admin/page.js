@@ -19,6 +19,7 @@ export default function AdminPanel() {
   const [produtos, setProdutos] = useState([]);
   const [marcacoes, setMarcacoes] = useState([]);
   const [horarios, setHorarios] = useState([]);
+  const [clientes, setClientes] = useState([]);
   const [barbeariaSettings, setBarbeariaSettings] = useState(null);
   const [subscription, setSubscription] = useState(null);
 
