@@ -8,13 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Scissors, Clock, Euro, Calendar, MapPin, Phone, Mail, User, Lock } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Scissors, Clock, Euro, Calendar, User, X, LogOut, Settings, Phone, Mail, Save } from 'lucide-react';
 
 export default function BarbeariaPublicPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug;
 
+  const [mounted, setMounted] = useState(false);
   const [barbearia, setBarbearia] = useState(null);
   const [servicos, setServicos] = useState([]);
   const [produtos, setProdutos] = useState([]);
@@ -24,8 +26,10 @@ export default function BarbeariaPublicPage() {
 
   // Auth state
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [authMode, setAuthMode] = useState('login');
   const [user, setUser] = useState(null);
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
 
   // Booking state
   const [showBookingForm, setShowBookingForm] = useState(false);
@@ -34,8 +38,24 @@ export default function BarbeariaPublicPage() {
   const [selectedData, setSelectedData] = useState('');
   const [selectedHora, setSelectedHora] = useState('');
   const [availableSlots, setAvailableSlots] = useState([]);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+
+  // Client Panel state
+  const [showClientPanel, setShowClientPanel] = useState(false);
+  const [clientTab, setClientTab] = useState('marcacoes');
+  const [minhasMarcacoes, setMinhasMarcacoes] = useState([]);
+  const [loadingMarcacoes, setLoadingMarcacoes] = useState(false);
+
+  // Profile edit state
+  const [editNome, setEditNome] = useState('');
+  const [editTelemovel, setEditTelemovel] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState('');
+  const [profileError, setProfileError] = useState('');
 
   useEffect(() => {
+    setMounted(true);
     if (slug) {
       fetchBarbeariaData();
       checkAuth();
@@ -57,6 +77,8 @@ export default function BarbeariaPublicPage() {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
+        setEditNome(data.user.nome || '');
+        setEditTelemovel(data.user.telemovel || '');
       } else {
         localStorage.removeItem('token');
       }
@@ -88,18 +110,40 @@ export default function BarbeariaPublicPage() {
     }
   };
 
+  const fetchMinhasMarcacoes = async () => {
+    setLoadingMarcacoes(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/marcacoes', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setMinhasMarcacoes(data.marcacoes || []);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoadingMarcacoes(false);
+    }
+  };
+
   const handleAuth = async (e, mode) => {
     e.preventDefault();
+    setAuthError('');
+    setAuthLoading(true);
+
     const formData = new FormData(e.target);
     const email = formData.get('email');
     const password = formData.get('password');
     const nome = formData.get('nome');
+    const telemovel = formData.get('telemovel');
 
     try {
       const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
       const body = mode === 'login' 
         ? { email, password }
-        : { nome, email, password, tipo: 'cliente', barbearia_id: barbearia._id };
+        : { nome, email, password, telemovel, tipo: 'cliente', barbearia_id: barbearia._id };
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -112,14 +156,25 @@ export default function BarbeariaPublicPage() {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         setUser(data.user);
+        setEditNome(data.user.nome || '');
+        setEditTelemovel(data.user.telemovel || '');
         setShowAuthModal(false);
         setShowBookingForm(true);
       } else {
-        alert(data.error || 'Erro na autenticação');
+        setAuthError(data.error || 'Erro na autenticação');
       }
     } catch (error) {
-      alert('Erro de conexão');
+      setAuthError('Erro de conexão');
+    } finally {
+      setAuthLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+    setShowClientPanel(false);
+    setMinhasMarcacoes([]);
   };
 
   const fetchAvailableSlots = async () => {
@@ -164,13 +219,16 @@ export default function BarbeariaPublicPage() {
       });
 
       if (response.ok) {
-        alert('Marcação criada com sucesso!');
-        setShowBookingForm(false);
-        setSelectedBarbeiro('');
-        setSelectedServico('');
-        setSelectedData('');
-        setSelectedHora('');
-        setAvailableSlots([]);
+        setBookingSuccess(true);
+        setTimeout(() => {
+          setShowBookingForm(false);
+          setBookingSuccess(false);
+          setSelectedBarbeiro('');
+          setSelectedServico('');
+          setSelectedData('');
+          setSelectedHora('');
+          setAvailableSlots([]);
+        }, 2000);
       } else {
         const data = await response.json();
         alert(data.error || 'Erro ao criar marcação');
@@ -180,7 +238,88 @@ export default function BarbeariaPublicPage() {
     }
   };
 
-  if (loading) {
+  const handleCancelMarcacao = async (marcacaoId) => {
+    if (!confirm('Tem certeza que deseja cancelar esta marcação?')) return;
+
+    try {
+      const response = await fetch(`/api/marcacoes/${marcacaoId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status: 'cancelada' })
+      });
+
+      if (response.ok) {
+        fetchMinhasMarcacoes();
+      } else {
+        alert('Erro ao cancelar marcação');
+      }
+    } catch (error) {
+      alert('Erro ao cancelar marcação');
+    }
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileLoading(true);
+    setProfileSuccess('');
+    setProfileError('');
+
+    try {
+      const response = await fetch('/api/cliente/perfil', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          nome: editNome,
+          telemovel: editTelemovel,
+          password: editPassword || undefined
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+        setProfileSuccess('Perfil atualizado com sucesso!');
+        setEditPassword('');
+      } else {
+        const data = await response.json();
+        setProfileError(data.error || 'Erro ao atualizar perfil');
+      }
+    } catch (error) {
+      setProfileError('Erro de conexão');
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch(status) {
+      case 'pendente': return 'bg-yellow-900/50 text-yellow-400';
+      case 'aceita': return 'bg-green-900/50 text-green-400';
+      case 'concluida': return 'bg-blue-900/50 text-blue-400';
+      case 'rejeitada': return 'bg-red-900/50 text-red-400';
+      case 'cancelada': return 'bg-gray-900/50 text-gray-400';
+      default: return 'bg-zinc-900/50 text-zinc-400';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch(status) {
+      case 'pendente': return '⏳ Pendente';
+      case 'aceita': return '✓ Confirmada';
+      case 'concluida': return '✓✓ Concluída';
+      case 'rejeitada': return '✗ Rejeitada';
+      case 'cancelada': return '⊘ Cancelada';
+      default: return status;
+    }
+  };
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-amber-500 text-xl">A carregar...</div>
@@ -210,6 +349,41 @@ export default function BarbeariaPublicPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
+      {/* Top Bar for Logged User */}
+      {user && (
+        <div className="bg-zinc-900 border-b border-zinc-800 py-2">
+          <div className="container mx-auto px-4 flex justify-between items-center">
+            <div className="flex items-center gap-2 text-zinc-300">
+              <User className="h-4 w-4" />
+              <span className="text-sm">Olá, <strong className="text-amber-500">{user.nome}</strong></span>
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white"
+                onClick={() => {
+                  setShowClientPanel(true);
+                  fetchMinhasMarcacoes();
+                }}
+              >
+                <Settings className="h-4 w-4 mr-1" />
+                Minha Conta
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="text-zinc-400 hover:text-white"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-1" />
+                Sair
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="relative h-[70vh] flex items-center justify-center overflow-hidden">
         <div 
@@ -249,14 +423,15 @@ export default function BarbeariaPublicPage() {
               <Calendar className="mr-2 h-5 w-5" />
               Marcar Agora
             </Button>
-            {user && (
+            {!user && (
               <Button 
                 size="lg" 
                 variant="outline"
                 className="border-2 border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white text-lg px-8"
-                onClick={() => router.push('/cliente')}
+                onClick={() => setShowAuthModal(true)}
               >
-                Meu Painel
+                <User className="mr-2 h-5 w-5" />
+                Entrar / Registar
               </Button>
             )}
           </div>
@@ -265,7 +440,7 @@ export default function BarbeariaPublicPage() {
 
       {/* Services Section */}
       <section className="py-16 bg-zinc-900">
-        <div className="container">
+        <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-white text-center mb-12">
             Nossos Serviços
           </h2>
@@ -288,7 +463,7 @@ export default function BarbeariaPublicPage() {
                       </div>
                       <div className="flex items-center text-amber-500 font-bold text-xl">
                         <Euro className="h-5 w-5 mr-1" />
-                        <span>{servico.preco.toFixed(2)}</span>
+                        <span>{servico.preco?.toFixed(2)}</span>
                       </div>
                     </div>
                     <Button 
@@ -315,7 +490,7 @@ export default function BarbeariaPublicPage() {
       {/* Barbers Section */}
       {barbeiros.length > 0 && (
         <section className="py-16 bg-zinc-950">
-          <div className="container">
+          <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-white text-center mb-12">
               Nossa Equipa
             </h2>
@@ -323,11 +498,23 @@ export default function BarbeariaPublicPage() {
               {barbeiros.map((barbeiro) => (
                 <Card key={barbeiro._id} className="bg-zinc-800 border-zinc-700 text-center">
                   <CardHeader>
-                    <div className="w-20 h-20 bg-amber-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <User className="h-10 w-10 text-white" />
-                    </div>
+                    {barbeiro.foto ? (
+                      <img src={barbeiro.foto} alt={barbeiro.nome} className="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-amber-600" />
+                    ) : (
+                      <div className="w-20 h-20 bg-amber-600 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <User className="h-10 w-10 text-white" />
+                      </div>
+                    )}
                     <CardTitle className="text-white">{barbeiro.nome}</CardTitle>
-                    <CardDescription className="text-zinc-400">Barbeiro Profissional</CardDescription>
+                    {barbeiro.especialidades && barbeiro.especialidades.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-center mt-2">
+                        {barbeiro.especialidades.slice(0, 3).map((esp, i) => (
+                          <span key={i} className="text-xs bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded">
+                            {esp}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </CardHeader>
                 </Card>
               ))}
@@ -339,24 +526,26 @@ export default function BarbeariaPublicPage() {
       {/* Products Section */}
       {produtos.length > 0 && (
         <section className="py-16 bg-zinc-900">
-          <div className="container">
+          <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-white text-center mb-12">
               Produtos
             </h2>
             <div className="grid md:grid-cols-4 gap-6">
               {produtos.map((produto) => (
-                <Card key={produto._id} className="bg-zinc-800 border-zinc-700">
-                  <div 
-                    className="h-48 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${produto.imagem})` }}
-                  />
+                <Card key={produto._id} className="bg-zinc-800 border-zinc-700 overflow-hidden">
+                  {produto.imagem && (
+                    <div 
+                      className="h-48 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${produto.imagem})` }}
+                    />
+                  )}
                   <CardHeader>
                     <CardTitle className="text-white">{produto.nome}</CardTitle>
                     <CardDescription className="text-zinc-400">{produto.descricao}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-amber-500 font-bold text-2xl">
-                      {produto.preco.toFixed(2)}€
+                      {produto.preco?.toFixed(2)}€
                     </div>
                   </CardContent>
                 </Card>
@@ -366,120 +555,34 @@ export default function BarbeariaPublicPage() {
         </section>
       )}
 
-      {/* Booking Modal */}
-      {showBookingForm && user && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <Card className="bg-zinc-800 border-zinc-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <CardHeader>
-              <CardTitle className="text-white">Nova Marcação</CardTitle>
-              <CardDescription className="text-zinc-400">
-                Preenche os dados para agendar o teu serviço
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleBooking} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-zinc-300">Barbeiro</Label>
-                    <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
-                      <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
-                        <SelectValue placeholder="Selecione um barbeiro" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {barbeiros.map((b) => (
-                          <SelectItem key={b._id} value={b._id} className="text-white">
-                            {b.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-zinc-300">Serviço</Label>
-                    <Select value={selectedServico} onValueChange={setSelectedServico}>
-                      <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
-                        <SelectValue placeholder="Selecione um serviço" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {servicos.map((s) => (
-                          <SelectItem key={s._id} value={s._id} className="text-white">
-                            {s.nome} - {s.preco.toFixed(2)}€ ({s.duracao}min)
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-zinc-300">Data</Label>
-                    <Input
-                      type="date"
-                      value={selectedData}
-                      onChange={(e) => setSelectedData(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="bg-zinc-900 border-zinc-700 text-white"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-zinc-300">Hora</Label>
-                    <Select value={selectedHora} onValueChange={setSelectedHora}>
-                      <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
-                        <SelectValue placeholder="Selecione uma hora" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-800 border-zinc-700">
-                        {availableSlots.length === 0 ? (
-                          <div className="px-2 py-1 text-zinc-400 text-sm">
-                            Nenhum horário disponível
-                          </div>
-                        ) : (
-                          availableSlots.map((slot) => (
-                            <SelectItem key={slot} value={slot} className="text-white">
-                              {slot}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    type="submit" 
-                    className="flex-1 bg-amber-600 hover:bg-amber-700"
-                    disabled={!selectedHora}
-                  >
-                    Confirmar Marcação
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    className="border-zinc-700"
-                    onClick={() => setShowBookingForm(false)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Auth Modal */}
       {showAuthModal && !user && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
+          <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full relative">
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="h-6 w-6" />
+            </button>
             <CardHeader>
-              <CardTitle className="text-white">Entrar ou Registar</CardTitle>
-              <CardDescription className="text-zinc-400">
-                Faz login ou cria uma conta para continuar
-              </CardDescription>
+              <div className="flex items-center gap-3 mb-2">
+                <Scissors className="h-8 w-8 text-amber-600" />
+                <div>
+                  <CardTitle className="text-white">Bem-vindo à {barbearia.nome}</CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Faz login ou cria uma conta para marcar
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
+              {authError && (
+                <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded mb-4">
+                  {authError}
+                </div>
+              )}
+              
               <Tabs value={authMode} onValueChange={setAuthMode}>
                 <TabsList className="grid w-full grid-cols-2 bg-zinc-900 mb-4">
                   <TabsTrigger value="login" className="data-[state=active]:bg-amber-600">
@@ -498,6 +601,7 @@ export default function BarbeariaPublicPage() {
                         type="email"
                         name="email"
                         className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="seu@email.com"
                         required
                       />
                     </div>
@@ -507,32 +611,29 @@ export default function BarbeariaPublicPage() {
                         type="password"
                         name="password"
                         className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="••••••"
                         required
                       />
                     </div>
-                    <div className="flex gap-2">
-                      <Button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700">
-                        Entrar
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => setShowAuthModal(false)}
-                      >
-                        Cancelar
-                      </Button>
-                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-amber-600 hover:bg-amber-700"
+                      disabled={authLoading}
+                    >
+                      {authLoading ? 'A entrar...' : 'Entrar'}
+                    </Button>
                   </form>
                 </TabsContent>
 
                 <TabsContent value="register">
                   <form onSubmit={(e) => handleAuth(e, 'register')} className="space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-zinc-300">Nome</Label>
+                      <Label className="text-zinc-300">Nome Completo</Label>
                       <Input
                         type="text"
                         name="nome"
                         className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="O seu nome"
                         required
                       />
                     </div>
@@ -542,7 +643,17 @@ export default function BarbeariaPublicPage() {
                         type="email"
                         name="email"
                         className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="seu@email.com"
                         required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Telemóvel</Label>
+                      <Input
+                        type="tel"
+                        name="telemovel"
+                        className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="+351 912 345 678"
                       />
                     </div>
                     <div className="space-y-2">
@@ -551,22 +662,309 @@ export default function BarbeariaPublicPage() {
                         type="password"
                         name="password"
                         className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="Mínimo 6 caracteres"
                         minLength="6"
                         required
                       />
                     </div>
-                    <div className="flex gap-2">
-                      <Button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700">
-                        Registar
-                      </Button>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-amber-600 hover:bg-amber-700"
+                      disabled={authLoading}
+                    >
+                      {authLoading ? 'A registar...' : 'Criar Conta'}
+                    </Button>
+                  </form>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Booking Modal */}
+      {showBookingForm && user && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <Card className="bg-zinc-800 border-zinc-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button 
+              onClick={() => {
+                setShowBookingForm(false);
+                setBookingSuccess(false);
+              }}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            {bookingSuccess ? (
+              <div className="p-8 text-center">
+                <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-8 w-8 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-white mb-2">Marcação Criada!</h2>
+                <p className="text-zinc-400">A sua marcação foi enviada e está pendente de confirmação.</p>
+              </div>
+            ) : (
+              <>
+                <CardHeader>
+                  <CardTitle className="text-white">Nova Marcação</CardTitle>
+                  <CardDescription className="text-zinc-400">
+                    Preenche os dados para agendar o teu serviço
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleBooking} className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Barbeiro</Label>
+                        <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
+                          <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
+                            <SelectValue placeholder="Selecione um barbeiro" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            {barbeiros.map((b) => (
+                              <SelectItem key={b._id} value={b._id} className="text-white">
+                                {b.nome}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Serviço</Label>
+                        <Select value={selectedServico} onValueChange={setSelectedServico}>
+                          <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
+                            <SelectValue placeholder="Selecione um serviço" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            {servicos.map((s) => (
+                              <SelectItem key={s._id} value={s._id} className="text-white">
+                                {s.nome} - {s.preco?.toFixed(2)}€ ({s.duracao}min)
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Data</Label>
+                        <Input
+                          type="date"
+                          value={selectedData}
+                          onChange={(e) => setSelectedData(e.target.value)}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="bg-zinc-900 border-zinc-700 text-white"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-zinc-300">Hora</Label>
+                        <Select value={selectedHora} onValueChange={setSelectedHora}>
+                          <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
+                            <SelectValue placeholder="Selecione uma hora" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            {availableSlots.length === 0 ? (
+                              <div className="px-2 py-1 text-zinc-400 text-sm">
+                                {selectedBarbeiro && selectedData && selectedServico 
+                                  ? 'Nenhum horário disponível' 
+                                  : 'Selecione barbeiro, serviço e data'}
+                              </div>
+                            ) : (
+                              availableSlots.map((slot) => (
+                                <SelectItem key={slot} value={slot} className="text-white">
+                                  {slot}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-amber-600 hover:bg-amber-700"
+                      disabled={!selectedHora}
+                    >
+                      Confirmar Marcação
+                    </Button>
+                  </form>
+                </CardContent>
+              </>
+            )}
+          </Card>
+        </div>
+      )}
+
+      {/* Client Panel Modal */}
+      {showClientPanel && user && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <Card className="bg-zinc-800 border-zinc-700 max-w-4xl w-full max-h-[90vh] overflow-y-auto relative">
+            <button 
+              onClick={() => setShowClientPanel(false)}
+              className="absolute top-4 right-4 text-zinc-400 hover:text-white"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            
+            <CardHeader>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-amber-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                  {user.nome?.charAt(0).toUpperCase() || 'C'}
+                </div>
+                <div>
+                  <CardTitle className="text-white">Minha Conta</CardTitle>
+                  <CardDescription className="text-zinc-400">{user.email}</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={clientTab} onValueChange={setClientTab}>
+                <TabsList className="grid w-full grid-cols-2 bg-zinc-900 mb-6">
+                  <TabsTrigger value="marcacoes" className="data-[state=active]:bg-amber-600">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Minhas Marcações
+                  </TabsTrigger>
+                  <TabsTrigger value="perfil" className="data-[state=active]:bg-amber-600">
+                    <User className="h-4 w-4 mr-2" />
+                    Meu Perfil
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="marcacoes">
+                  {loadingMarcacoes ? (
+                    <div className="text-center py-8 text-zinc-400">A carregar...</div>
+                  ) : minhasMarcacoes.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Calendar className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+                      <p className="text-zinc-400">Ainda não tens marcações</p>
                       <Button 
-                        type="button" 
-                        variant="outline"
-                        onClick={() => setShowAuthModal(false)}
+                        className="mt-4 bg-amber-600 hover:bg-amber-700"
+                        onClick={() => {
+                          setShowClientPanel(false);
+                          setShowBookingForm(true);
+                        }}
                       >
-                        Cancelar
+                        Fazer Nova Marcação
                       </Button>
                     </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-zinc-700">
+                            <TableHead className="text-zinc-300">Data</TableHead>
+                            <TableHead className="text-zinc-300">Hora</TableHead>
+                            <TableHead className="text-zinc-300">Serviço</TableHead>
+                            <TableHead className="text-zinc-300">Barbeiro</TableHead>
+                            <TableHead className="text-zinc-300">Preço</TableHead>
+                            <TableHead className="text-zinc-300">Status</TableHead>
+                            <TableHead className="text-zinc-300">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {minhasMarcacoes.map((marcacao) => (
+                            <TableRow key={marcacao._id} className="border-zinc-700">
+                              <TableCell className="text-white">
+                                {new Date(marcacao.data).toLocaleDateString('pt-PT', { 
+                                  weekday: 'short', 
+                                  day: '2-digit', 
+                                  month: 'short' 
+                                })}
+                              </TableCell>
+                              <TableCell className="text-white font-semibold">{marcacao.hora}</TableCell>
+                              <TableCell className="text-white">{marcacao.servico?.nome}</TableCell>
+                              <TableCell className="text-white">{marcacao.barbeiro?.nome}</TableCell>
+                              <TableCell className="text-amber-500 font-semibold">
+                                {marcacao.servico?.preco?.toFixed(2)}€
+                              </TableCell>
+                              <TableCell>
+                                <span className={`px-2 py-1 rounded text-xs ${getStatusColor(marcacao.status)}`}>
+                                  {getStatusLabel(marcacao.status)}
+                                </span>
+                              </TableCell>
+                              <TableCell>
+                                {(marcacao.status === 'pendente' || marcacao.status === 'aceita') && (
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleCancelMarcacao(marcacao._id)}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="perfil">
+                  <form onSubmit={handleUpdateProfile} className="space-y-4 max-w-md">
+                    {profileSuccess && (
+                      <div className="bg-green-900/20 border border-green-900 text-green-400 px-4 py-2 rounded">
+                        {profileSuccess}
+                      </div>
+                    )}
+                    {profileError && (
+                      <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
+                        {profileError}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Nome</Label>
+                      <Input
+                        value={editNome}
+                        onChange={(e) => setEditNome(e.target.value)}
+                        className="bg-zinc-900 border-zinc-700 text-white"
+                        required
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Email</Label>
+                      <Input
+                        value={user.email}
+                        className="bg-zinc-900 border-zinc-700 text-zinc-500"
+                        disabled
+                      />
+                      <p className="text-zinc-500 text-xs">O email não pode ser alterado</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Telemóvel</Label>
+                      <Input
+                        type="tel"
+                        value={editTelemovel}
+                        onChange={(e) => setEditTelemovel(e.target.value)}
+                        className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="+351 912 345 678"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-zinc-300">Nova Palavra-passe</Label>
+                      <Input
+                        type="password"
+                        value={editPassword}
+                        onChange={(e) => setEditPassword(e.target.value)}
+                        className="bg-zinc-900 border-zinc-700 text-white"
+                        placeholder="Deixe vazio para manter a atual"
+                        minLength={6}
+                      />
+                    </div>
+
+                    <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={profileLoading}>
+                      <Save className="h-4 w-4 mr-2" />
+                      {profileLoading ? 'A guardar...' : 'Guardar Alterações'}
+                    </Button>
                   </form>
                 </TabsContent>
               </Tabs>
@@ -577,7 +975,7 @@ export default function BarbeariaPublicPage() {
 
       {/* Footer */}
       <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
-        <div className="container text-center text-zinc-500">
+        <div className="container mx-auto px-4 text-center text-zinc-500">
           <p>&copy; 2025 {barbearia.nome}. Todos os direitos reservados.</p>
         </div>
       </footer>
