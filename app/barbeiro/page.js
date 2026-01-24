@@ -101,21 +101,27 @@ export default function BarbeiroPanel() {
     setServicos(data.servicos || []);
   };
 
-  const fetchAvailableSlots = async () => {
-    if (!user || !selectedData || !selectedServicoId) return;
-    
-    const response = await fetch(
-      `/api/marcacoes/slots?barbeiro_id=${user._id}&data=${selectedData}&servico_id=${selectedServicoId}`,
-      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
-    );
-    const data = await response.json();
-    setAvailableSlots(data.slots || []);
-  };
-
   useEffect(() => {
-    if (user && selectedData && selectedServicoId) {
-      fetchAvailableSlots();
-    }
+    const fetchSlots = async () => {
+      if (!user || !selectedData || !selectedServicoId) {
+        setAvailableSlots([]);
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `/api/marcacoes/slots?barbeiro_id=${user._id}&data=${selectedData}&servico_id=${selectedServicoId}`,
+          { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        );
+        const data = await response.json();
+        setAvailableSlots(data.slots || []);
+      } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        setAvailableSlots([]);
+      }
+    };
+    
+    fetchSlots();
   }, [user, selectedData, selectedServicoId]);
 
   const resetNovaForm = () => {
