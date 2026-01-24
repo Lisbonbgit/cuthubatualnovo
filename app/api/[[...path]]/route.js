@@ -819,6 +819,19 @@ export async function GET(request, { params }) {
       return NextResponse.json({ clientes: clientesComStats });
     }
 
+    // GET Planos Cliente (para barbearia)
+    if (path === 'planos-cliente') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const planos = await db.collection('planos_cliente')
+        .find({ barbearia_id: decoded.barbearia_id })
+        .toArray();
+
+      return NextResponse.json({ planos });
+    }
+
     // GET Marcações
     if (path === 'marcacoes') {
       let query = {};
