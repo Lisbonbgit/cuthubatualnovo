@@ -305,21 +305,27 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
     setClientes(data.clientes || []);
   };
 
-  const fetchAvailableSlots = async () => {
-    if (!selectedBarbeiroId || !selectedData || !selectedServicoId) return;
-    
-    const response = await fetch(
-      `/api/marcacoes/slots?barbeiro_id=${selectedBarbeiroId}&data=${selectedData}&servico_id=${selectedServicoId}`,
-      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
-    );
-    const data = await response.json();
-    setAvailableSlots(data.slots || []);
-  };
-
   useEffect(() => {
-    if (selectedBarbeiroId && selectedData && selectedServicoId) {
-      fetchAvailableSlots();
-    }
+    const fetchSlots = async () => {
+      if (!selectedBarbeiroId || !selectedData || !selectedServicoId) {
+        setAvailableSlots([]);
+        return;
+      }
+      
+      try {
+        const response = await fetch(
+          `/api/marcacoes/slots?barbeiro_id=${selectedBarbeiroId}&data=${selectedData}&servico_id=${selectedServicoId}`,
+          { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+        );
+        const data = await response.json();
+        setAvailableSlots(data.slots || []);
+      } catch (error) {
+        console.error('Erro ao carregar horários:', error);
+        setAvailableSlots([]);
+      }
+    };
+    
+    fetchSlots();
   }, [selectedBarbeiroId, selectedData, selectedServicoId]);
 
   const handleNovaMarcacao = async (e) => {
