@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogOut, Calendar, User, Save } from 'lucide-react';
+import { MarcacaoDetailModal } from '@/components/ui/modals';
 
 export default function BarbeiroPanel() {
   const router = useRouter();
@@ -18,7 +19,10 @@ export default function BarbeiroPanel() {
   const [marcacoes, setMarcacoes] = useState([]);
   const [viewMode, setViewMode] = useState('calendario');
   const [filtroStatus, setFiltroStatus] = useState('todas');
-  const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedMarcacao, setSelectedMarcacao] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
