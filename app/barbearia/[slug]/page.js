@@ -245,8 +245,7 @@ export default function BarbeariaPublicPage() {
   };
 
   const handleCancelMarcacao = async (marcacaoId) => {
-    if (!confirm('Tem certeza que deseja cancelar esta marcação?')) return;
-
+    setCancelLoading(true);
     try {
       const response = await fetch(`/api/marcacoes/${marcacaoId}`, {
         method: 'PUT',
@@ -258,13 +257,22 @@ export default function BarbeariaPublicPage() {
       });
 
       if (response.ok) {
+        setShowCancelModal(false);
+        setMarcacaoToCancel(null);
         fetchMinhasMarcacoes();
       } else {
         alert('Erro ao cancelar marcação');
       }
     } catch (error) {
       alert('Erro ao cancelar marcação');
+    } finally {
+      setCancelLoading(false);
     }
+  };
+
+  const openCancelModal = (marcacao) => {
+    setMarcacaoToCancel(marcacao);
+    setShowCancelModal(true);
   };
 
   const handleUpdateProfile = async (e) => {
