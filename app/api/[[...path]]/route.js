@@ -993,6 +993,41 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ barbeiro: updatedBarbeiro, success: true });
     }
 
+    // UPDATE Barbeiro Profile (próprio barbeiro pode editar o seu perfil)
+    if (path === 'barbeiro/perfil') {
+      if (decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { nome, telemovel, biografia, especialidades, foto, password } = body;
+
+      const updateData = {
+        nome,
+        telemovel: telemovel || '',
+        biografia: biografia || '',
+        especialidades: especialidades || [],
+        foto: foto || null,
+        atualizado_em: new Date()
+      };
+
+      // Se uma nova password foi fornecida, hash e atualizar
+      if (password && password.length >= 6) {
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { $set: updateData }
+      );
+
+      const updatedBarbeiro = await db.collection('utilizadores').findOne(
+        { _id: new ObjectId(decoded.userId) },
+        { projection: { password: 0 } }
+      );
+
+      return NextResponse.json({ user: updatedBarbeiro, success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
