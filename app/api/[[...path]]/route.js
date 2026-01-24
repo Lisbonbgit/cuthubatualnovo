@@ -41,6 +41,44 @@ function generateTimeSlots(startTime, endTime, duration) {
   return slots;
 }
 
+// Função para enviar notificações WhatsApp via Twilio
+async function sendWhatsAppNotification(barbearia, toPhone, template, variables) {
+  if (!barbearia.twilio_account_sid || !barbearia.twilio_auth_token || !barbearia.twilio_whatsapp_number) {
+    throw new Error('WhatsApp não configurado');
+  }
+
+  const client = twilio(barbearia.twilio_account_sid, barbearia.twilio_auth_token);
+  
+  // Templates de mensagem em Português
+  const templates = {
+    booking_confirmation: `Olá ${variables.customerName}! ✂️\n\nA sua marcação no *${variables.barbershopName}* foi confirmada para o dia *${variables.date}* às *${variables.time}*.\n\nAguardamos por si!`,
+    
+    booking_cancellation: `Olá ${variables.customerName}.\n\nA sua marcação no *${variables.barbershopName}* para o dia *${variables.date}* às *${variables.time}* foi cancelada.\n\nPara reagendar, visite o nosso site ou contacte-nos.`,
+    
+    booking_reminder: `Olá ${variables.customerName}! 📅\n\nLembramos que tem uma marcação amanhã (*${variables.date}*) às *${variables.time}* no *${variables.barbershopName}*.\n\nContamos consigo!`,
+    
+    booking_accepted: `Olá ${variables.customerName}! ✅\n\nA sua marcação no *${variables.barbershopName}* para *${variables.date}* às *${variables.time}* foi aceite!\n\nAguardamos por si.`,
+    
+    booking_rejected: `Olá ${variables.customerName}.\n\nInfelizmente a sua marcação no *${variables.barbershopName}* para *${variables.date}* às *${variables.time}* não pôde ser aceite.\n\nPor favor, escolha outro horário.`
+  };
+
+  const messageBody = templates[template] || variables.message || 'Mensagem da barbearia';
+
+  // Formatar número (remover espaços, adicionar código país se necessário)
+  let formattedPhone = toPhone.replace(/\s/g, '');
+  if (!formattedPhone.startsWith('+')) {
+    formattedPhone = '+351' + formattedPhone; // Default para Portugal
+  }
+
+  const message = await client.messages.create({
+    body: messageBody,
+    from: `whatsapp:${barbearia.twilio_whatsapp_number}`,
+    to: `whatsapp:${formattedPhone}`
+  });
+
+  return message;
+}
+
 export async function POST(request, { params }) {
   try {
     const path = params?.path ? params.path.join('/') : '';
