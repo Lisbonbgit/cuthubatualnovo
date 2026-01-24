@@ -254,14 +254,31 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
   const [filtroStatus, setFiltroStatus] = useState('todas');
   const [filtroBarbeiro, setFiltroBarbeiro] = useState('todos');
   const [barbeiros, setBarbeiros] = useState([]);
-  const [viewMode, setViewMode] = useState('calendario'); // 'calendario' ou 'tabela'
-  const [weekOffset, setWeekOffset] = useState(0); // Para navegação entre semanas
+  const [servicos, setServicos] = useState([]);
+  const [clientes, setClientes] = useState([]);
+  const [viewMode, setViewMode] = useState('calendario');
+  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedMarcacao, setSelectedMarcacao] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
+  
+  // Nova Marcação Manual
+  const [showNovaModal, setShowNovaModal] = useState(false);
+  const [novoClienteMode, setNovoClienteMode] = useState(false);
+  const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [selectedBarbeiroId, setSelectedBarbeiroId] = useState('');
+  const [selectedServicoId, setSelectedServicoId] = useState('');
+  const [selectedData, setSelectedData] = useState('');
+  const [selectedHora, setSelectedHora] = useState('');
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [novoCliente, setNovoCliente] = useState({ nome: '', email: '', telemovel: '' });
+  const [marcacaoLoading, setMarcacaoLoading] = useState(false);
+  const [marcacaoError, setMarcacaoError] = useState('');
 
   useEffect(() => {
     fetchBarbeiros();
+    fetchServicos();
+    fetchClientes();
   }, []);
 
   const fetchBarbeiros = async () => {
@@ -270,6 +287,111 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
     });
     const data = await response.json();
     setBarbeiros(data.barbeiros || []);
+  };
+
+  const fetchServicos = async () => {
+    const response = await fetch('/api/servicos', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const data = await response.json();
+    setServicos(data.servicos || []);
+  };
+
+  const fetchClientes = async () => {
+    const response = await fetch('/api/clientes', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+    });
+    const data = await response.json();
+    setClientes(data.clientes || []);
+  };
+
+  const fetchAvailableSlots = async () => {
+    if (!selectedBarbeiroId || !selectedData || !selectedServicoId) return;
+    
+    const response = await fetch(
+      `/api/marcacoes/slots?barbeiro_id=${selectedBarbeiroId}&data=${selectedData}&servico_id=${selectedServicoId}`,
+      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+    );
+    const data = await response.json();
+    setAvailableSlots(data.slots || []);
+  };
+
+  useEffect(() => {
+    if (selectedBarbeiroId && selectedData && selectedServicoId) {
+      fetchAvailableSlots();
+    }
+  }, [selectedBarbeiroId, selectedData, selectedServicoId]);
+
+  const handleNovaMarcacao = async (e) => {
+    e.preventDefault();
+    setMarcacaoError('');
+    setMarcacaoLoading(true);
+
+    try {
+      let clienteId = selectedClienteId;
+
+      // Se é novo cliente, criar primeiro
+      if (novoClienteMode) {
+        const clienteResponse = await fetch('/api/clientes/manual', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(novoCliente)
+        });
+
+        if (!clienteResponse.ok) {
+          const data = await clienteResponse.json();
+          throw new Error(data.error || 'Erro ao criar cliente');
+        }
+
+        const clienteData = await clienteResponse.json();
+        clienteId = clienteData.cliente._id;
+      }
+
+      // Criar marcação
+      const response = await fetch('/api/marcacoes/manual', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          cliente_id: clienteId,
+          barbeiro_id: selectedBarbeiroId,
+          servico_id: selectedServicoId,
+          data: selectedData,
+          hora: selectedHora
+        })
+      });
+
+      if (response.ok) {
+        setShowNovaModal(false);
+        resetNovaForm();
+        fetchMarcacoes();
+        fetchClientes();
+      } else {
+        const data = await response.json();
+        setMarcacaoError(data.error || 'Erro ao criar marcação');
+      }
+    } catch (error) {
+      setMarcacaoError(error.message);
+    } finally {
+      setMarcacaoLoading(false);
+    }
+  };
+
+  const resetNovaForm = () => {
+    setSelectedClienteId('');
+    setSelectedBarbeiroId('');
+    setSelectedServicoId('');
+    setSelectedData('');
+    setSelectedHora('');
+    setNovoClienteMode(false);
+    setNovoCliente({ nome: '', email: '', telemovel: '' });
+    setAvailableSlots([]);
+    setMarcacaoError('');
   };
 
   const handleUpdateStatus = async (marcacaoId, newStatus) => {
