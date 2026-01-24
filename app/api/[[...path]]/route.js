@@ -544,6 +544,99 @@ export async function GET(request, { params }) {
       return NextResponse.json({ horarios });
     }
 
+    // GET Subscription Status
+    if (path === 'subscriptions/status') {
+      const subscription = await db.collection('subscriptions').findOne({
+        user_id: decoded.userId
+      }, { sort: { created_at: -1 } });
+
+      if (!subscription) {
+        return NextResponse.json({ 
+          has_subscription: false,
+          requires_subscription: true 
+        });
+      }
+
+      const now = new Date();
+      const trialEnded = subscription.trial_end && new Date(subscription.trial_end) < now;
+      const daysUntilTrial = subscription.trial_end 
+        ? Math.ceil((new Date(subscription.trial_end) - now) / (1000 * 60 * 60 * 24))
+        : 0;
+
+      return NextResponse.json({
+        has_subscription: true,
+        subscription: {
+          ...subscription,
+          trial_ended: trialEnded,
+          days_until_trial_end: daysUntilTrial > 0 ? daysUntilTrial : 0,
+          is_trial: subscription.status === 'active' && !trialEnded
+        }
+      });
+    }
+
+    // GET Available Plans
+    if (path === 'plans') {
+      const plans = [
+        {
+          id: 'basic',
+          name: 'Básico',
+          price: 29,
+          currency: 'EUR',
+          interval: 'month',
+          features: [
+            '1 barbearia',
+            'Até 2 barbeiros',
+            'Marcações ilimitadas',
+            'Suporte por email'
+          ],
+          limits: {
+            barbearias: 1,
+            barbeiros: 2
+          }
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          price: 49,
+          currency: 'EUR',
+          interval: 'month',
+          popular: true,
+          features: [
+            '1 barbearia',
+            'Até 5 barbeiros',
+            'Marcações ilimitadas',
+            'Suporte prioritário',
+            'Relatórios avançados'
+          ],
+          limits: {
+            barbearias: 1,
+            barbeiros: 5
+          }
+        },
+        {
+          id: 'enterprise',
+          name: 'Enterprise',
+          price: 99,
+          currency: 'EUR',
+          interval: 'month',
+          features: [
+            'Até 3 barbearias',
+            'Barbeiros ilimitados',
+            'Marcações ilimitadas',
+            'Suporte 24/7',
+            'API access',
+            'White-label'
+          ],
+          limits: {
+            barbearias: 3,
+            barbeiros: 999
+          }
+        }
+      ];
+
+      return NextResponse.json({ plans });
+    }
+
     // GET Marcações
     if (path === 'marcacoes') {
       let query = {};
