@@ -457,29 +457,36 @@ export default function BarbeariaPublicPage() {
       {/* Services Section */}
       <section className="py-16 bg-zinc-900">
         <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-white text-center mb-12">
-            Nossos Serviços
-          </h2>
+          <div className="text-center mb-12">
+            <Scissors className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Nossos Serviços
+            </h2>
+            <p className="text-zinc-400 max-w-2xl mx-auto">
+              Serviços de qualidade profissional para o seu estilo
+            </p>
+          </div>
           
           {servicos.length === 0 ? (
             <p className="text-zinc-400 text-center">Nenhum serviço disponível no momento</p>
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
               {servicos.map((servico) => (
-                <Card key={servico._id} className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all">
+                <Card key={servico._id} className="bg-zinc-800 border-zinc-700 hover:border-amber-600 transition-all group">
                   <CardHeader>
-                    <Scissors className="h-10 w-10 text-amber-600 mb-2" />
+                    <div className="w-14 h-14 bg-amber-600/20 rounded-full flex items-center justify-center mb-4 group-hover:bg-amber-600 transition-colors">
+                      <Scissors className="h-7 w-7 text-amber-600 group-hover:text-white transition-colors" />
+                    </div>
                     <CardTitle className="text-white text-xl">{servico.nome}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex justify-between items-center mb-6">
                       <div className="flex items-center text-zinc-400">
                         <Clock className="h-4 w-4 mr-2" />
                         <span>{servico.duracao} min</span>
                       </div>
-                      <div className="flex items-center text-amber-500 font-bold text-xl">
-                        <Euro className="h-5 w-5 mr-1" />
-                        <span>{servico.preco?.toFixed(2)}</span>
+                      <div className="flex items-center text-amber-500 font-bold text-2xl">
+                        {servico.preco?.toFixed(2)}€
                       </div>
                     </div>
                     <Button 
@@ -493,6 +500,7 @@ export default function BarbeariaPublicPage() {
                         }
                       }}
                     >
+                      <Calendar className="h-4 w-4 mr-2" />
                       Agendar
                     </Button>
                   </CardContent>
