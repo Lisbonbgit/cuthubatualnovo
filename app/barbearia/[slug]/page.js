@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Scissors, Clock, Euro, Calendar, User, X, LogOut, Settings, Phone, Mail, Save } from 'lucide-react';
+import { Scissors, Clock, Euro, Calendar, User, X, LogOut, Settings, Phone, Mail, Save, Star, Check, CreditCard, Package, Users } from 'lucide-react';
 import { CancelConfirmModal } from '@/components/ui/modals';
 
 export default function BarbeariaPublicPage() {
