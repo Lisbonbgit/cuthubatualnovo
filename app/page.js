@@ -191,16 +191,29 @@ export default function App() {
             Tens uma Barbearia?
           </h2>
           <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-            Cria a tua página online grátis e começa a gerir marcações hoje mesmo
+            Cria a tua página online e começa a gerir marcações hoje mesmo
           </p>
-          <Button
-            size="lg"
-            className="bg-amber-600 hover:bg-amber-700 text-lg px-8"
-            onClick={() => router.push('/setup')}
-          >
-            <Scissors className="mr-2 h-5 w-5" />
-            Criar Minha Barbearia
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              className="bg-amber-600 hover:bg-amber-700 text-lg px-8 py-6"
+              onClick={() => router.push('/register/owner')}
+            >
+              <Scissors className="mr-2 h-5 w-5" />
+              Criar Minha Barbearia
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 text-lg px-8 py-6"
+              onClick={() => setActiveTab('login')}
+            >
+              Já Tenho Conta
+            </Button>
+          </div>
+          <p className="text-amber-500 font-semibold mt-6 text-lg">
+            🎉 7 dias grátis • Sem compromisso
+          </p>
         </div>
       </section>
 
