@@ -225,6 +225,14 @@ export default function AdminPanel() {
             <ProdutosTab produtos={produtos} fetchProdutos={() => fetchProdutos(localStorage.getItem('token'))} />
           </TabsContent>
 
+          <TabsContent value="planos">
+            <PlanosClienteTab 
+              planos={planosCliente} 
+              fetchPlanos={() => fetchPlanosCliente(localStorage.getItem('token'))}
+              stripeConfigured={barbeariaSettings?.stripe_configured}
+            />
+          </TabsContent>
+
           <TabsContent value="horarios">
             <HorariosTab horarios={horarios} fetchHorarios={() => fetchHorarios(localStorage.getItem('token'))} />
           </TabsContent>
