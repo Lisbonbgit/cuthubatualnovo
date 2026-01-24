@@ -81,6 +81,110 @@ export default function BarbeiroPanel() {
     setMarcacoes(data.marcacoes || []);
   };
 
+  const fetchClientes = async (token) => {
+    const response = await fetch('/api/clientes', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setClientes(data.clientes || []);
+  };
+
+  const fetchServicos = async (token) => {
+    const response = await fetch('/api/servicos', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setServicos(data.servicos || []);
+  };
+
+  const fetchAvailableSlots = async () => {
+    if (!user || !selectedData || !selectedServicoId) return;
+    
+    const response = await fetch(
+      `/api/marcacoes/slots?barbeiro_id=${user._id}&data=${selectedData}&servico_id=${selectedServicoId}`,
+      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+    );
+    const data = await response.json();
+    setAvailableSlots(data.slots || []);
+  };
+
+  useEffect(() => {
+    if (user && selectedData && selectedServicoId) {
+      fetchAvailableSlots();
+    }
+  }, [user, selectedData, selectedServicoId]);
+
+  const resetNovaForm = () => {
+    setSelectedClienteId('');
+    setSelectedServicoId('');
+    setSelectedData('');
+    setSelectedHora('');
+    setNovoClienteMode(false);
+    setNovoCliente({ nome: '', email: '', telemovel: '' });
+    setAvailableSlots([]);
+    setMarcacaoError('');
+  };
+
+  const handleNovaMarcacao = async (e) => {
+    e.preventDefault();
+    setMarcacaoError('');
+    setMarcacaoLoading(true);
+
+    try {
+      let clienteId = selectedClienteId;
+
+      // Se é novo cliente, criar primeiro
+      if (novoClienteMode) {
+        const clienteResponse = await fetch('/api/clientes/manual', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(novoCliente)
+        });
+
+        if (!clienteResponse.ok) {
+          const data = await clienteResponse.json();
+          throw new Error(data.error || 'Erro ao criar cliente');
+        }
+
+        const clienteData = await clienteResponse.json();
+        clienteId = clienteData.cliente._id;
+      }
+
+      // Criar marcação (barbeiro só pode criar para si próprio)
+      const response = await fetch('/api/marcacoes/manual', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          cliente_id: clienteId,
+          barbeiro_id: user._id, // Sempre o próprio barbeiro
+          servico_id: selectedServicoId,
+          data: selectedData,
+          hora: selectedHora
+        })
+      });
+
+      if (response.ok) {
+        setShowNovaModal(false);
+        resetNovaForm();
+        fetchMarcacoes(localStorage.getItem('token'));
+        fetchClientes(localStorage.getItem('token'));
+      } else {
+        const data = await response.json();
+        setMarcacaoError(data.error || 'Erro ao criar marcação');
+      }
+    } catch (error) {
+      setMarcacaoError(error.message);
+    } finally {
+      setMarcacaoLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
