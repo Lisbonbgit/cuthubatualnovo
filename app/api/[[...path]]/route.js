@@ -947,6 +947,52 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
+    // UPDATE Barbeiro
+    if (path.startsWith('barbeiros/')) {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const barbeiroId = path.split('/')[1];
+      const { nome, email, telemovel, biografia, especialidades, ativo, password } = body;
+
+      const updateData = {
+        nome,
+        email,
+        telemovel: telemovel || '',
+        biografia: biografia || '',
+        especialidades: especialidades || [],
+        ativo: ativo !== undefined ? ativo : true,
+        atualizado_em: new Date()
+      };
+
+      // Se uma nova password foi fornecida, hash e atualizar
+      if (password && password.length >= 6) {
+        updateData.password = await bcrypt.hash(password, 10);
+      }
+
+      // Verificar se o email já existe em outro utilizador
+      const existingUser = await db.collection('utilizadores').findOne({ 
+        email, 
+        _id: { $ne: new ObjectId(barbeiroId) } 
+      });
+      if (existingUser) {
+        return NextResponse.json({ error: 'Email já registado por outro utilizador' }, { status: 400 });
+      }
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(barbeiroId) },
+        { $set: updateData }
+      );
+
+      const updatedBarbeiro = await db.collection('utilizadores').findOne(
+        { _id: new ObjectId(barbeiroId) },
+        { projection: { password: 0 } }
+      );
+
+      return NextResponse.json({ barbeiro: updatedBarbeiro, success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
