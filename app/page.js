@@ -85,29 +85,37 @@ export default function App() {
         </div>
 
         <div className="container relative z-10 text-center">
-          <h1 className="text-6xl md:text-7xl font-bold text-white mb-6">
-            Estilo & Tradição
-          </h1>
-          <p className="text-xl md:text-2xl text-zinc-300 mb-12 max-w-2xl mx-auto">
-            A melhor experiência de barbearia em Portugal.
-            Marca já o teu horário.
+          <div className="mb-8">
+            <h1 className="text-6xl md:text-8xl font-bold text-white mb-4">
+              BarbePRO
+            </h1>
+            <div className="h-1 w-32 bg-amber-600 mx-auto mb-6"></div>
+          </div>
+          
+          <p className="text-2xl md:text-3xl text-zinc-300 mb-4 max-w-3xl mx-auto font-light">
+            Cria a tua página online e começa a gerir marcações hoje mesmo
           </p>
+          
+          <p className="text-amber-500 font-semibold text-xl mb-12">
+            🎉 7 dias grátis • Sem compromisso
+          </p>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              className="bg-amber-600 hover:bg-amber-700 text-white text-lg px-8 py-6"
-              onClick={() => setActiveTab('register')}
+              className="bg-amber-600 hover:bg-amber-700 text-white text-lg px-10 py-7"
+              onClick={() => router.push('/register/owner')}
             >
-              <Calendar className="mr-2 h-5 w-5" />
-              Marcar Horário
+              <Scissors className="mr-2 h-5 w-5" />
+              Criar Minha Barbearia
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-2 border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white text-lg px-8 py-6"
+              className="border-2 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white text-lg px-10 py-7"
               onClick={() => setActiveTab('login')}
             >
-              Entrar
+              Já Tenho Conta
             </Button>
           </div>
         </div>
