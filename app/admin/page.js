@@ -104,6 +104,7 @@ export default function AdminPanel() {
     });
     const data = await response.json();
     setMarcacoes(data.marcacoes || []);
+    setLastUpdate(new Date());
   };
 
   const fetchHorarios = async (token) => {
