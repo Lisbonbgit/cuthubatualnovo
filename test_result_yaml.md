@@ -81,6 +81,66 @@ metadata:
   test_sequence: 1
   run_ui: false
 
+  - task: "GET /api/clientes - CRM List clients with statistics"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for CRM functionality with client statistics"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - CRM endpoint working perfectly. Found 1 client with all required statistics (total_marcacoes, marcacoes_concluidas, total_gasto, ultima_visita). Client data properly aggregated and calculated."
+
+  - task: "PUT /api/barbeiro/perfil - Barber updates own profile"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for barbeiro self-profile update functionality"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Barbeiro can successfully update own profile including nome, telemovel, biografia, especialidades, foto. Password update also working with proper hashing and exclusion from response. Authorization correctly limited to barbeiro role."
+
+  - task: "POST /api/produtos - Create product with image"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for product creation with image field"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Product creation with image working perfectly. All fields (nome, preco, descricao, imagem) properly stored and returned. Created test product 'Pomada Modeladora Premium' with ID 69742535040610cc3c8c8dc6."
+
+  - task: "PUT /api/produtos/{id} - Update product with image"
+    implemented: true
+    working: true
+    file: "/app/app/api/[[...path]]/route.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Initial assessment - needs testing for product update with image field"
+      - working: true
+        agent: "testing"
+        comment: "✅ PASSED - Product update with image working perfectly. All fields including image properly updated and verified. Admin authorization working correctly."
+
 test_plan:
   current_focus: []
   stuck_tasks: []
@@ -92,4 +152,6 @@ agent_communication:
     message: "Starting backend testing for barber management functionality. Will test all CRUD operations for barbeiros and marcacoes status updates."
   - agent: "testing"
     message: "✅ BACKEND TESTING COMPLETED SUCCESSFULLY - All 5 barber management tests passed: 1) POST /api/barbeiros (create with new fields) ✅ 2) GET /api/barbeiros (list with new fields) ✅ 3) PUT /api/barbeiros/{id} (update including password) ✅ 4) PUT /api/marcacoes/{id} (status updates) ✅. All new fields (telemovel, biografia, especialidades) working correctly. Authorization working for both admin and barbeiro roles. Ready for production use."
+  - agent: "testing"
+    message: "✅ NEW FEATURES TESTING COMPLETED SUCCESSFULLY - All 4 new feature tests passed: 1) GET /api/clientes (CRM with statistics) ✅ 2) PUT /api/barbeiro/perfil (self-profile update) ✅ 3) POST /api/produtos (with image) ✅ 4) PUT /api/produtos/{id} (update with image) ✅. All endpoints working perfectly with proper authorization and data handling."
 ```
