@@ -2092,18 +2092,6 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ nome, descricao, telefone, email_contacto: emailContacto })
-      });
-      alert('Configurações atualizadas com sucesso!');
-      fetchSettings();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Erro ao atualizar configurações');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleStripeSubmit = async (e) => {
     e.preventDefault();
     setStripeLoading(true);
@@ -2135,6 +2123,42 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       setStripeError('Erro ao guardar configuração');
     } finally {
       setStripeLoading(false);
+    }
+  };
+
+  const handleWhatsappSubmit = async (e) => {
+    e.preventDefault();
+    setWhatsappLoading(true);
+    setWhatsappSuccess('');
+    setWhatsappError('');
+
+    try {
+      const response = await fetch('/api/barbearia/whatsapp-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ 
+          whatsapp_enabled: whatsappEnabled,
+          twilio_account_sid: twilioAccountSid,
+          twilio_auth_token: twilioAuthToken,
+          twilio_whatsapp_number: twilioWhatsappNumber
+        })
+      });
+
+      if (response.ok) {
+        setWhatsappSuccess('Configuração do WhatsApp guardada com sucesso!');
+        setTwilioAuthToken(''); // Limpar por segurança
+        fetchSettings();
+      } else {
+        const data = await response.json();
+        setWhatsappError(data.error || 'Erro ao guardar configuração');
+      }
+    } catch (error) {
+      setWhatsappError('Erro ao guardar configuração');
+    } finally {
+      setWhatsappLoading(false);
     }
   };
 
