@@ -79,11 +79,11 @@ export default function BarbeiroPanel() {
     }
   };
 
-  const getWeekDays = () => {
+  const getWeekDays = (offset = 0) => {
     const today = new Date();
     const currentDay = today.getDay();
     const monday = new Date(today);
-    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1) + (offset * 7));
 
     const days = [];
     for (let i = 0; i < 7; i++) {
