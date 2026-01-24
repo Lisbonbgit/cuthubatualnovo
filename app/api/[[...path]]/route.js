@@ -305,7 +305,7 @@ export async function POST(request, { params }) {
         barbeiro_id,
         data,
         hora,
-        status: { $ne: 'cancelada' }
+        status: { $nin: ['cancelada', 'rejeitada'] }
       });
 
       if (existingMarcacao) {
@@ -319,14 +319,15 @@ export async function POST(request, { params }) {
         barbearia_id: decoded.barbearia_id || servicoObj.barbearia_id,
         data,
         hora,
-        status: 'confirmada',
-        criado_em: new Date()
+        status: 'pendente', // Agora começa como pendente
+        criado_em: new Date(),
+        atualizado_em: new Date()
       };
 
       const result = await db.collection('marcacoes').insertOne(marcacao);
 
       // Mock email notification
-      console.log(`[MOCK EMAIL] Marcação confirmada para ${decoded.email} em ${data} às ${hora}`);
+      console.log(`[MOCK EMAIL] Nova marcação pendente para aprovação em ${data} às ${hora}`);
 
       return NextResponse.json({ marcacao: { ...marcacao, _id: result.insertedId } });
     }
