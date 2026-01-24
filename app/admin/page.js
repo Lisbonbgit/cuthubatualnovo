@@ -147,7 +147,7 @@ export default function AdminPanel() {
 
       <div className="container mx-auto px-4 py-8">
         <Tabs defaultValue="marcacoes" className="space-y-6">
-          <TabsList className="bg-zinc-800 grid grid-cols-5 w-full">
+          <TabsList className="bg-zinc-800 grid grid-cols-6 w-full">
             <TabsTrigger value="marcacoes" className="data-[state=active]:bg-amber-600">
               <Calendar className="mr-2 h-4 w-4" />
               Marcações
@@ -167,6 +167,10 @@ export default function AdminPanel() {
             <TabsTrigger value="horarios" className="data-[state=active]:bg-amber-600">
               <Clock className="mr-2 h-4 w-4" />
               Horários
+            </TabsTrigger>
+            <TabsTrigger value="configuracoes" className="data-[state=active]:bg-amber-600">
+              <Settings className="mr-2 h-4 w-4" />
+              Configurações
             </TabsTrigger>
           </TabsList>
 
