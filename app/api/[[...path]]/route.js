@@ -277,22 +277,23 @@ export async function POST(request, { params }) {
       return NextResponse.json({ produto: { ...produto, _id: result.insertedId } });
     }
 
-    // PLANOS - Create
-    if (path === 'planos') {
+    // PLANOS CLIENTE - Create
+    if (path === 'planos-cliente') {
       if (decoded.tipo !== 'admin') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      const { nome, preco_mensal, beneficios } = body;
+      const { nome, preco, duracao, descricao } = body;
       const plano = {
         nome,
-        preco_mensal: parseFloat(preco_mensal),
-        beneficios: beneficios || [],
+        preco: parseFloat(preco),
+        duracao: parseInt(duracao),
+        descricao: descricao || '',
         barbearia_id: decoded.barbearia_id,
         criado_em: new Date()
       };
 
-      const result = await db.collection('planos').insertOne(plano);
+      const result = await db.collection('planos_cliente').insertOne(plano);
       return NextResponse.json({ plano: { ...plano, _id: result.insertedId } });
     }
 
