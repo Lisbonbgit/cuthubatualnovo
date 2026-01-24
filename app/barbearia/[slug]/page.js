@@ -507,31 +507,64 @@ export default function BarbeariaPublicPage() {
       {barbeiros.length > 0 && (
         <section className="py-16 bg-zinc-950">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-white text-center mb-12">
-              Nossa Equipa
-            </h2>
+            <div className="text-center mb-12">
+              <Users className="h-12 w-12 text-amber-600 mx-auto mb-4" />
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Nossa Equipa
+              </h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto">
+                Profissionais qualificados prontos para cuidar de si
+              </p>
+            </div>
             <div className="grid md:grid-cols-4 gap-6">
               {barbeiros.map((barbeiro) => (
-                <Card key={barbeiro._id} className="bg-zinc-800 border-zinc-700 text-center">
+                <Card key={barbeiro._id} className="bg-zinc-800 border-zinc-700 text-center hover:border-amber-600 transition-all group">
                   <CardHeader>
-                    {barbeiro.foto ? (
-                      <img src={barbeiro.foto} alt={barbeiro.nome} className="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-amber-600" />
-                    ) : (
-                      <div className="w-20 h-20 bg-amber-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                        <User className="h-10 w-10 text-white" />
-                      </div>
-                    )}
-                    <CardTitle className="text-white">{barbeiro.nome}</CardTitle>
+                    <div className="relative mx-auto mb-4">
+                      {barbeiro.foto ? (
+                        <img 
+                          src={barbeiro.foto} 
+                          alt={barbeiro.nome} 
+                          className="w-24 h-24 rounded-full object-cover border-3 border-amber-600 group-hover:scale-105 transition-transform" 
+                        />
+                      ) : (
+                        <div className="w-24 h-24 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full mx-auto flex items-center justify-center group-hover:scale-105 transition-transform">
+                          <User className="h-12 w-12 text-white" />
+                        </div>
+                      )}
+                    </div>
+                    <CardTitle className="text-white text-xl">{barbeiro.nome}</CardTitle>
                     {barbeiro.especialidades && barbeiro.especialidades.length > 0 && (
-                      <div className="flex flex-wrap gap-1 justify-center mt-2">
+                      <div className="flex flex-wrap gap-1 justify-center mt-3">
                         {barbeiro.especialidades.slice(0, 3).map((esp, i) => (
-                          <span key={i} className="text-xs bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded">
+                          <span key={i} className="text-xs bg-amber-900/30 text-amber-400 px-2 py-1 rounded-full">
                             {esp}
                           </span>
                         ))}
                       </div>
                     )}
+                    {barbeiro.biografia && (
+                      <p className="text-zinc-400 text-sm mt-3 line-clamp-2">
+                        {barbeiro.biografia}
+                      </p>
+                    )}
                   </CardHeader>
+                  <CardContent>
+                    <Button 
+                      variant="outline" 
+                      className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white w-full"
+                      onClick={() => {
+                        setSelectedBarbeiro(barbeiro._id);
+                        if (user) {
+                          setShowBookingForm(true);
+                        } else {
+                          setShowAuthModal(true);
+                        }
+                      }}
+                    >
+                      Marcar com {barbeiro.nome.split(' ')[0]}
+                    </Button>
+                  </CardContent>
                 </Card>
               ))}
             </div>
