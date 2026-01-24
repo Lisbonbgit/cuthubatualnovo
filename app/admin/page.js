@@ -544,31 +544,79 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes }) {
 
 function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingBarbeiro, setEditingBarbeiro] = useState(null);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [telemovel, setTelemovel] = useState('');
+  const [biografia, setBiografia] = useState('');
+  const [especialidades, setEspecialidades] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setNome('');
+    setEmail('');
+    setPassword('');
+    setTelemovel('');
+    setBiografia('');
+    setEspecialidades('');
+    setEditingBarbeiro(null);
+    setError('');
+  };
+
+  const handleEdit = (barbeiro) => {
+    setEditingBarbeiro(barbeiro);
+    setNome(barbeiro.nome || '');
+    setEmail(barbeiro.email || '');
+    setPassword('');
+    setTelemovel(barbeiro.telemovel || '');
+    setBiografia(barbeiro.biografia || '');
+    setEspecialidades(Array.isArray(barbeiro.especialidades) ? barbeiro.especialidades.join(', ') : '');
+    setShowForm(true);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
+    const especialidadesArray = especialidades
+      .split(',')
+      .map(e => e.trim())
+      .filter(e => e.length > 0);
+
     try {
-      const response = await fetch('/api/barbeiros', {
-        method: 'POST',
+      const url = editingBarbeiro 
+        ? `/api/barbeiros/${editingBarbeiro._id}`
+        : '/api/barbeiros';
+      
+      const method = editingBarbeiro ? 'PUT' : 'POST';
+      
+      const bodyData = {
+        nome,
+        email,
+        telemovel,
+        biografia,
+        especialidades: especialidadesArray
+      };
+
+      // Só incluir password se for novo barbeiro ou se foi preenchida na edição
+      if (!editingBarbeiro || password.length > 0) {
+        bodyData.password = password;
+      }
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ nome, email, password })
+        body: JSON.stringify(bodyData)
       });
 
       if (response.ok) {
-        setNome('');
-        setEmail('');
-        setPassword('');
+        resetForm();
         setShowForm(false);
         fetchBarbeiros();
       } else {
@@ -576,7 +624,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
         setError(data.error);
       }
     } catch (error) {
-      setError('Erro ao adicionar barbeiro');
+      setError('Erro ao guardar barbeiro');
     } finally {
       setLoading(false);
     }
@@ -596,6 +644,25 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
     }
   };
 
+  const handleToggleAtivo = async (barbeiro) => {
+    try {
+      await fetch(`/api/barbeiros/${barbeiro._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...barbeiro,
+          ativo: !barbeiro.ativo
+        })
+      });
+      fetchBarbeiros();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <Card className="bg-zinc-800 border-zinc-700">
@@ -603,10 +670,13 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-white">Barbeiros</CardTitle>
-              <CardDescription className="text-zinc-400">Gerir equipa de barbeiros</CardDescription>
+              <CardDescription className="text-zinc-400">Gerir equipa de barbeiros - criar contas de acesso</CardDescription>
             </div>
             <Button
-              onClick={() => setShowForm(!showForm)}
+              onClick={() => {
+                resetForm();
+                setShowForm(!showForm);
+              }}
               className="bg-amber-600 hover:bg-amber-700"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -617,48 +687,104 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
         <CardContent>
           {showForm && (
             <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
+              <h3 className="text-white font-semibold text-lg mb-4">
+                {editingBarbeiro ? 'Editar Barbeiro' : 'Novo Barbeiro'}
+              </h3>
               {error && (
                 <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
                   {error}
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-4">
+              
+              {/* Linha 1: Nome, Email */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">Nome</Label>
+                  <Label className="text-zinc-300">Nome *</Label>
                   <Input
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="Ex: João Silva"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">Email</Label>
+                  <Label className="text-zinc-300">Email *</Label>
                   <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="joao@barbearia.pt"
                     required
                   />
                 </div>
+              </div>
+
+              {/* Linha 2: Password, Telemóvel */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-zinc-300">Palavra-passe</Label>
+                  <Label className="text-zinc-300">
+                    {editingBarbeiro ? 'Nova Palavra-passe (deixe vazio para manter)' : 'Palavra-passe *'}
+                  </Label>
                   <Input
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="bg-zinc-800 border-zinc-700 text-white"
-                    minLength="6"
-                    required
+                    placeholder="Mínimo 6 caracteres"
+                    minLength={editingBarbeiro ? 0 : 6}
+                    required={!editingBarbeiro}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Telemóvel</Label>
+                  <Input
+                    type="tel"
+                    value={telemovel}
+                    onChange={(e) => setTelemovel(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="+351 912 345 678"
                   />
                 </div>
               </div>
+
+              {/* Linha 3: Especialidades */}
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Especialidades</Label>
+                <Input
+                  value={especialidades}
+                  onChange={(e) => setEspecialidades(e.target.value)}
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                  placeholder="Ex: Corte clássico, Barba, Degradê (separados por vírgula)"
+                />
+                <p className="text-zinc-500 text-xs">Separe as especialidades por vírgulas</p>
+              </div>
+
+              {/* Linha 4: Biografia */}
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Biografia</Label>
+                <textarea
+                  value={biografia}
+                  onChange={(e) => setBiografia(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 min-h-[80px]"
+                  placeholder="Breve descrição sobre o barbeiro..."
+                />
+              </div>
+
               <div className="flex gap-2">
                 <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
-                  {loading ? 'A adicionar...' : 'Adicionar'}
+                  {loading ? 'A guardar...' : (editingBarbeiro ? 'Guardar Alterações' : 'Adicionar')}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="border-zinc-700"
+                  onClick={() => {
+                    resetForm();
+                    setShowForm(false);
+                  }}
+                >
                   Cancelar
                 </Button>
               </div>
@@ -666,22 +792,70 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
           )}
 
           {barbeiros.length === 0 ? (
-            <p className="text-zinc-400 text-center py-8">Nenhum barbeiro registado</p>
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400">Nenhum barbeiro registado</p>
+              <p className="text-zinc-500 text-sm mt-2">Adicione barbeiros para que possam aceder ao sistema e gerir as suas marcações</p>
+            </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-zinc-700">
-                  <TableHead className="text-zinc-300">Nome</TableHead>
-                  <TableHead className="text-zinc-300">Email</TableHead>
-                  <TableHead className="text-zinc-300">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {barbeiros.map((barbeiro) => (
-                  <TableRow key={barbeiro._id} className="border-zinc-700">
-                    <TableCell className="text-white">{barbeiro.nome}</TableCell>
-                    <TableCell className="text-white">{barbeiro.email}</TableCell>
-                    <TableCell>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {barbeiros.map((barbeiro) => (
+                <Card key={barbeiro._id} className={`bg-zinc-900 border-zinc-700 ${barbeiro.ativo === false ? 'opacity-60' : ''}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                          {barbeiro.nome?.charAt(0).toUpperCase() || 'B'}
+                        </div>
+                        <div>
+                          <CardTitle className="text-white text-lg">{barbeiro.nome}</CardTitle>
+                          <p className="text-zinc-400 text-sm">{barbeiro.email}</p>
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs ${barbeiro.ativo !== false ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                        {barbeiro.ativo !== false ? 'Ativo' : 'Inativo'}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {barbeiro.telemovel && (
+                      <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                        <span className="text-zinc-500">📞</span>
+                        {barbeiro.telemovel}
+                      </div>
+                    )}
+                    
+                    {barbeiro.especialidades && barbeiro.especialidades.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {barbeiro.especialidades.map((esp, idx) => (
+                          <span key={idx} className="bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded text-xs">
+                            {esp}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {barbeiro.biografia && (
+                      <p className="text-zinc-400 text-sm line-clamp-2">{barbeiro.biografia}</p>
+                    )}
+
+                    <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-zinc-700 hover:bg-zinc-800"
+                        onClick={() => handleEdit(barbeiro)}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`border-zinc-700 ${barbeiro.ativo !== false ? 'hover:bg-yellow-900/30' : 'hover:bg-green-900/30'}`}
+                        onClick={() => handleToggleAtivo(barbeiro)}
+                      >
+                        {barbeiro.ativo !== false ? 'Desativar' : 'Ativar'}
+                      </Button>
                       <Button
                         variant="destructive"
                         size="sm"
@@ -689,11 +863,11 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>
