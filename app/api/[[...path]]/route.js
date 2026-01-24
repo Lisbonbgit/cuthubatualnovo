@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { MongoClient, ObjectId } from 'mongodb';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import Stripe from 'stripe';
+import twilio from 'twilio';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretkey-change-in-production';
 const MONGO_URL = process.env.MONGO_URL;
