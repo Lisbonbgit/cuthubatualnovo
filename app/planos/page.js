@@ -13,6 +13,8 @@ export default function PlanosPage() {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(null);
   const [user, setUser] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
     checkAuth();
