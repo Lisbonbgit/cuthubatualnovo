@@ -377,13 +377,33 @@ export default function BarbeiroPanel() {
                                 <TableCell className="text-zinc-400">{marcacao.servico?.duracao} min</TableCell>
                                 <TableCell className="text-amber-500">{marcacao.servico?.preco?.toFixed(2)}€</TableCell>
                                 <TableCell>
-                                  <span className={`px-2 py-1 rounded text-xs ${
-                                    marcacao.status === 'confirmada' ? 'bg-green-900/50 text-green-400' :
-                                    marcacao.status === 'cancelada' ? 'bg-red-900/50 text-red-400' :
-                                    'bg-yellow-900/50 text-yellow-400'
-                                  }`}>
-                                    {marcacao.status}
-                                  </span>
+                                  {marcacao.status === 'pendente' && (
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="sm"
+                                        className="bg-green-600 hover:bg-green-700"
+                                        onClick={() => handleUpdateStatus(marcacao._id, 'aceita')}
+                                      >
+                                        Aceitar
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => handleUpdateStatus(marcacao._id, 'rejeitada')}
+                                      >
+                                        Rejeitar
+                                      </Button>
+                                    </div>
+                                  )}
+                                  {marcacao.status === 'aceita' && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-blue-600 hover:bg-blue-700"
+                                      onClick={() => handleUpdateStatus(marcacao._id, 'concluida')}
+                                    >
+                                      Concluir
+                                    </Button>
+                                  )}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -393,10 +413,11 @@ export default function BarbeiroPanel() {
                     </div>
                   );
                 })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
