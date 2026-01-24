@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Loader2, Crown, Zap, Rocket } from 'lucide-react';
+import { SuccessModal } from '@/components/ui/modals';
 
 export default function PlanosPage() {
   const router = useRouter();
