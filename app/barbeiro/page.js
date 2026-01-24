@@ -12,6 +12,8 @@ export default function BarbeiroPanel() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [marcacoes, setMarcacoes] = useState([]);
+  const [viewMode, setViewMode] = useState('calendario');
+  const [filtroStatus, setFiltroStatus] = useState('todas');
 
   useEffect(() => {
     const token = localStorage.getItem('token');
