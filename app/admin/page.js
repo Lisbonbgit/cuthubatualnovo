@@ -49,7 +49,8 @@ export default function AdminPanel() {
           fetchServicos(token),
           fetchProdutos(token),
           fetchMarcacoes(token),
-          fetchHorarios(token)
+          fetchHorarios(token),
+          fetchBarbeariaSettings(token)
         ]);
       } else {
         router.push('/');
