@@ -14,6 +14,8 @@ export default function PlanosPage() {
   const [loading, setLoading] = useState(true);
   const [subscribing, setSubscribing] = useState(null);
   const [user, setUser] = useState(null);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successData, setSuccessData] = useState(null);
 
@@ -47,8 +49,8 @@ export default function PlanosPage() {
         if (subResponse.ok) {
           const subData = await subResponse.json();
           if (subData.has_subscription && subData.subscription.status === 'active') {
-            // Already has subscription, redirect to setup
-            router.push('/setup');
+            setHasActiveSubscription(true);
+            setCurrentPlan(subData.subscription.plan_id);
           }
         }
       } else {
@@ -86,7 +88,8 @@ export default function PlanosPage() {
         },
         body: JSON.stringify({ 
           plan_id: planId,
-          payment_method: 'mock_card'
+          payment_method: 'mock_card',
+          skip_trial: hasActiveSubscription // Se já tem plano, não dá trial
         })
       });
 
@@ -95,10 +98,10 @@ export default function PlanosPage() {
       if (response.ok) {
         const planName = plans.find(p => p.id === planId)?.name || 'Pro';
         setSuccessData({
-          title: 'Assinatura Ativada!',
+          title: hasActiveSubscription ? 'Plano Alterado!' : 'Assinatura Ativada!',
           message: data.message,
           planName: planName,
-          trialDays: '7 dias'
+          trialDays: hasActiveSubscription ? 'N/A' : '7 dias'
         });
         setShowSuccessModal(true);
       } else {
@@ -142,23 +145,34 @@ export default function PlanosPage() {
         {/* Hero */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Comece Hoje com 7 Dias Grátis
+            {hasActiveSubscription 
+              ? 'Altere o Seu Plano'
+              : 'Comece Hoje com 7 Dias Grátis'
+            }
           </h2>
           <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-            Escolha o plano ideal para o seu negócio. Sem compromisso, cancele quando quiser.
+            {hasActiveSubscription
+              ? 'Escolha um novo plano para o seu negócio. A alteração será efectuada imediatamente.'
+              : 'Escolha o plano ideal para o seu negócio. Sem compromisso, cancele quando quiser.'
+            }
           </p>
+          {hasActiveSubscription && (
+            <div className="mt-4 inline-block bg-amber-900/30 text-amber-400 px-4 py-2 rounded-lg">
+              Plano atual: <strong>{plans.find(p => p.id === currentPlan)?.name || currentPlan}</strong>
+            </div>
+          )}
         </div>
 
-        {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {/* Plans Grid - Centralized and Symmetric */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {plans.map((plan) => (
             <Card 
               key={plan.id}
-              className={`relative ${
+              className={`relative flex flex-col ${
                 plan.popular 
                   ? 'bg-gradient-to-b from-amber-900/20 to-zinc-800 border-amber-600 border-2' 
                   : 'bg-zinc-800 border-zinc-700'
-              }`}
+              } ${currentPlan === plan.id ? 'ring-2 ring-green-500' : ''}`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -168,7 +182,15 @@ export default function PlanosPage() {
                 </div>
               )}
 
-              <CardHeader className="text-center pt-8">
+              {currentPlan === plan.id && (
+                <div className="absolute -top-4 right-4">
+                  <span className="bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    ✓ Plano Atual
+                  </span>
+                </div>
+              )}
+
+              <CardHeader className="text-center pt-8 flex-shrink-0">
                 <div className="mb-4 flex justify-center">
                   {getPlanIcon(plan.id)}
                 </div>
@@ -178,13 +200,16 @@ export default function PlanosPage() {
                   <span className="text-zinc-400 ml-2">/mês</span>
                 </div>
                 <CardDescription className="text-zinc-400">
-                  7 dias grátis, depois {plan.price}€/mês
+                  {hasActiveSubscription 
+                    ? `${plan.price}€/mês`
+                    : `7 dias grátis, depois ${plan.price}€/mês`
+                  }
                 </CardDescription>
               </CardHeader>
 
-              <CardContent className="space-y-6">
-                {/* Features */}
-                <ul className="space-y-3">
+              <CardContent className="flex flex-col flex-1">
+                {/* Features - Fixed height area */}
+                <ul className="space-y-3 flex-1 mb-6">
                   {plan.features.map((feature, index) => (
                     <li key={index} className="flex items-start gap-3 text-zinc-300">
                       <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -193,62 +218,72 @@ export default function PlanosPage() {
                   ))}
                 </ul>
 
-                {/* CTA Button */}
-                <Button
-                  className={`w-full ${
-                    plan.popular
-                      ? 'bg-amber-600 hover:bg-amber-700'
-                      : 'bg-zinc-700 hover:bg-zinc-600'
-                  }`}
-                  size="lg"
-                  onClick={() => handleSubscribe(plan.id)}
-                  disabled={subscribing !== null}
-                >
-                  {subscribing === plan.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      A processar...
-                    </>
-                  ) : (
-                    'Começar Trial Grátis'
-                  )}
-                </Button>
+                {/* CTA Button - Always at bottom */}
+                <div className="mt-auto space-y-3">
+                  <Button
+                    className={`w-full ${
+                      currentPlan === plan.id
+                        ? 'bg-green-700 hover:bg-green-600 cursor-default'
+                        : plan.popular
+                          ? 'bg-amber-600 hover:bg-amber-700'
+                          : 'bg-zinc-700 hover:bg-zinc-600'
+                    }`}
+                    size="lg"
+                    onClick={() => handleSubscribe(plan.id)}
+                    disabled={subscribing !== null || currentPlan === plan.id}
+                  >
+                    {subscribing === plan.id ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        A processar...
+                      </>
+                    ) : currentPlan === plan.id ? (
+                      '✓ Plano Atual'
+                    ) : hasActiveSubscription ? (
+                      'Mudar para Este Plano'
+                    ) : (
+                      'Começar Teste Grátis'
+                    )}
+                  </Button>
 
-                <p className="text-xs text-zinc-500 text-center">
-                  💳 Pagamento mockado para demonstração
-                </p>
+                  <p className="text-xs text-zinc-500 text-center">
+                    💳 Pagamento mockado para demonstração
+                  </p>
+                </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
         {/* Info Section */}
-        <div className="mt-16 max-w-4xl mx-auto">
-          <Card className="bg-zinc-800 border-zinc-700">
-            <CardContent className="pt-6">
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <h3 className="text-white font-semibold mb-2">✅ 7 Dias Grátis</h3>
-                  <p className="text-zinc-400 text-sm">
-                    Teste todas as funcionalidades sem compromisso
-                  </p>
+        {!hasActiveSubscription && (
+          <div className="mt-16 max-w-4xl mx-auto">
+            <Card className="bg-zinc-800 border-zinc-700">
+              <CardContent className="pt-6">
+                <div className="grid md:grid-cols-3 gap-6 text-center">
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">✅ 7 Dias Grátis</h3>
+                    <p className="text-zinc-400 text-sm">
+                      Teste todas as funcionalidades sem compromisso
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">🔄 Cancele Quando Quiser</h3>
+                    <p className="text-zinc-400 text-sm">
+                      Sem contratos de permanência ou taxas de cancelamento
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold mb-2">💾 Dados Seguros</h3>
+                    <p className="text-zinc-400 text-sm">
+                      Seus dados permanecem salvos mesmo após cancelamento
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold mb-2">🔄 Cancele Quando Quiser</h3>
-                  <p className="text-zinc-400 text-sm">
-                    Sem contratos de permanência ou taxas de cancelamento
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold mb-2">💾 Dados Seguros</h3>
-                  <p className="text-zinc-400 text-sm">
-                    Seus dados permanecem salvos mesmo após cancelamento
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* FAQ */}
         <div className="mt-12 max-w-2xl mx-auto">
@@ -264,8 +299,8 @@ export default function PlanosPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-zinc-400">
-                  Após o período de trial, a sua assinatura é automaticamente cobrada mensalmente.
-                  Pode cancelar a qualquer momento antes do fim do trial sem ser cobrado.
+                  Após o período de teste, a sua assinatura é automaticamente cobrada mensalmente.
+                  Pode cancelar a qualquer momento antes do fim do teste sem ser cobrado.
                 </p>
               </CardContent>
             </Card>
@@ -313,7 +348,7 @@ export default function PlanosPage() {
           message={successData.message}
           details={[
             { label: 'Plano Escolhido', value: successData.planName },
-            { label: 'Trial Grátis', value: successData.trialDays }
+            { label: hasActiveSubscription ? 'Teste Grátis' : 'Teste Grátis', value: successData.trialDays }
           ]}
         />
       )}
