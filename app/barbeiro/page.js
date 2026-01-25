@@ -853,13 +853,14 @@ export default function BarbeiroPanel() {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="perfil">
-            <PerfilTab user={user} fetchUserData={() => fetchUserData(localStorage.getItem('token'))} />
-          </TabsContent>
-        </Tabs>
-      </div>
+        {/* Perfil Content */}
+        {activeTab === 'perfil' && (
+          <PerfilTab user={user} fetchUserData={() => fetchUserData(localStorage.getItem('token'))} />
+        )}
+      </main>
     </div>
   );
 }
