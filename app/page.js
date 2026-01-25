@@ -55,6 +55,9 @@ export default function App() {
       router.push('/barbeiro');
     } else if (user.tipo === 'cliente') {
       router.push('/cliente');
+    } else if (user.tipo === 'owner') {
+      // Owner sem barbearia vai para setup, com barbearia vai ver planos/dashboard
+      router.push('/setup');
     }
   };
 
