@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogOut, Calendar, User, Save, Plus, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal } from '@/components/ui/modals';
+import { Sidebar } from '@/components/ui/sidebar';
 
 export default function BarbeiroPanel() {
   const router = useRouter();
@@ -18,6 +18,9 @@ export default function BarbeiroPanel() {
   const [loading, setLoading] = useState(true);
   const [marcacoes, setMarcacoes] = useState([]);
   const [viewMode, setViewMode] = useState('calendario');
+  
+  // Sidebar navigation
+  const [activeTab, setActiveTab] = useState('marcacoes');
   const [filtroStatus, setFiltroStatus] = useState('todas');
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedMarcacao, setSelectedMarcacao] = useState(null);
