@@ -1348,31 +1348,85 @@ export async function GET(request, { params }) {
       }
 
       const dataObj = new Date(data);
+      const diaSemanaNum = dataObj.getDay(); // 0 = Domingo, 6 = Sábado
       const diasSemana = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
-      const diaSemana = diasSemana[dataObj.getDay()];
+      const diaSemana = diasSemana[diaSemanaNum];
 
-      const horarioFuncionamento = await db.collection('horarios_funcionamento').findOne({
-        barbearia_id: barbeiro.barbearia_id,
-        dia_semana: diaSemana,
-        ativo: true
-      });
+      // Verificar se o barbeiro tem horário individual definido
+      const horarioBarbeiro = barbeiro.horario_trabalho;
+      let horaInicio, horaFim, horaAlmocoInicio, horaAlmocoFim;
+      let trabalhaNestesDia = true;
 
-      if (!horarioFuncionamento || !horarioFuncionamento.hora_inicio) {
-        return NextResponse.json({ slots: [] });
+      if (horarioBarbeiro && horarioBarbeiro.horario_semanal) {
+        const horarioDia = horarioBarbeiro.horario_semanal[diaSemanaNum];
+        
+        if (!horarioDia || !horarioDia.ativo) {
+          // Barbeiro não trabalha neste dia
+          return NextResponse.json({ slots: [], message: 'Barbeiro não trabalha neste dia' });
+        }
+
+        horaInicio = horarioDia.inicio || '09:00';
+        horaFim = horarioDia.fim || '19:00';
+        horaAlmocoInicio = horarioBarbeiro.hora_almoco_inicio;
+        horaAlmocoFim = horarioBarbeiro.hora_almoco_fim;
+
+        // Verificar exceções para esta data específica
+        if (horarioBarbeiro.excepcoes && horarioBarbeiro.excepcoes.length > 0) {
+          const excecao = horarioBarbeiro.excepcoes.find(e => e.data === data);
+          if (excecao) {
+            if (excecao.tipo === 'folga') {
+              return NextResponse.json({ slots: [], message: 'Barbeiro de folga neste dia' });
+            } else if (excecao.tipo === 'parcial') {
+              // Horário diferente para este dia
+              horaInicio = excecao.inicio || horaInicio;
+              horaFim = excecao.fim || horaFim;
+            }
+          }
+        }
+      } else {
+        // Usar horário de funcionamento da barbearia como fallback
+        const horarioFuncionamento = await db.collection('horarios_funcionamento').findOne({
+          barbearia_id: barbeiro.barbearia_id,
+          dia_semana: diaSemana,
+          ativo: true
+        });
+
+        if (!horarioFuncionamento || !horarioFuncionamento.hora_inicio) {
+          return NextResponse.json({ slots: [] });
+        }
+
+        horaInicio = horarioFuncionamento.hora_inicio;
+        horaFim = horarioFuncionamento.hora_fim;
       }
 
-      const [horaInicio, minInicio] = horarioFuncionamento.hora_inicio.split(':').map(Number);
-      const [horaFim, minFim] = horarioFuncionamento.hora_fim.split(':').map(Number);
-      const startMinutes = horaInicio * 60 + minInicio;
-      const endMinutes = horaFim * 60 + minFim;
+      const [horaInicioH, horaInicioM] = horaInicio.split(':').map(Number);
+      const [horaFimH, horaFimM] = horaFim.split(':').map(Number);
+      const startMinutes = horaInicioH * 60 + horaInicioM;
+      const endMinutes = horaFimH * 60 + horaFimM;
 
-      const allSlots = generateTimeSlots(startMinutes, endMinutes, servico.duracao);
+      let allSlots = generateTimeSlots(startMinutes, endMinutes, servico.duracao);
 
+      // Remover slots durante o horário de almoço
+      if (horaAlmocoInicio && horaAlmocoFim) {
+        const [almocoInicioH, almocoInicioM] = horaAlmocoInicio.split(':').map(Number);
+        const [almocoFimH, almocoFimM] = horaAlmocoFim.split(':').map(Number);
+        const almocoInicioMin = almocoInicioH * 60 + almocoInicioM;
+        const almocoFimMin = almocoFimH * 60 + almocoFimM;
+
+        allSlots = allSlots.filter(slot => {
+          const [slotH, slotM] = slot.split(':').map(Number);
+          const slotMin = slotH * 60 + slotM;
+          // Slot não pode começar durante o almoço
+          return slotMin < almocoInicioMin || slotMin >= almocoFimMin;
+        });
+      }
+
+      // Remover slots já ocupados por marcações
       const marcacoesExistentes = await db.collection('marcacoes')
         .find({
           barbeiro_id,
           data,
-          status: { $ne: 'cancelada' }
+          status: { $nin: ['cancelada', 'rejeitada'] }
         })
         .toArray();
 
