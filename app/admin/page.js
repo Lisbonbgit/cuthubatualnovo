@@ -1015,8 +1015,10 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes, lastUpdate, isRefreshing, onM
 
 function ClientesTab({ clientes, fetchClientes }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('ultima_visita'); // 'nome', 'total_gasto', 'total_marcacoes', 'ultima_visita'
+  const [sortBy, setSortBy] = useState('ultima_visita');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [selectedCliente, setSelectedCliente] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   const clientesFiltrados = clientes
     .filter(c => 
@@ -1053,8 +1055,20 @@ function ClientesTab({ clientes, fetchClientes }) {
   const totalGastoGeral = clientes.reduce((sum, c) => sum + (c.total_gasto || 0), 0);
   const totalMarcacoes = clientes.reduce((sum, c) => sum + (c.total_marcacoes || 0), 0);
 
+  const handleClienteClick = (cliente) => {
+    setSelectedCliente(cliente);
+    setShowDetailModal(true);
+  };
+
   return (
     <div className="space-y-4">
+      {/* Cliente Detail Modal */}
+      <ClienteDetailModal
+        isOpen={showDetailModal}
+        onClose={() => { setShowDetailModal(false); setSelectedCliente(null); }}
+        cliente={selectedCliente}
+      />
+
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="bg-zinc-800 border-zinc-700">
