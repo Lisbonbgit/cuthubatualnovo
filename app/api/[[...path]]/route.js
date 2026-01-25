@@ -1033,12 +1033,51 @@ export async function GET(request, { params }) {
       return NextResponse.json({ planos });
     }
 
-    // GET Horários
+    // GET Horários da Barbearia
     if (path === 'horarios') {
       const horarios = await db.collection('horarios_funcionamento')
         .find({ barbearia_id: decoded.barbearia_id })
         .toArray();
       return NextResponse.json({ horarios });
+    }
+
+    // GET Horários do Barbeiro (individual)
+    if (path === 'barbeiro/horarios') {
+      if (decoded.tipo !== 'barbeiro' && decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const barbeiroId = searchParams.get('barbeiro_id') || decoded.userId;
+      
+      const barbeiro = await db.collection('utilizadores').findOne(
+        { _id: new ObjectId(barbeiroId) },
+        { projection: { horario_trabalho: 1, nome: 1 } }
+      );
+
+      if (!barbeiro) {
+        return NextResponse.json({ error: 'Barbeiro não encontrado' }, { status: 404 });
+      }
+
+      // Se não tem horário definido, retornar horário padrão
+      const horarioPadrao = {
+        horario_semanal: {
+          0: { ativo: false }, // Domingo
+          1: { ativo: true, inicio: '09:00', fim: '19:00' }, // Segunda
+          2: { ativo: true, inicio: '09:00', fim: '19:00' }, // Terça
+          3: { ativo: true, inicio: '09:00', fim: '19:00' }, // Quarta
+          4: { ativo: true, inicio: '09:00', fim: '19:00' }, // Quinta
+          5: { ativo: true, inicio: '09:00', fim: '19:00' }, // Sexta
+          6: { ativo: true, inicio: '09:00', fim: '13:00' }, // Sábado
+        },
+        hora_almoco_inicio: '13:00',
+        hora_almoco_fim: '14:00',
+        excepcoes: []
+      };
+
+      return NextResponse.json({ 
+        horario: barbeiro.horario_trabalho || horarioPadrao,
+        barbeiro_nome: barbeiro.nome
+      });
     }
 
     // GET Subscription Status
