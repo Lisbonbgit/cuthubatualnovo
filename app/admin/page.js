@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LogOut, Plus, Trash2, Users, Scissors, Package, Calendar, Clock, Settings, UserCheck, Phone, Mail, Euro, Edit, CreditCard, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal } from '@/components/ui/modals';
+import { Sidebar } from '@/components/ui/sidebar';
 
 export default function AdminPanel() {
   const router = useRouter();
@@ -29,6 +30,9 @@ export default function AdminPanel() {
   // Polling state
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Sidebar navigation
+  const [activeTab, setActiveTab] = useState('marcacoes');
 
   useEffect(() => {
     setMounted(true);
