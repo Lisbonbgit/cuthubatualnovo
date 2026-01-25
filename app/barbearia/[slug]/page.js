@@ -939,7 +939,7 @@ export default function BarbeariaPublicPage() {
                           type="date"
                           value={selectedData}
                           onChange={(e) => setSelectedData(e.target.value)}
-                          min={new Date().toISOString().split('T')[0]}
+                          min={minDate}
                           className="bg-zinc-900 border-zinc-700 text-white"
                           required
                         />
