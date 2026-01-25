@@ -63,9 +63,12 @@ export default function BarbeariaPublicPage() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState('');
   const [profileError, setProfileError] = useState('');
+  const [minDate, setMinDate] = useState('');
 
   useEffect(() => {
     setMounted(true);
+    // Definir data mínima apenas no cliente
+    setMinDate(new Date().toISOString().split('T')[0]);
     if (slug) {
       fetchBarbeariaData();
       checkAuth();
