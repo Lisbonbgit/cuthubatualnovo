@@ -1156,7 +1156,7 @@ function ClientesTab({ clientes, fetchClientes }) {
         <CardHeader>
           <CardTitle className="text-white">Clientes ({clientesFiltrados.length})</CardTitle>
           <CardDescription className="text-zinc-400">
-            Gestão de clientes que já fizeram marcações
+            Todos os clientes registados na barbearia • Clique num cliente para ver detalhes
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1167,7 +1167,7 @@ function ClientesTab({ clientes, fetchClientes }) {
                 {searchTerm ? 'Nenhum cliente encontrado' : 'Ainda não tem clientes'}
               </p>
               <p className="text-zinc-500 text-sm mt-2">
-                Os clientes aparecerão aqui após fazerem marcações
+                Os clientes aparecerão aqui após se registarem ou serem criados manualmente
               </p>
             </div>
           ) : (
