@@ -1185,7 +1185,11 @@ function ClientesTab({ clientes, fetchClientes }) {
                 </TableHeader>
                 <TableBody>
                   {clientesFiltrados.map((cliente) => (
-                    <TableRow key={cliente._id} className="border-zinc-700">
+                    <TableRow 
+                      key={cliente._id} 
+                      className="border-zinc-700 cursor-pointer hover:bg-zinc-700/50 transition-colors"
+                      onClick={() => handleClienteClick(cliente)}
+                    >
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-amber-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -1193,7 +1197,9 @@ function ClientesTab({ clientes, fetchClientes }) {
                           </div>
                           <div>
                             <div className="text-white font-medium">{cliente.nome}</div>
-                            <div className="text-zinc-500 text-xs">ID: {cliente._id?.slice(-6)}</div>
+                            <div className="text-zinc-500 text-xs">
+                              {cliente.criado_manualmente ? '📝 Manual' : 'ID: ' + cliente._id?.slice(-6)}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -1201,7 +1207,7 @@ function ClientesTab({ clientes, fetchClientes }) {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-zinc-300 text-sm">
                             <Mail className="h-3 w-3 text-zinc-500" />
-                            {cliente.email}
+                            {cliente.email?.includes('@manual.local') ? <span className="text-zinc-500 italic">Sem email</span> : cliente.email}
                           </div>
                           {cliente.telemovel && (
                             <div className="flex items-center gap-2 text-zinc-400 text-sm">
@@ -1212,13 +1218,19 @@ function ClientesTab({ clientes, fetchClientes }) {
                         </div>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="text-white font-semibold">{cliente.total_marcacoes || 0}</span>
+                        <span className={`font-semibold ${cliente.total_marcacoes > 0 ? 'text-white' : 'text-zinc-500'}`}>
+                          {cliente.total_marcacoes || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="text-green-400 font-semibold">{cliente.marcacoes_concluidas || 0}</span>
+                        <span className={`font-semibold ${cliente.marcacoes_concluidas > 0 ? 'text-green-400' : 'text-zinc-500'}`}>
+                          {cliente.marcacoes_concluidas || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-amber-500 font-bold">{(cliente.total_gasto || 0).toFixed(2)}€</span>
+                        <span className={`font-bold ${cliente.total_gasto > 0 ? 'text-amber-500' : 'text-zinc-500'}`}>
+                          {(cliente.total_gasto || 0).toFixed(2)}€
+                        </span>
                       </TableCell>
                       <TableCell>
                         {cliente.ultima_visita ? (
@@ -1226,7 +1238,7 @@ function ClientesTab({ clientes, fetchClientes }) {
                             {new Date(cliente.ultima_visita).toLocaleDateString('pt-PT')}
                           </span>
                         ) : (
-                          <span className="text-zinc-500">-</span>
+                          <span className="text-zinc-500 text-sm">Sem visitas</span>
                         )}
                       </TableCell>
                     </TableRow>
