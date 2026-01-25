@@ -857,10 +857,388 @@ export default function BarbeiroPanel() {
         )}
 
         {/* Perfil Content */}
+        {activeTab === 'horarios' && (
+          <HorariosTab user={user} />
+        )}
+
         {activeTab === 'perfil' && (
           <PerfilTab user={user} fetchUserData={() => fetchUserData(localStorage.getItem('token'))} />
         )}
       </main>
+    </div>
+  );
+}
+
+// Componente de Gestão de Horários do Barbeiro
+function HorariosTab({ user }) {
+  const diasSemana = [
+    { id: 0, nome: 'Domingo', abrev: 'Dom' },
+    { id: 1, nome: 'Segunda-feira', abrev: 'Seg' },
+    { id: 2, nome: 'Terça-feira', abrev: 'Ter' },
+    { id: 3, nome: 'Quarta-feira', abrev: 'Qua' },
+    { id: 4, nome: 'Quinta-feira', abrev: 'Qui' },
+    { id: 5, nome: 'Sexta-feira', abrev: 'Sex' },
+    { id: 6, nome: 'Sábado', abrev: 'Sáb' },
+  ];
+
+  const [horarioSemanal, setHorarioSemanal] = useState({
+    0: { ativo: false, inicio: '09:00', fim: '19:00' },
+    1: { ativo: true, inicio: '09:00', fim: '19:00' },
+    2: { ativo: true, inicio: '09:00', fim: '19:00' },
+    3: { ativo: true, inicio: '09:00', fim: '19:00' },
+    4: { ativo: true, inicio: '09:00', fim: '19:00' },
+    5: { ativo: true, inicio: '09:00', fim: '19:00' },
+    6: { ativo: true, inicio: '09:00', fim: '13:00' },
+  });
+  const [horaAlmocoInicio, setHoraAlmocoInicio] = useState('13:00');
+  const [horaAlmocoFim, setHoraAlmocoFim] = useState('14:00');
+  const [excepcoes, setExcepcoes] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+
+  // Nova exceção
+  const [showExcecaoForm, setShowExcecaoForm] = useState(false);
+  const [novaExcecaoData, setNovaExcecaoData] = useState('');
+  const [novaExcecaoTipo, setNovaExcecaoTipo] = useState('folga');
+  const [novaExcecaoInicio, setNovaExcecaoInicio] = useState('09:00');
+  const [novaExcecaoFim, setNovaExcecaoFim] = useState('13:00');
+  const [novaExcecaoMotivo, setNovaExcecaoMotivo] = useState('');
+
+  useEffect(() => {
+    fetchHorarios();
+  }, []);
+
+  const fetchHorarios = async () => {
+    try {
+      const response = await fetch('/api/barbeiro/horarios', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      
+      if (data.horario) {
+        if (data.horario.horario_semanal) setHorarioSemanal(data.horario.horario_semanal);
+        if (data.horario.hora_almoco_inicio) setHoraAlmocoInicio(data.horario.hora_almoco_inicio);
+        if (data.horario.hora_almoco_fim) setHoraAlmocoFim(data.horario.hora_almoco_fim);
+        if (data.horario.excepcoes) setExcepcoes(data.horario.excepcoes);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar horários:', error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleSaveHorarios = async () => {
+    setLoading(true);
+    setSuccess('');
+    setError('');
+
+    try {
+      const response = await fetch('/api/barbeiro/horarios', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          horario_semanal: horarioSemanal,
+          hora_almoco_inicio: horaAlmocoInicio,
+          hora_almoco_fim: horaAlmocoFim,
+          excepcoes: excepcoes
+        })
+      });
+
+      if (response.ok) {
+        setSuccess('Horários guardados com sucesso!');
+      } else {
+        const data = await response.json();
+        setError(data.error || 'Erro ao guardar horários');
+      }
+    } catch (error) {
+      setError('Erro de conexão');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleDia = (diaId) => {
+    setHorarioSemanal(prev => ({
+      ...prev,
+      [diaId]: { ...prev[diaId], ativo: !prev[diaId].ativo }
+    }));
+  };
+
+  const handleHorarioChange = (diaId, campo, valor) => {
+    setHorarioSemanal(prev => ({
+      ...prev,
+      [diaId]: { ...prev[diaId], [campo]: valor }
+    }));
+  };
+
+  const handleAddExcecao = async () => {
+    if (!novaExcecaoData) return;
+
+    const novaExcecao = {
+      data: novaExcecaoData,
+      tipo: novaExcecaoTipo,
+      inicio: novaExcecaoTipo === 'parcial' ? novaExcecaoInicio : null,
+      fim: novaExcecaoTipo === 'parcial' ? novaExcecaoFim : null,
+      motivo: novaExcecaoMotivo
+    };
+
+    setExcepcoes(prev => [...prev, novaExcecao]);
+    setShowExcecaoForm(false);
+    setNovaExcecaoData('');
+    setNovaExcecaoTipo('folga');
+    setNovaExcecaoMotivo('');
+  };
+
+  const handleRemoveExcecao = (data) => {
+    setExcepcoes(prev => prev.filter(e => e.data !== data));
+  };
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('pt-PT', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
+
+  if (loadingData) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {success && (
+        <div className="bg-green-900/20 border border-green-900 text-green-400 px-4 py-3 rounded-lg">
+          {success}
+        </div>
+      )}
+      {error && (
+        <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {/* Horário Semanal */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-white">Horário Semanal</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Define os dias e horários em que trabalha
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {diasSemana.map(dia => (
+            <div key={dia.id} className="flex items-center gap-4 p-3 bg-zinc-900 rounded-lg">
+              <div className="w-32">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={horarioSemanal[dia.id]?.ativo || false}
+                    onChange={() => handleToggleDia(dia.id)}
+                    className="w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-amber-600"
+                  />
+                  <span className={`font-medium ${horarioSemanal[dia.id]?.ativo ? 'text-white' : 'text-zinc-500'}`}>
+                    {dia.nome}
+                  </span>
+                </label>
+              </div>
+              
+              {horarioSemanal[dia.id]?.ativo && (
+                <div className="flex items-center gap-2 flex-1">
+                  <Input
+                    type="time"
+                    value={horarioSemanal[dia.id]?.inicio || '09:00'}
+                    onChange={(e) => handleHorarioChange(dia.id, 'inicio', e.target.value)}
+                    className="w-32 bg-zinc-800 border-zinc-700 text-white"
+                  />
+                  <span className="text-zinc-400">até</span>
+                  <Input
+                    type="time"
+                    value={horarioSemanal[dia.id]?.fim || '19:00'}
+                    onChange={(e) => handleHorarioChange(dia.id, 'fim', e.target.value)}
+                    className="w-32 bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+              )}
+              
+              {!horarioSemanal[dia.id]?.ativo && (
+                <span className="text-zinc-500 italic">Folga</span>
+              )}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {/* Horário de Almoço */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-white">Hora de Almoço</CardTitle>
+          <CardDescription className="text-zinc-400">
+            Período de pausa para almoço (não serão mostrados slots neste horário)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Label className="text-zinc-300">Das</Label>
+              <Input
+                type="time"
+                value={horaAlmocoInicio}
+                onChange={(e) => setHoraAlmocoInicio(e.target.value)}
+                className="w-32 bg-zinc-900 border-zinc-700 text-white"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-zinc-300">às</Label>
+              <Input
+                type="time"
+                value={horaAlmocoFim}
+                onChange={(e) => setHoraAlmocoFim(e.target.value)}
+                className="w-32 bg-zinc-900 border-zinc-700 text-white"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Exceções / Dias Especiais */}
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-white">Dias Especiais / Exceções</CardTitle>
+              <CardDescription className="text-zinc-400">
+                Folgas, férias ou horários diferentes para dias específicos
+              </CardDescription>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => setShowExcecaoForm(true)}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              + Adicionar
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {showExcecaoForm && (
+            <div className="mb-6 p-4 bg-zinc-900 rounded-lg space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-zinc-300">Data</Label>
+                  <Input
+                    type="date"
+                    value={novaExcecaoData}
+                    onChange={(e) => setNovaExcecaoData(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+                <div>
+                  <Label className="text-zinc-300">Tipo</Label>
+                  <select
+                    value={novaExcecaoTipo}
+                    onChange={(e) => setNovaExcecaoTipo(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded px-3 py-2"
+                  >
+                    <option value="folga">Folga (dia inteiro)</option>
+                    <option value="parcial">Horário diferente</option>
+                  </select>
+                </div>
+              </div>
+
+              {novaExcecaoTipo === 'parcial' && (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-zinc-300">Das</Label>
+                    <Input
+                      type="time"
+                      value={novaExcecaoInicio}
+                      onChange={(e) => setNovaExcecaoInicio(e.target.value)}
+                      className="w-32 bg-zinc-800 border-zinc-700 text-white"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-zinc-300">às</Label>
+                    <Input
+                      type="time"
+                      value={novaExcecaoFim}
+                      onChange={(e) => setNovaExcecaoFim(e.target.value)}
+                      className="w-32 bg-zinc-800 border-zinc-700 text-white"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="text-zinc-300">Motivo (opcional)</Label>
+                <Input
+                  value={novaExcecaoMotivo}
+                  onChange={(e) => setNovaExcecaoMotivo(e.target.value)}
+                  placeholder="Ex: Consulta médica"
+                  className="bg-zinc-800 border-zinc-700 text-white"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleAddExcecao} className="bg-green-600 hover:bg-green-700">
+                  Adicionar
+                </Button>
+                <Button variant="outline" onClick={() => setShowExcecaoForm(false)} className="border-zinc-700">
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {excepcoes.length === 0 ? (
+            <p className="text-zinc-500 text-center py-4">Nenhuma exceção definida</p>
+          ) : (
+            <div className="space-y-2">
+              {excepcoes.map((exc, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-zinc-900 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-3 h-3 rounded-full ${exc.tipo === 'folga' ? 'bg-red-500' : 'bg-yellow-500'}`}></div>
+                    <div>
+                      <p className="text-white font-medium">{formatDate(exc.data)}</p>
+                      <p className="text-zinc-400 text-sm">
+                        {exc.tipo === 'folga' ? 'Folga' : `${exc.inicio} - ${exc.fim}`}
+                        {exc.motivo && ` • ${exc.motivo}`}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleRemoveExcecao(exc.data)}
+                    className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                  >
+                    Remover
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Botão Guardar */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveHorarios}
+          disabled={loading}
+          className="bg-amber-600 hover:bg-amber-700 px-8"
+        >
+          {loading ? 'A guardar...' : 'Guardar Horários'}
+        </Button>
+      </div>
     </div>
   );
 }
