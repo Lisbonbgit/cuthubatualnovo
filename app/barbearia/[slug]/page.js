@@ -418,7 +418,7 @@ export default function BarbeariaPublicPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-zinc-950" suppressHydrationWarning>
       {/* Top Bar for Logged User */}
       {user && (
         <div className="bg-zinc-900 border-b border-zinc-800 py-2">
