@@ -18,7 +18,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Base URL from environment
-BASE_URL = "https://service-edit.preview.emergentagent.com"
+BASE_URL = "https://fix-barber-repo.preview.emergentagent.com"
 API_BASE = f"{BASE_URL}/api"
 
 # Test credentials
