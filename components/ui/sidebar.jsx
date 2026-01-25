@@ -22,6 +22,7 @@ const menuConfigs = {
   ],
   barbeiro: [
     { id: 'marcacoes', label: 'Marcações', icon: Calendar },
+    { id: 'horarios', label: 'Meus Horários', icon: Clock },
     { id: 'perfil', label: 'Meu Perfil', icon: UserCircle },
   ],
   cliente: [
