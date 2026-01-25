@@ -358,3 +358,209 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
     </div>
   );
 }
+
+// Modal de Detalhes do Cliente
+export function ClienteDetailModal({ isOpen, onClose, cliente }) {
+  if (!isOpen || !cliente) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <Card className="bg-zinc-800 border-zinc-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-start">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                {cliente.nome?.charAt(0).toUpperCase() || 'C'}
+              </div>
+              <div>
+                <CardTitle className="text-white text-2xl">{cliente.nome}</CardTitle>
+                <CardDescription className="text-zinc-400">
+                  Cliente desde {cliente.criado_em ? new Date(cliente.criado_em).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) : 'N/A'}
+                </CardDescription>
+              </div>
+            </div>
+            <button onClick={onClose} className="text-zinc-400 hover:text-white">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Contactos */}
+          <div className="bg-zinc-900 rounded-lg p-4">
+            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <User className="h-5 w-5 text-amber-500" />
+              Informações de Contacto
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-zinc-500" />
+                <span className="text-zinc-300">{cliente.email || 'Não definido'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-zinc-500" />
+                <span className="text-zinc-300">{cliente.telemovel || 'Não definido'}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Estatísticas */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-zinc-900 rounded-lg p-4 text-center">
+              <p className="text-3xl font-bold text-amber-500">{cliente.total_marcacoes || 0}</p>
+              <p className="text-zinc-400 text-sm">Total Marcações</p>
+            </div>
+            <div className="bg-zinc-900 rounded-lg p-4 text-center">
+              <p className="text-3xl font-bold text-green-500">{cliente.marcacoes_concluidas || 0}</p>
+              <p className="text-zinc-400 text-sm">Concluídas</p>
+            </div>
+            <div className="bg-zinc-900 rounded-lg p-4 text-center">
+              <p className="text-3xl font-bold text-white">{cliente.total_gasto?.toFixed(2) || '0.00'}€</p>
+              <p className="text-zinc-400 text-sm">Total Gasto</p>
+            </div>
+          </div>
+
+          {/* Última Visita */}
+          <div className="bg-zinc-900 rounded-lg p-4">
+            <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-amber-500" />
+              Última Visita
+            </h3>
+            <p className="text-zinc-300">
+              {cliente.ultima_visita 
+                ? new Date(cliente.ultima_visita).toLocaleDateString('pt-PT', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })
+                : 'Ainda não visitou'
+              }
+            </p>
+          </div>
+
+          {/* Tags */}
+          {cliente.criado_manualmente && (
+            <div className="flex items-center gap-2">
+              <span className="bg-amber-900/30 text-amber-400 px-3 py-1 rounded-full text-xs font-semibold">
+                Cliente Manual
+              </span>
+            </div>
+          )}
+
+          <Button onClick={onClose} className="w-full bg-amber-600 hover:bg-amber-700">
+            Fechar
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Modal de Confirmação Genérico (substitui window.confirm)
+export function ConfirmModal({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  title, 
+  message, 
+  confirmText = 'Confirmar', 
+  cancelText = 'Cancelar',
+  confirmColor = 'amber', // amber, red, green, blue
+  loading = false,
+  icon = 'warning' // warning, question, info
+}) {
+  if (!isOpen) return null;
+
+  const getConfirmButtonClass = () => {
+    switch(confirmColor) {
+      case 'red': return 'bg-red-600 hover:bg-red-700';
+      case 'green': return 'bg-green-600 hover:bg-green-700';
+      case 'blue': return 'bg-blue-600 hover:bg-blue-700';
+      default: return 'bg-amber-600 hover:bg-amber-700';
+    }
+  };
+
+  const getIconComponent = () => {
+    switch(icon) {
+      case 'warning': return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+      case 'question': return <AlertCircle className="h-6 w-6 text-blue-500" />;
+      case 'info': return <AlertCircle className="h-6 w-6 text-zinc-400" />;
+      default: return <AlertTriangle className="h-6 w-6 text-amber-500" />;
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
+        <CardHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-12 w-12 rounded-full bg-zinc-900 flex items-center justify-center">
+              {getIconComponent()}
+            </div>
+            <CardTitle className="text-white text-xl">{title}</CardTitle>
+          </div>
+          {message && (
+            <CardDescription className="text-zinc-300 text-base">
+              {message}
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="flex-1 border-zinc-700"
+              disabled={loading}
+            >
+              {cancelText}
+            </Button>
+            <Button
+              onClick={onConfirm}
+              className={`flex-1 ${getConfirmButtonClass()}`}
+              disabled={loading}
+            >
+              {loading ? 'A processar...' : confirmText}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Modal de Alerta (substitui window.alert)
+export function AlertModal({ isOpen, onClose, title, message, type = 'info' }) {
+  if (!isOpen) return null;
+
+  const getTypeStyles = () => {
+    switch(type) {
+      case 'success': return { bg: 'bg-green-500/20', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, button: 'bg-green-600 hover:bg-green-700' };
+      case 'error': return { bg: 'bg-red-500/20', icon: <AlertCircle className="h-6 w-6 text-red-500" />, button: 'bg-red-600 hover:bg-red-700' };
+      case 'warning': return { bg: 'bg-amber-500/20', icon: <AlertTriangle className="h-6 w-6 text-amber-500" />, button: 'bg-amber-600 hover:bg-amber-700' };
+      default: return { bg: 'bg-blue-500/20', icon: <AlertCircle className="h-6 w-6 text-blue-500" />, button: 'bg-blue-600 hover:bg-blue-700' };
+    }
+  };
+
+  const styles = getTypeStyles();
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
+        <CardHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`h-12 w-12 rounded-full ${styles.bg} flex items-center justify-center`}>
+              {styles.icon}
+            </div>
+            <CardTitle className="text-white text-xl">{title}</CardTitle>
+          </div>
+          {message && (
+            <CardDescription className="text-zinc-300 text-base">
+              {message}
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent>
+          <Button onClick={onClose} className={`w-full ${styles.button}`}>
+            OK
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
