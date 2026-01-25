@@ -428,6 +428,9 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
 export function ClienteDetailModal({ isOpen, onClose, cliente }) {
   if (!isOpen || !cliente) return null;
 
+  // Verificar se o email é um email gerado automaticamente (cliente manual sem email)
+  const isManualEmail = cliente.email?.includes('@manual.local');
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
       <Card className="bg-zinc-800 border-zinc-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -438,7 +441,12 @@ export function ClienteDetailModal({ isOpen, onClose, cliente }) {
                 {cliente.nome?.charAt(0).toUpperCase() || 'C'}
               </div>
               <div>
-                <CardTitle className="text-white text-2xl">{cliente.nome}</CardTitle>
+                <CardTitle className="text-white text-2xl flex items-center gap-2">
+                  {cliente.nome}
+                  {cliente.criado_manualmente && (
+                    <span className="bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded text-xs font-normal">Manual</span>
+                  )}
+                </CardTitle>
                 <CardDescription className="text-zinc-400">
                   Cliente desde {cliente.criado_em ? new Date(cliente.criado_em).toLocaleDateString('pt-PT', { month: 'long', year: 'numeric' }) : 'N/A'}
                 </CardDescription>
@@ -450,21 +458,74 @@ export function ClienteDetailModal({ isOpen, onClose, cliente }) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Contactos */}
+          {/* Informações de Contacto */}
           <div className="bg-zinc-900 rounded-lg p-4">
-            <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
               <User className="h-5 w-5 text-amber-500" />
               Informações de Contacto
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <Mail className="h-4 w-4 text-zinc-500" />
-                <span className="text-zinc-300">{cliente.email || 'Não definido'}</span>
+            <div className="space-y-4">
+              {/* Email */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <Mail className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-zinc-500 text-xs uppercase">Email</p>
+                  {isManualEmail ? (
+                    <p className="text-zinc-500 italic">Não fornecido</p>
+                  ) : (
+                    <a href={`mailto:${cliente.email}`} className="text-white hover:text-amber-500 transition-colors">
+                      {cliente.email || 'Não disponível'}
+                    </a>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-zinc-500" />
-                <span className="text-zinc-300">{cliente.telemovel || 'Não definido'}</span>
+
+              {/* Telemóvel */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <Phone className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-zinc-500 text-xs uppercase">Telemóvel</p>
+                  {cliente.telemovel ? (
+                    <a href={`tel:${cliente.telemovel}`} className="text-white hover:text-amber-500 transition-colors">
+                      {cliente.telemovel}
+                    </a>
+                  ) : (
+                    <p className="text-zinc-500 italic">Não fornecido</p>
+                  )}
+                </div>
               </div>
+
+              {/* Morada (se disponível) */}
+              {cliente.morada && (
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-zinc-500 text-xs uppercase">Morada</p>
+                    <p className="text-white">{cliente.morada}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Data de Nascimento (se disponível) */}
+              {cliente.data_nascimento && (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-zinc-500 text-xs uppercase">Data de Nascimento</p>
+                    <p className="text-white">
+                      {new Date(cliente.data_nascimento).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -487,7 +548,7 @@ export function ClienteDetailModal({ isOpen, onClose, cliente }) {
           {/* Última Visita */}
           <div className="bg-zinc-900 rounded-lg p-4">
             <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-amber-500" />
+              <Clock className="h-5 w-5 text-amber-500" />
               Última Visita
             </h3>
             <p className="text-zinc-300">
@@ -498,14 +559,50 @@ export function ClienteDetailModal({ isOpen, onClose, cliente }) {
             </p>
           </div>
 
-          {/* Tags */}
-          {cliente.criado_manualmente && (
-            <div className="flex items-center gap-2">
-              <span className="bg-amber-900/30 text-amber-400 px-3 py-1 rounded-full text-xs font-semibold">
-                Cliente Manual
-              </span>
+          {/* Observações (se disponível) */}
+          {cliente.observacoes && (
+            <div className="bg-zinc-900 rounded-lg p-4">
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-amber-500" />
+                Observações
+              </h3>
+              <p className="text-zinc-300">{cliente.observacoes}</p>
             </div>
           )}
+
+          {/* Preferências (se disponível) */}
+          {cliente.preferencias && (
+            <div className="bg-zinc-900 rounded-lg p-4">
+              <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+                <Scissors className="h-5 w-5 text-amber-500" />
+                Preferências
+              </h3>
+              <p className="text-zinc-300">{cliente.preferencias}</p>
+            </div>
+          )}
+
+          {/* Informações Adicionais */}
+          <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-700">
+            <h3 className="text-zinc-400 text-xs uppercase mb-2">Informações do Sistema</h3>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-zinc-500">ID:</span>
+                <span className="text-zinc-300 ml-2">{cliente._id?.slice(-8)}</span>
+              </div>
+              <div>
+                <span className="text-zinc-500">Tipo:</span>
+                <span className="text-zinc-300 ml-2 capitalize">{cliente.tipo}</span>
+              </div>
+              {cliente.criado_em && (
+                <div className="col-span-2">
+                  <span className="text-zinc-500">Registado em:</span>
+                  <span className="text-zinc-300 ml-2">
+                    {new Date(cliente.criado_em).toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
 
           <Button onClick={onClose} className="w-full bg-amber-600 hover:bg-amber-700">
             Fechar
