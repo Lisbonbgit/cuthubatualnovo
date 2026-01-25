@@ -220,9 +220,12 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
     }
   };
 
+  // Verificar se o email é um email gerado automaticamente (cliente manual sem email)
+  const isManualEmail = marcacao.cliente?.email?.includes('@manual.local');
+
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <Card className="bg-zinc-800 border-zinc-700 max-w-lg w-full">
+      <Card className="bg-zinc-800 border-zinc-700 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
@@ -263,27 +266,73 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
             </div>
           </div>
 
-          {/* Informações do Cliente */}
+          {/* Informações Completas do Cliente */}
           <div className="bg-zinc-900 rounded-lg p-4">
-            <p className="text-zinc-500 text-xs uppercase mb-3">Informações do Cliente</p>
-            <div className="flex items-center gap-4 mb-3">
-              <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+            <p className="text-zinc-500 text-xs uppercase mb-3 flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Informações do Cliente
+              {marcacao.cliente?.criado_manualmente && (
+                <span className="bg-amber-900/30 text-amber-400 px-2 py-0.5 rounded text-xs">Manual</span>
+              )}
+            </p>
+            
+            {/* Avatar e Nome */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-amber-600 to-amber-800 rounded-full flex items-center justify-center text-white font-bold text-xl">
                 {marcacao.cliente?.nome?.charAt(0).toUpperCase() || 'C'}
               </div>
               <div>
-                <p className="text-white font-semibold text-lg">{marcacao.cliente?.nome}</p>
-                <p className="text-zinc-400 text-sm">Cliente</p>
+                <p className="text-white font-semibold text-lg">{marcacao.cliente?.nome || 'Nome não disponível'}</p>
+                <p className="text-zinc-400 text-sm">
+                  Cliente {marcacao.cliente?.criado_em ? `desde ${new Date(marcacao.cliente.criado_em).toLocaleDateString('pt-PT', { month: 'short', year: 'numeric' })}` : ''}
+                </p>
               </div>
             </div>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3 text-zinc-300">
-                <Mail className="h-4 w-4 text-zinc-500" />
-                <span>{marcacao.cliente?.email}</span>
+            
+            {/* Dados de Contacto */}
+            <div className="space-y-3 border-t border-zinc-800 pt-3">
+              {/* Email */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <Mail className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-zinc-500 text-xs">Email</p>
+                  {isManualEmail ? (
+                    <p className="text-zinc-500 italic text-sm">Não fornecido</p>
+                  ) : (
+                    <p className="text-white">{marcacao.cliente?.email || 'Não disponível'}</p>
+                  )}
+                </div>
               </div>
-              {marcacao.cliente?.telemovel && (
-                <div className="flex items-center gap-3 text-zinc-300">
-                  <Phone className="h-4 w-4 text-zinc-500" />
-                  <span>{marcacao.cliente?.telemovel}</span>
+              
+              {/* Telemóvel */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <Phone className="h-4 w-4 text-amber-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-zinc-500 text-xs">Telemóvel</p>
+                  {marcacao.cliente?.telemovel ? (
+                    <a href={`tel:${marcacao.cliente.telemovel}`} className="text-white hover:text-amber-500 transition-colors">
+                      {marcacao.cliente.telemovel}
+                    </a>
+                  ) : (
+                    <p className="text-zinc-500 italic text-sm">Não fornecido</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Observações do Cliente (se houver) */}
+              {marcacao.cliente?.observacoes && (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                    <AlertCircle className="h-4 w-4 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-zinc-500 text-xs">Observações</p>
+                    <p className="text-white text-sm">{marcacao.cliente.observacoes}</p>
+                  </div>
                 </div>
               )}
             </div>
@@ -291,7 +340,10 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
 
           {/* Barbeiro */}
           <div className="bg-zinc-900 rounded-lg p-4">
-            <p className="text-zinc-500 text-xs uppercase mb-2">Barbeiro Responsável</p>
+            <p className="text-zinc-500 text-xs uppercase mb-2 flex items-center gap-2">
+              <Scissors className="h-4 w-4" />
+              Barbeiro Responsável
+            </p>
             <div className="flex items-center gap-3">
               {marcacao.barbeiro?.foto ? (
                 <img src={marcacao.barbeiro.foto} alt={marcacao.barbeiro.nome} className="w-10 h-10 rounded-full object-cover" />
@@ -303,6 +355,19 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
               <span className="text-white font-medium">{marcacao.barbeiro?.nome}</span>
             </div>
           </div>
+
+          {/* Informações da Marcação */}
+          {(marcacao.criado_manualmente || marcacao.observacoes) && (
+            <div className="bg-zinc-900 rounded-lg p-4">
+              <p className="text-zinc-500 text-xs uppercase mb-2">Informações Adicionais</p>
+              {marcacao.criado_manualmente && (
+                <p className="text-amber-400 text-sm mb-1">📝 Marcação criada manualmente</p>
+              )}
+              {marcacao.observacoes && (
+                <p className="text-zinc-300 text-sm">{marcacao.observacoes}</p>
+              )}
+            </div>
+          )}
 
           {/* Ações */}
           {marcacao.status === 'pendente' && (
