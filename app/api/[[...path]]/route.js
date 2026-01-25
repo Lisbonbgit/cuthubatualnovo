@@ -848,6 +848,81 @@ export async function POST(request, { params }) {
       }
     }
 
+    // BARBEIRO HORÁRIOS - Guardar horários do barbeiro
+    if (path === 'barbeiro/horarios') {
+      if (decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { horario_semanal, hora_almoco_inicio, hora_almoco_fim, excepcoes } = body;
+
+      // Estrutura do horario_semanal: { 0: {ativo: false}, 1: {ativo: true, inicio: "09:00", fim: "19:00"}, ... }
+      // Exceções: [{ data: "2026-01-30", tipo: "folga" }, { data: "2026-01-31", inicio: "09:00", fim: "13:00", motivo: "Só manhã" }]
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { 
+          $set: { 
+            horario_trabalho: {
+              horario_semanal: horario_semanal || {},
+              hora_almoco_inicio: hora_almoco_inicio || null,
+              hora_almoco_fim: hora_almoco_fim || null,
+              excepcoes: excepcoes || [],
+              atualizado_em: new Date()
+            }
+          } 
+        }
+      );
+
+      return NextResponse.json({ success: true, message: 'Horários guardados com sucesso' });
+    }
+
+    // BARBEIRO EXCEÇÕES - Adicionar exceção de horário
+    if (path === 'barbeiro/horarios/excecao') {
+      if (decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { data, tipo, inicio, fim, motivo } = body;
+
+      if (!data || !tipo) {
+        return NextResponse.json({ error: 'Data e tipo são obrigatórios' }, { status: 400 });
+      }
+
+      // tipo: 'folga' (dia inteiro off), 'parcial' (horário diferente), 'extra' (trabalha num dia que normalmente não trabalha)
+      const excecao = {
+        data,
+        tipo,
+        inicio: inicio || null,
+        fim: fim || null,
+        motivo: motivo || '',
+        criado_em: new Date()
+      };
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { $push: { 'horario_trabalho.excepcoes': excecao } }
+      );
+
+      return NextResponse.json({ success: true, excecao });
+    }
+
+    // BARBEIRO EXCEÇÕES - Remover exceção
+    if (path === 'barbeiro/horarios/excecao/remover') {
+      if (decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { data } = body;
+
+      await db.collection('utilizadores').updateOne(
+        { _id: new ObjectId(decoded.userId) },
+        { $pull: { 'horario_trabalho.excepcoes': { data } } }
+      );
+
+      return NextResponse.json({ success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
