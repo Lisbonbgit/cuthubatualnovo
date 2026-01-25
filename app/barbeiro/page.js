@@ -355,46 +355,30 @@ export default function BarbeiroPanel() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <header className="bg-zinc-900 border-b border-zinc-800">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            {user?.foto ? (
-              <img src={user.foto} alt={user.nome} className="w-12 h-12 rounded-full object-cover border-2 border-amber-600" />
-            ) : (
-              <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {user?.nome?.charAt(0).toUpperCase() || 'B'}
-              </div>
-            )}
-            <div>
-              <h1 className="text-2xl font-bold text-white">Painel Barbeiro</h1>
-              <p className="text-zinc-400 text-sm">{user?.nome}</p>
-            </div>
-          </div>
-          <Button
-            variant="outline"
-            className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </Button>
+      {/* Sidebar */}
+      <Sidebar
+        userType="barbeiro"
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        userName={user?.nome || ''}
+        userEmail={user?.email || ''}
+        barbeariaName="Barbearia"
+        onLogout={handleLogout}
+      />
+
+      {/* Main Content */}
+      <main className="ml-64 p-6">
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white">
+            {activeTab === 'marcacoes' ? 'Minhas Marcações' : 'Meu Perfil'}
+          </h1>
+          <p className="text-zinc-400 text-sm">Olá, {user?.nome}</p>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="marcacoes" className="space-y-6">
-          <TabsList className="bg-zinc-800 grid grid-cols-2 w-full max-w-md">
-            <TabsTrigger value="marcacoes" className="data-[state=active]:bg-amber-600">
-              <Calendar className="mr-2 h-4 w-4" />
-              Marcações
-            </TabsTrigger>
-            <TabsTrigger value="perfil" className="data-[state=active]:bg-amber-600">
-              <User className="mr-2 h-4 w-4" />
-              Meu Perfil
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="marcacoes" className="space-y-6">
+        {/* Marcações Content */}
+        {activeTab === 'marcacoes' && (
+          <div className="space-y-6">
             {/* Indicador de Atualização Automática */}
             <div className="flex items-center justify-between bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2">
               <div className="flex items-center gap-2 text-sm text-zinc-400">
