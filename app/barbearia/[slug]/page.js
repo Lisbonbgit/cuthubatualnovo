@@ -73,6 +73,7 @@ export default function BarbeariaPublicPage() {
   }, [slug]);
 
   const checkAuth = () => {
+    if (typeof window === 'undefined') return;
     const token = localStorage.getItem('token');
     if (token) {
       fetchCurrentUser(token);
