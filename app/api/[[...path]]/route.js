@@ -1309,7 +1309,7 @@ export async function GET(request, { params }) {
         marcacoes.map(async (m) => {
           const cliente = await db.collection('utilizadores').findOne(
             { _id: new ObjectId(m.cliente_id) },
-            { projection: { nome: 1, email: 1, telemovel: 1 } }
+            { projection: { password: 0 } }
           );
           const barbeiro = await db.collection('utilizadores').findOne(
             { _id: new ObjectId(m.barbeiro_id) },
