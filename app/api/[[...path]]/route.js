@@ -1207,34 +1207,39 @@ export async function GET(request, { params }) {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      // Buscar todos os clientes que já fizeram marcações nesta barbearia
+      // Buscar TODOS os clientes registrados nesta barbearia (não apenas os com marcações)
+      const todosClientes = await db.collection('utilizadores')
+        .find({ 
+          barbearia_id: decoded.barbearia_id, 
+          tipo: 'cliente'
+        })
+        .project({ password: 0 })
+        .toArray();
+
+      // Também buscar clientes que fizeram marcações (podem não ter barbearia_id definido)
       const marcacoes = await db.collection('marcacoes')
         .find({ barbearia_id: decoded.barbearia_id })
         .toArray();
 
-      const clienteIds = [...new Set(marcacoes.map(m => m.cliente_id))];
+      const clienteIdsComMarcacoes = [...new Set(marcacoes.map(m => m.cliente_id))];
 
-      // Também incluir clientes criados manualmente
-      const clientesManuais = await db.collection('utilizadores')
+      // Buscar clientes que têm marcações mas podem não ter barbearia_id
+      const clientesComMarcacoes = await db.collection('utilizadores')
         .find({ 
-          barbearia_id: decoded.barbearia_id, 
-          tipo: 'cliente',
-          criado_manualmente: true 
-        })
-        .project({ password: 0 })
-        .toArray();
-
-      const clientesManuaisIds = clientesManuais.map(c => c._id.toString());
-      const todosClienteIds = [...new Set([...clienteIds, ...clientesManuaisIds])];
-
-      const clientes = await db.collection('utilizadores')
-        .find({ 
-          _id: { $in: todosClienteIds.map(id => {
+          _id: { $in: clienteIdsComMarcacoes.map(id => {
             try { return new ObjectId(id); } catch { return null; }
-          }).filter(id => id !== null) }
+          }).filter(id => id !== null) },
+          tipo: 'cliente'
         })
         .project({ password: 0 })
         .toArray();
+
+      // Combinar listas sem duplicatas
+      const clientesMap = new Map();
+      todosClientes.forEach(c => clientesMap.set(c._id.toString(), c));
+      clientesComMarcacoes.forEach(c => clientesMap.set(c._id.toString(), c));
+      
+      const clientes = Array.from(clientesMap.values());
 
       // Adicionar estatísticas de cada cliente
       const clientesComStats = await Promise.all(
