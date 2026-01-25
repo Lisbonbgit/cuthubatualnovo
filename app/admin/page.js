@@ -202,108 +202,74 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      {/* Header */}
-      <header className="bg-zinc-900 border-b border-zinc-800">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Painel Admin</h1>
-            <p className="text-zinc-400 text-sm">{user?.nome}</p>
-          </div>
-          <Button
-            variant="outline"
-            className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sair
-          </Button>
+      {/* Sidebar */}
+      <Sidebar
+        userType="admin"
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        userName={user?.nome || ''}
+        userEmail={user?.email || ''}
+        barbeariaName={barbeariaSettings?.nome || 'Barbearia'}
+        onLogout={handleLogout}
+      />
+
+      {/* Main Content */}
+      <main className="ml-64 p-6">
+        {/* Page Title */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-white capitalize">
+            {activeTab === 'configuracoes' ? 'Configurações' : activeTab}
+          </h1>
+          <p className="text-zinc-400 text-sm">Gestão da sua barbearia</p>
         </div>
-      </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="marcacoes" className="space-y-6">
-          <TabsList className="bg-zinc-800 grid grid-cols-8 w-full">
-            <TabsTrigger value="marcacoes" className="data-[state=active]:bg-amber-600">
-              <Calendar className="mr-2 h-4 w-4" />
-              Marcações
-            </TabsTrigger>
-            <TabsTrigger value="clientes" className="data-[state=active]:bg-amber-600">
-              <UserCheck className="mr-2 h-4 w-4" />
-              Clientes
-            </TabsTrigger>
-            <TabsTrigger value="barbeiros" className="data-[state=active]:bg-amber-600">
-              <Users className="mr-2 h-4 w-4" />
-              Barbeiros
-            </TabsTrigger>
-            <TabsTrigger value="servicos" className="data-[state=active]:bg-amber-600">
-              <Scissors className="mr-2 h-4 w-4" />
-              Serviços
-            </TabsTrigger>
-            <TabsTrigger value="produtos" className="data-[state=active]:bg-amber-600">
-              <Package className="mr-2 h-4 w-4" />
-              Produtos
-            </TabsTrigger>
-            <TabsTrigger value="planos" className="data-[state=active]:bg-amber-600">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Planos
-            </TabsTrigger>
-            <TabsTrigger value="horarios" className="data-[state=active]:bg-amber-600">
-              <Clock className="mr-2 h-4 w-4" />
-              Horários
-            </TabsTrigger>
-            <TabsTrigger value="configuracoes" className="data-[state=active]:bg-amber-600">
-              <Settings className="mr-2 h-4 w-4" />
-              Config
-            </TabsTrigger>
-          </TabsList>
+        {/* Content based on active tab */}
+        {activeTab === 'marcacoes' && (
+          <MarcacoesTab 
+            marcacoes={marcacoes} 
+            fetchMarcacoes={() => fetchMarcacoes(localStorage.getItem('token'))} 
+            lastUpdate={lastUpdate}
+            isRefreshing={isRefreshing}
+            onManualRefresh={handleManualRefresh}
+          />
+        )}
 
-          <TabsContent value="marcacoes">
-            <MarcacoesTab 
-              marcacoes={marcacoes} 
-              fetchMarcacoes={() => fetchMarcacoes(localStorage.getItem('token'))} 
-              lastUpdate={lastUpdate}
-              isRefreshing={isRefreshing}
-              onManualRefresh={handleManualRefresh}
-            />
-          </TabsContent>
+        {activeTab === 'clientes' && (
+          <ClientesTab clientes={clientes} fetchClientes={() => fetchClientes(localStorage.getItem('token'))} />
+        )}
 
-          <TabsContent value="clientes">
-            <ClientesTab clientes={clientes} fetchClientes={() => fetchClientes(localStorage.getItem('token'))} />
-          </TabsContent>
+        {activeTab === 'barbeiros' && (
+          <BarbeirosTab barbeiros={barbeiros} fetchBarbeiros={() => fetchBarbeiros(localStorage.getItem('token'))} />
+        )}
 
-          <TabsContent value="barbeiros">
-            <BarbeirosTab barbeiros={barbeiros} fetchBarbeiros={() => fetchBarbeiros(localStorage.getItem('token'))} />
-          </TabsContent>
+        {activeTab === 'servicos' && (
+          <ServicosTab servicos={servicos} fetchServicos={() => fetchServicos(localStorage.getItem('token'))} />
+        )}
 
-          <TabsContent value="servicos">
-            <ServicosTab servicos={servicos} fetchServicos={() => fetchServicos(localStorage.getItem('token'))} />
-          </TabsContent>
+        {activeTab === 'produtos' && (
+          <ProdutosTab produtos={produtos} fetchProdutos={() => fetchProdutos(localStorage.getItem('token'))} />
+        )}
 
-          <TabsContent value="produtos">
-            <ProdutosTab produtos={produtos} fetchProdutos={() => fetchProdutos(localStorage.getItem('token'))} />
-          </TabsContent>
+        {activeTab === 'planos' && (
+          <PlanosClienteTab 
+            planos={planosCliente} 
+            fetchPlanos={() => fetchPlanosCliente(localStorage.getItem('token'))}
+            stripeConfigured={barbeariaSettings?.stripe_configured}
+          />
+        )}
 
-          <TabsContent value="planos">
-            <PlanosClienteTab 
-              planos={planosCliente} 
-              fetchPlanos={() => fetchPlanosCliente(localStorage.getItem('token'))}
-              stripeConfigured={barbeariaSettings?.stripe_configured}
-            />
-          </TabsContent>
+        {activeTab === 'horarios' && (
+          <HorariosTab horarios={horarios} fetchHorarios={() => fetchHorarios(localStorage.getItem('token'))} />
+        )}
 
-          <TabsContent value="horarios">
-            <HorariosTab horarios={horarios} fetchHorarios={() => fetchHorarios(localStorage.getItem('token'))} />
-          </TabsContent>
-
-          <TabsContent value="configuracoes">
-            <ConfiguracoesTab 
-              barbearia={barbeariaSettings} 
-              subscription={subscription}
-              fetchSettings={() => fetchBarbeariaSettings(localStorage.getItem('token'))}
-            />
-          </TabsContent>
-        </Tabs>
-      </div>
+        {activeTab === 'configuracoes' && (
+          <ConfiguracoesTab 
+            barbearia={barbeariaSettings} 
+            subscription={subscription}
+            fetchSettings={() => fetchBarbeariaSettings(localStorage.getItem('token'))}
+          />
+        )}
+      </main>
     </div>
   );
 }
