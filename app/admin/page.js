@@ -273,6 +273,13 @@ export default function AdminPanel() {
           <HorariosTab horarios={horarios} fetchHorarios={() => fetchHorarios(localStorage.getItem('token'))} />
         )}
 
+        {activeTab === 'locais' && (
+          <LocaisTab 
+            locais={locais} 
+            fetchLocais={() => fetchLocais(localStorage.getItem('token'))} 
+          />
+        )}
+
         {activeTab === 'configuracoes' && (
           <ConfiguracoesTab 
             barbearia={barbeariaSettings} 
