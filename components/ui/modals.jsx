@@ -415,6 +415,27 @@ export function MarcacaoDetailModal({ isOpen, onClose, marcacao, onUpdateStatus,
             </div>
           </div>
 
+          {/* Local da Marcação */}
+          {marcacao.local && (
+            <div className="bg-zinc-900 rounded-lg p-4">
+              <p className="text-zinc-500 text-xs uppercase mb-2 flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Local da Marcação
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-900/30 rounded-full flex items-center justify-center">
+                  <MapPin className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <span className="text-white font-medium">{marcacao.local.nome}</span>
+                  {marcacao.local.morada && (
+                    <p className="text-zinc-400 text-sm">{marcacao.local.morada}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Informações da Marcação */}
           {(marcacao.criado_manualmente || marcacao.observacoes) && (
             <div className="bg-zinc-900 rounded-lg p-4">
