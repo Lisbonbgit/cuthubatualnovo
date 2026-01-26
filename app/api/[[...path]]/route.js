@@ -2276,6 +2276,49 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
+    // DELETE Local
+    if (path.startsWith('locais/')) {
+      const localId = path.split('/')[1];
+      
+      // Verificar se há barbeiros associados ao local
+      const barbeirosNoLocal = await db.collection('utilizadores').countDocuments({
+        barbearia_id: decoded.barbearia_id,
+        tipo: 'barbeiro',
+        local_id: localId
+      });
+
+      if (barbeirosNoLocal > 0) {
+        return NextResponse.json({ 
+          error: 'Não é possível eliminar este local pois existem barbeiros associados. Reatribua os barbeiros primeiro.',
+          has_barbeiros: true
+        }, { status: 400 });
+      }
+
+      // Verificar se há marcações futuras neste local
+      const hoje = new Date().toISOString().split('T')[0];
+      const marcacoesFuturas = await db.collection('marcacoes').countDocuments({
+        barbearia_id: decoded.barbearia_id,
+        local_id: localId,
+        data: { $gte: hoje },
+        status: { $in: ['pendente', 'aceita'] }
+      });
+
+      if (marcacoesFuturas > 0) {
+        return NextResponse.json({ 
+          error: 'Não é possível eliminar este local pois existem marcações futuras. Cancele ou conclua as marcações primeiro.',
+          has_marcacoes: true
+        }, { status: 400 });
+      }
+
+      // Desativar em vez de eliminar (soft delete)
+      await db.collection('locais').updateOne(
+        { _id: new ObjectId(localId), barbearia_id: decoded.barbearia_id },
+        { $set: { ativo: false, desativado_em: new Date() } }
+      );
+
+      return NextResponse.json({ success: true, message: 'Local desativado com sucesso' });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
