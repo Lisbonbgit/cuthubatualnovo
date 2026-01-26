@@ -1286,12 +1286,18 @@ export async function GET(request, { params }) {
         return NextResponse.json({ error: 'Barbearia não encontrada' }, { status: 404 });
       }
 
-      // Get subscription if owner_id exists
-      let subscription = null;
-      if (barbearia.owner_id) {
+      // Buscar subscription por barbearia_id
+      let subscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      // Fallback: buscar por user_id se owner_id existir
+      if (!subscription && barbearia.owner_id) {
         subscription = await db.collection('subscriptions').findOne({
-          user_id: barbearia.owner_id
-        }, { sort: { created_at: -1 } });
+          user_id: barbearia.owner_id,
+          status: { $in: ['active', 'trialing'] }
+        });
       }
 
       return NextResponse.json({ 
