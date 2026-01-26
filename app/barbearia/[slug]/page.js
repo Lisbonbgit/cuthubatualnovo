@@ -1173,11 +1173,7 @@ export default function BarbeariaPublicPage() {
       />
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
-        <div className="container mx-auto px-4 text-center text-zinc-500">
-          <p>&copy; 2025 {barbearia.nome}. Todos os direitos reservados.</p>
-        </div>
-      </footer>
+      <Footer variant="dark" />
     </div>
   );
 }
