@@ -381,12 +381,7 @@ export default function App() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-zinc-900 border-t border-zinc-800 py-8">
-        <div className="container text-center">
-          <p className="text-zinc-500">&copy; 2025 Barbearia SaaS. Todos os direitos reservados.</p>
-          <p className="text-zinc-600 text-sm mt-2">Plataforma de gestão para barbearias em Portugal</p>
-        </div>
-      </footer>
+      <Footer variant="dark" />
     </div>
   );
 }
