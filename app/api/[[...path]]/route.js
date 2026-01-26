@@ -1282,6 +1282,29 @@ export async function GET(request, { params }) {
       });
     }
 
+    // GET Subscription - Obter subscrição atual
+    if (path === 'subscription') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const subscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      return NextResponse.json({ subscription });
+    }
+
+    // GET Planos - Obter todos os planos disponíveis
+    if (path === 'planos') {
+      const planos = await db.collection('planos')
+        .find({ ativo: true })
+        .toArray();
+
+      return NextResponse.json({ planos });
+    }
+
     // GET Clientes (CRM)
     if (path === 'clientes') {
       if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
