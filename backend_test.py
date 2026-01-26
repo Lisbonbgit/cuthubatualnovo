@@ -248,14 +248,26 @@ class LocaisAPITester:
             self.log_result("PUT Update Existing Location", False, f"Error: {str(e)}")
             return False
     
-    def test_get_single_location(self):
-        """Test GET /api/locais/:id - Get single location details"""
-        if not self.created_location_id:
-            self.log_result("GET Single Location", False, "No location ID available for single location test")
-            return False
-            
+    def test_get_existing_location(self):
+        """Test GET /api/locais/:id - Get existing location details"""
         try:
-            response = requests.get(f"{BASE_URL}/locais/{self.created_location_id}", 
+            # First get the locations list to get an existing location ID
+            response = requests.get(f"{BASE_URL}/locais", headers=self.get_headers())
+            if response.status_code != 200:
+                self.log_result("GET Existing Location", False, "Could not get locations list")
+                return False
+                
+            data = response.json()
+            locations = data.get('locais', [])
+            if not locations:
+                self.log_result("GET Existing Location", False, "No existing locations found")
+                return False
+                
+            # Use the first existing location
+            existing_location = locations[0]
+            location_id = existing_location.get('_id')
+            
+            response = requests.get(f"{BASE_URL}/locais/{location_id}", 
                                   headers=self.get_headers())
             
             if response.status_code == 200:
@@ -264,14 +276,14 @@ class LocaisAPITester:
                 barbeiros = data.get('barbeiros', [])
                 
                 self.log_result(
-                    "GET Single Location", 
+                    "GET Existing Location", 
                     True, 
                     f"Retrieved location '{location.get('nome')}' with {len(barbeiros)} barbers"
                 )
                 return True
             else:
                 self.log_result(
-                    "GET Single Location", 
+                    "GET Existing Location", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
@@ -279,7 +291,7 @@ class LocaisAPITester:
                 return False
                 
         except Exception as e:
-            self.log_result("GET Single Location", False, f"Error: {str(e)}")
+            self.log_result("GET Existing Location", False, f"Error: {str(e)}")
             return False
     
     def test_delete_location(self):
