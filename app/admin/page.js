@@ -270,6 +270,9 @@ export default function AdminPanel() {
             fetchSettings={() => fetchBarbeariaSettings(localStorage.getItem('token'))}
           />
         )}
+
+        {/* Footer */}
+        <FooterSimple variant="dark" />
       </main>
     </div>
   );
