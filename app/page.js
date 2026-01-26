@@ -357,7 +357,7 @@ export default function App() {
             Pronto Para Modernizar a Tua Barbearia?
           </h2>
           <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-            Começa hoje com 7 dias grátis. Sem cartão de crédito. Cancela quando quiseres.
+            Começa hoje com 7 dias grátis. Cancela quando quiseres.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
