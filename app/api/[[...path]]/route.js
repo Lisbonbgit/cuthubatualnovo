@@ -294,7 +294,7 @@ export async function POST(request, { params }) {
         }
       }
 
-      const { email, password, nome, telemovel, biografia, especialidades } = body;
+      const { email, password, nome, telemovel, biografia, especialidades, local_id } = body;
       
       const existingUser = await db.collection('utilizadores').findOne({ email });
       if (existingUser) {
@@ -311,6 +311,7 @@ export async function POST(request, { params }) {
         especialidades: especialidades || [],
         tipo: 'barbeiro',
         barbearia_id: decoded.barbearia_id,
+        local_id: local_id || null,
         ativo: true,
         criado_em: new Date()
       };
