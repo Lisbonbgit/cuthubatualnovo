@@ -1352,6 +1352,66 @@ export async function GET(request, { params }) {
       return NextResponse.json({ subscription });
     }
 
+    // ==================== LOCAIS (Múltiplas Localizações) ====================
+
+    // GET Locais - Listar todos os locais da barbearia
+    if (path === 'locais') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const locais = await db.collection('locais')
+        .find({ barbearia_id: decoded.barbearia_id, ativo: { $ne: false } })
+        .sort({ criado_em: 1 })
+        .toArray();
+
+      // Adicionar contagem de barbeiros por local
+      const locaisComStats = await Promise.all(
+        locais.map(async (local) => {
+          const totalBarbeiros = await db.collection('utilizadores').countDocuments({
+            barbearia_id: decoded.barbearia_id,
+            tipo: 'barbeiro',
+            local_id: local._id.toString(),
+            ativo: { $ne: false }
+          });
+          return { ...local, totalBarbeiros };
+        })
+      );
+
+      return NextResponse.json({ locais: locaisComStats });
+    }
+
+    // GET Local por ID
+    if (path.startsWith('locais/') && !path.includes('/horarios')) {
+      const localId = path.split('/')[1];
+      
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const local = await db.collection('locais').findOne({
+        _id: new ObjectId(localId),
+        barbearia_id: decoded.barbearia_id
+      });
+
+      if (!local) {
+        return NextResponse.json({ error: 'Local não encontrado' }, { status: 404 });
+      }
+
+      // Buscar barbeiros deste local
+      const barbeiros = await db.collection('utilizadores')
+        .find({ 
+          barbearia_id: decoded.barbearia_id, 
+          tipo: 'barbeiro', 
+          local_id: localId,
+          ativo: { $ne: false } 
+        })
+        .project({ password: 0 })
+        .toArray();
+
+      return NextResponse.json({ local, barbeiros });
+    }
+
     // GET Clientes (CRM)
     if (path === 'clientes') {
       if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
