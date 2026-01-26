@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Calendar, Users, Scissors, Package, Clock, Settings, 
   CreditCard, User, LogOut, ChevronLeft, ChevronRight,
-  LayoutDashboard, History, UserCircle
+  LayoutDashboard, History, UserCircle, MapPin
 } from 'lucide-react';
 
 // Configurações de menu por tipo de utilizador
