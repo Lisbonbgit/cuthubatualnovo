@@ -25,6 +25,7 @@ export default function AdminPanel() {
   const [horarios, setHorarios] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [planosCliente, setPlanosCliente] = useState([]);
+  const [locais, setLocais] = useState([]);
   const [barbeariaSettings, setBarbeariaSettings] = useState(null);
   const [subscription, setSubscription] = useState(null);
   
