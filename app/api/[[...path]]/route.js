@@ -473,7 +473,7 @@ export async function POST(request, { params }) {
         local_id: local_id || null,
         data,
         hora,
-        status: 'pendente', // Agora começa como pendente
+        status: 'aceita', // Aprovação automática
         criado_em: new Date(),
         atualizado_em: new Date()
       };
