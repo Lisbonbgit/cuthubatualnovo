@@ -447,7 +447,7 @@ export async function POST(request, { params }) {
 
     // MARCAÇÕES - Create
     if (path === 'marcacoes') {
-      const { barbeiro_id, servico_id, data, hora } = body;
+      const { barbeiro_id, servico_id, data, hora, local_id } = body;
 
       const servicoObj = await db.collection('servicos').findOne({ _id: new ObjectId(servico_id) });
       if (!servicoObj) {
@@ -470,6 +470,7 @@ export async function POST(request, { params }) {
         barbeiro_id,
         servico_id,
         barbearia_id: decoded.barbearia_id || servicoObj.barbearia_id,
+        local_id: local_id || null,
         data,
         hora,
         status: 'pendente', // Agora começa como pendente
