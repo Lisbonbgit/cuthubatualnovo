@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, AlertCircle, X, AlertTriangle, Calendar, User, Scissors, Clock, Euro, Phone, Mail } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, AlertTriangle, Calendar, User, Scissors, Clock, Euro, Phone, Mail, MapPin } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
 
