@@ -167,7 +167,7 @@ export async function POST(request, { params }) {
           // Verificar subscription
           const subscription = await db.collection('subscriptions').findOne({
             user_id: userId,
-            status: 'active'
+            status: { $in: ['active', 'trialing'] }
           });
 
           if (!subscription) {
@@ -177,20 +177,23 @@ export async function POST(request, { params }) {
             }, { status: 403 });
           }
 
-          // Verificar limite de barbearias do plano
-          const existingBarbearias = await db.collection('barbearias')
-            .countDocuments({ owner_id: userId });
+          // Buscar limites do plano
+          const plano = await db.collection('planos').findOne({ id: subscription.plano });
+          
+          if (plano && plano.limite_barbearias !== -1) {
+            // Verificar limite de barbearias do plano
+            const existingBarbearias = await db.collection('barbearias')
+              .countDocuments({ owner_id: userId });
 
-          const planLimits = {
-            'basic': 1,
-            'pro': 1,
-            'enterprise': 3
-          };
-
-          if (existingBarbearias >= (planLimits[subscription.plan_id] || 1)) {
-            return NextResponse.json({ 
-              error: 'Limite de barbearias do seu plano atingido' 
-            }, { status: 403 });
+            if (existingBarbearias >= plano.limite_barbearias) {
+              return NextResponse.json({ 
+                error: 'Limite de barbearias atingido',
+                message: `O seu plano ${plano.nome} permite apenas ${plano.limite_barbearias} barbearia(s). Para criar mais barbearias, atualize o seu plano.`,
+                upgrade_required: true,
+                current_plan: plano.nome,
+                limit: plano.limite_barbearias
+              }, { status: 403 });
+            }
           }
         }
       }
