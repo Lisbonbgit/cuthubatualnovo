@@ -358,6 +358,72 @@ export async function POST(request, { params }) {
       return NextResponse.json({ produto: { ...produto, _id: result.insertedId } });
     }
 
+    // LOCAIS - Create (Criar novo local/filial)
+    if (path === 'locais') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      // Verificar limite de locais do plano
+      const subscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      if (subscription) {
+        const plano = await db.collection('planos').findOne({ id: subscription.plano });
+        
+        if (plano && plano.limite_barbearias !== -1) {
+          // Contar locais ativos
+          const totalLocais = await db.collection('locais').countDocuments({
+            barbearia_id: decoded.barbearia_id,
+            ativo: { $ne: false }
+          });
+
+          if (totalLocais >= plano.limite_barbearias) {
+            return NextResponse.json({ 
+              error: 'Limite de locais atingido',
+              message: `O seu plano ${plano.nome} permite apenas ${plano.limite_barbearias} local(is). Para adicionar mais locais, atualize o seu plano.`,
+              upgrade_required: true,
+              current_plan: plano.nome,
+              limit: plano.limite_barbearias
+            }, { status: 403 });
+          }
+        }
+      }
+
+      const { nome, morada, telefone, email, horarios } = body;
+
+      if (!nome || !morada) {
+        return NextResponse.json({ error: 'Nome e morada são obrigatórios' }, { status: 400 });
+      }
+
+      // Horários padrão se não fornecidos
+      const horariosDefault = {
+        segunda: { inicio: '09:00', fim: '19:00', ativo: true },
+        terca: { inicio: '09:00', fim: '19:00', ativo: true },
+        quarta: { inicio: '09:00', fim: '19:00', ativo: true },
+        quinta: { inicio: '09:00', fim: '19:00', ativo: true },
+        sexta: { inicio: '09:00', fim: '19:00', ativo: true },
+        sabado: { inicio: '09:00', fim: '18:00', ativo: true },
+        domingo: { inicio: null, fim: null, ativo: false }
+      };
+
+      const local = {
+        barbearia_id: decoded.barbearia_id,
+        nome,
+        morada,
+        telefone: telefone || '',
+        email: email || '',
+        horarios: horarios || horariosDefault,
+        ativo: true,
+        criado_em: new Date()
+      };
+
+      const result = await db.collection('locais').insertOne(local);
+      return NextResponse.json({ local: { ...local, _id: result.insertedId } });
+    }
+
     // PLANOS CLIENTE - Create
     if (path === 'planos-cliente') {
       if (decoded.tipo !== 'admin') {
