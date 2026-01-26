@@ -478,6 +478,87 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: 'Assinatura cancelada com sucesso' });
     }
 
+    // Subscription Change - Alterar plano existente
+    if (path === 'subscription/change') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const { plano } = body;
+
+      if (!plano) {
+        return NextResponse.json({ error: 'Plano não especificado' }, { status: 400 });
+      }
+
+      // Buscar subscription atual
+      const currentSubscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      if (!currentSubscription) {
+        return NextResponse.json({ error: 'Nenhuma subscrição ativa encontrada' }, { status: 404 });
+      }
+
+      // Atualizar para o novo plano
+      await db.collection('subscriptions').updateOne(
+        { _id: currentSubscription._id },
+        { 
+          $set: { 
+            plano: plano,
+            status: 'active', // Remove trial ao mudar de plano
+            alterado_em: new Date(),
+            historico_alteracoes: [
+              ...(currentSubscription.historico_alteracoes || []),
+              {
+                plano_anterior: currentSubscription.plano,
+                plano_novo: plano,
+                data: new Date()
+              }
+            ]
+          } 
+        }
+      );
+
+      return NextResponse.json({ 
+        success: true, 
+        message: `Plano alterado para ${plano} com sucesso` 
+      });
+    }
+
+    // Subscription Cancel - Cancelar subscrição
+    if (path === 'subscription/cancel') {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      // Buscar subscription atual
+      const currentSubscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      if (!currentSubscription) {
+        return NextResponse.json({ error: 'Nenhuma subscrição ativa encontrada' }, { status: 404 });
+      }
+
+      await db.collection('subscriptions').updateOne(
+        { _id: currentSubscription._id },
+        { 
+          $set: { 
+            status: 'cancelled',
+            cancelado_em: new Date(),
+            motivo_cancelamento: body.motivo || 'Cancelado pelo utilizador'
+          } 
+        }
+      );
+
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Subscrição cancelada com sucesso' 
+      });
+    }
+
     // BARBEARIA - Update Settings
     if (path === 'barbearia/settings') {
       if (decoded.tipo !== 'admin') {
