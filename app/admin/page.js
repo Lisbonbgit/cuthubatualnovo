@@ -189,6 +189,14 @@ export default function AdminPanel() {
     setPlanosCliente(data.planos || []);
   };
 
+  const fetchLocais = async (token) => {
+    const response = await fetch('/api/locais', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await response.json();
+    setLocais(data.locais || []);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
