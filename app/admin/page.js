@@ -1284,9 +1284,28 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
   const [telemovel, setTelemovel] = useState('');
   const [biografia, setBiografia] = useState('');
   const [especialidades, setEspecialidades] = useState('');
+  const [localId, setLocalId] = useState('');
+  const [locais, setLocais] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [upgradeModal, setUpgradeModal] = useState({ isOpen: false, message: '', currentPlan: '', limit: 0 });
+
+  // Buscar locais disponíveis
+  useEffect(() => {
+    fetchLocais();
+  }, []);
+
+  const fetchLocais = async () => {
+    try {
+      const response = await fetch('/api/locais', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      const data = await response.json();
+      setLocais(data.locais || []);
+    } catch (error) {
+      console.error('Erro ao carregar locais:', error);
+    }
+  };
 
   const resetForm = () => {
     setNome('');
@@ -1295,6 +1314,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
     setTelemovel('');
     setBiografia('');
     setEspecialidades('');
+    setLocalId('');
     setEditingBarbeiro(null);
     setError('');
   };
@@ -1307,6 +1327,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
     setTelemovel(barbeiro.telemovel || '');
     setBiografia(barbeiro.biografia || '');
     setEspecialidades(Array.isArray(barbeiro.especialidades) ? barbeiro.especialidades.join(', ') : '');
+    setLocalId(barbeiro.local_id || '');
     setShowForm(true);
   };
 
@@ -1332,7 +1353,8 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
         email,
         telemovel,
         biografia,
-        especialidades: especialidadesArray
+        especialidades: especialidadesArray,
+        local_id: localId || null
       };
 
       // Só incluir password se for novo barbeiro ou se foi preenchida na edição
