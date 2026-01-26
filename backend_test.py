@@ -472,6 +472,12 @@ class LocaisAPITester:
         # Step 6: Test updating existing location
         self.test_update_existing_location()
         
+        # Step 7: Test delete validation
+        self.test_delete_location_validation()
+        
+        # Step 8: Test invalid location ID
+        self.test_invalid_location_id()
+        
         # Final results
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
