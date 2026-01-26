@@ -23,6 +23,7 @@ export default function BarbeariaPublicPage() {
   const [servicos, setServicos] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [barbeiros, setBarbeiros] = useState([]);
+  const [locais, setLocais] = useState([]);
   const [planos, setPlanos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
