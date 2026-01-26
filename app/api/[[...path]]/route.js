@@ -2063,6 +2063,11 @@ export async function PUT(request, { params }) {
         atualizado_em: new Date()
       };
 
+      // Adicionar local_id se fornecido
+      if (body.local_id !== undefined) {
+        updateData.local_id = body.local_id;
+      }
+
       // Se uma nova password foi fornecida, hash e atualizar
       if (password && password.length >= 6) {
         updateData.password = await bcrypt.hash(password, 10);
