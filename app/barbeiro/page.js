@@ -865,6 +865,9 @@ export default function BarbeiroPanel() {
         {activeTab === 'perfil' && (
           <PerfilTab user={user} fetchUserData={() => fetchUserData(localStorage.getItem('token'))} />
         )}
+
+        {/* Footer */}
+        <FooterSimple variant="dark" />
       </main>
     </div>
   );
