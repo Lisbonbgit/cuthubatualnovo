@@ -49,7 +49,9 @@ export default function App() {
   };
 
   const redirectBasedOnUserType = (user) => {
-    if (user.tipo === 'admin') {
+    if (user.tipo === 'super_admin') {
+      router.push('/master');
+    } else if (user.tipo === 'admin') {
       router.push('/admin');
     } else if (user.tipo === 'barbeiro') {
       router.push('/barbeiro');
