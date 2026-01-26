@@ -17,6 +17,7 @@ const menuConfigs = {
     { id: 'servicos', label: 'Serviços', icon: Scissors },
     { id: 'produtos', label: 'Produtos', icon: Package },
     { id: 'planos', label: 'Planos', icon: CreditCard },
+    { id: 'locais', label: 'Locais', icon: MapPin },
     { id: 'horarios', label: 'Horários', icon: Clock },
     { id: 'configuracoes', label: 'Configurações', icon: Settings },
   ],
