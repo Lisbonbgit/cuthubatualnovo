@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Scissors, Clock, Euro, Calendar, User, X, LogOut, Settings, Phone, Mail, Save, Star, Check, CreditCard, Package, Users } from 'lucide-react';
 import { CancelConfirmModal } from '@/components/ui/modals';
+import { Footer } from '@/components/ui/footer';
 
 export default function BarbeariaPublicPage() {
   const params = useParams();
