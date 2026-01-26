@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { LogOut, Plus, Trash2, Users, Scissors, Package, Calendar, Clock, Settings, UserCheck, Phone, Mail, Euro, Edit, CreditCard, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal, ClienteDetailModal } from '@/components/ui/modals';
 import { Sidebar } from '@/components/ui/sidebar';
+import { FooterSimple } from '@/components/ui/footer';
 
 export default function AdminPanel() {
   const router = useRouter();
