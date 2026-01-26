@@ -119,6 +119,7 @@ export default function BarbeariaPublicPage() {
       setServicos(data.servicos || []);
       setProdutos(data.produtos || []);
       setBarbeiros(data.barbeiros || []);
+      setLocais(data.locais || []);
       setPlanos(data.planos || []);
     } catch (error) {
       console.error('Error:', error);
