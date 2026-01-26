@@ -1828,12 +1828,22 @@ export async function GET(request, { params }) {
             { _id: new ObjectId(m.servico_id) },
             { projection: { nome: 1, preco: 1, duracao: 1 } }
           );
+          
+          // Get local information if exists
+          let local = null;
+          if (m.local_id) {
+            local = await db.collection('locais').findOne(
+              { _id: new ObjectId(m.local_id) },
+              { projection: { nome: 1, morada: 1 } }
+            );
+          }
 
           return {
             ...m,
             cliente,
             barbeiro,
-            servico
+            servico,
+            local
           };
         })
       );
