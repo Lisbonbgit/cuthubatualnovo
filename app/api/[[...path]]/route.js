@@ -140,6 +140,15 @@ export async function POST(request, { params }) {
       return NextResponse.json({ token, user: { ...user, password: undefined } });
     }
 
+    // GET Planos - Rota pública para obter todos os planos disponíveis
+    if (path === 'planos') {
+      const planos = await db.collection('planos')
+        .find({ ativo: true })
+        .toArray();
+
+      return NextResponse.json({ planos });
+    }
+
     // BARBEARIAS - Create
     if (path === 'barbearias') {
       const { nome, descricao, email_admin, password_admin } = body;
