@@ -238,6 +238,9 @@ export default function SetupPage() {
           ]}
         />
       )}
+
+      {/* Footer */}
+      <FooterSimple variant="dark" />
     </div>
   );
 }
