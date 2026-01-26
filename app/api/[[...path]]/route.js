@@ -1066,6 +1066,15 @@ export async function GET(request, { params }) {
       });
     }
 
+    // GET Planos - Rota pública para obter todos os planos do SaaS
+    if (path === 'planos') {
+      const planos = await db.collection('planos')
+        .find({ ativo: true })
+        .toArray();
+
+      return NextResponse.json({ planos });
+    }
+
     // Protected routes
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
