@@ -920,6 +920,31 @@ export default function BarbeariaPublicPage() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleBooking} className="space-y-4">
+                    {/* Seletor de Local - só aparece se houver mais de 1 local */}
+                    {locais.length > 1 && (
+                      <div className="space-y-2 p-3 bg-amber-900/20 border border-amber-700/50 rounded-lg">
+                        <Label className="text-amber-400 flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Selecione o Local
+                        </Label>
+                        <Select value={selectedLocal} onValueChange={setSelectedLocal}>
+                          <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
+                            <SelectValue placeholder="Escolha o local da marcação" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-800 border-zinc-700">
+                            {locais.filter(l => l.ativo !== false).map((local) => (
+                              <SelectItem key={local._id} value={local._id} className="text-white">
+                                <div className="flex flex-col">
+                                  <span>{local.nome}</span>
+                                  <span className="text-zinc-400 text-xs">{local.morada}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label className="text-zinc-300">Barbeiro</Label>
@@ -928,11 +953,24 @@ export default function BarbeariaPublicPage() {
                             <SelectValue placeholder="Selecione um barbeiro" />
                           </SelectTrigger>
                           <SelectContent className="bg-zinc-800 border-zinc-700">
-                            {barbeiros.map((b) => (
-                              <SelectItem key={b._id} value={b._id} className="text-white">
-                                {b.nome}
-                              </SelectItem>
-                            ))}
+                            {barbeirosDisponiveis.length === 0 ? (
+                              <div className="px-2 py-1 text-zinc-400 text-sm">
+                                {locais.length > 1 && !selectedLocal 
+                                  ? 'Selecione um local primeiro' 
+                                  : 'Nenhum barbeiro disponível'}
+                              </div>
+                            ) : (
+                              barbeirosDisponiveis.map((b) => (
+                                <SelectItem key={b._id} value={b._id} className="text-white">
+                                  {b.nome}
+                                  {b.local_id && locais.length > 1 && (
+                                    <span className="text-zinc-400 ml-2 text-xs">
+                                      ({locais.find(l => l._id === b.local_id)?.nome || 'Local'})
+                                    </span>
+                                  )}
+                                </SelectItem>
+                              ))
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
