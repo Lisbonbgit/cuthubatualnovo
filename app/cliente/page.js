@@ -326,6 +326,9 @@ export default function ClientePanel() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Footer */}
+        <FooterSimple variant="dark" />
       </div>
     </div>
   );
