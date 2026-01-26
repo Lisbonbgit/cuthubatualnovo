@@ -809,6 +809,9 @@ export default function MasterBackoffice() {
         message={alertModal.message}
         type={alertModal.type}
       />
+
+      {/* Footer */}
+      <FooterSimple variant="light" />
     </div>
   );
 }
