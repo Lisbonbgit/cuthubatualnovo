@@ -1288,6 +1288,206 @@ export async function GET(request, { params }) {
       return NextResponse.json({ planos });
     }
 
+    // ==================== MASTER BACKOFFICE ROUTES ====================
+    
+    // GET Master Dashboard Stats
+    if (path === 'master/dashboard') {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      // Total de barbearias
+      const totalBarbearias = await db.collection('barbearias').countDocuments();
+      const barbeariasAtivas = await db.collection('barbearias').countDocuments({ ativa: { $ne: false } });
+      const barbeariasInativas = await db.collection('barbearias').countDocuments({ ativa: false });
+
+      // Total de utilizadores por tipo
+      const totalUtilizadores = await db.collection('utilizadores').countDocuments();
+      const totalAdmins = await db.collection('utilizadores').countDocuments({ tipo: 'admin' });
+      const totalBarbeiros = await db.collection('utilizadores').countDocuments({ tipo: 'barbeiro' });
+      const totalClientes = await db.collection('utilizadores').countDocuments({ tipo: 'cliente' });
+      const totalOwners = await db.collection('utilizadores').countDocuments({ tipo: 'owner' });
+
+      // Total de marcações
+      const totalMarcacoes = await db.collection('marcacoes').countDocuments();
+      const marcacoesPendentes = await db.collection('marcacoes').countDocuments({ status: 'pendente' });
+      const marcacoesAceitas = await db.collection('marcacoes').countDocuments({ status: 'aceita' });
+      const marcacoesConcluidas = await db.collection('marcacoes').countDocuments({ status: 'concluida' });
+      const marcacoesCanceladas = await db.collection('marcacoes').countDocuments({ status: { $in: ['cancelada', 'rejeitada'] } });
+
+      // Marcações dos últimos 7 dias
+      const seteDiasAtras = new Date();
+      seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+      const marcacoesUltimos7Dias = await db.collection('marcacoes').countDocuments({
+        criado_em: { $gte: seteDiasAtras }
+      });
+
+      // Novas barbearias nos últimos 30 dias
+      const trintaDiasAtras = new Date();
+      trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
+      const novasBarbearias30Dias = await db.collection('barbearias').countDocuments({
+        criado_em: { $gte: trintaDiasAtras }
+      });
+
+      // Subscriptions por plano
+      const subscriptionsPorPlano = await db.collection('subscriptions').aggregate([
+        { $group: { _id: '$plano', count: { $sum: 1 } } }
+      ]).toArray();
+
+      // Receita total (simulada - baseada em subscriptions)
+      const subscriptionsAtivas = await db.collection('subscriptions').countDocuments({ status: 'active' });
+
+      return NextResponse.json({
+        barbearias: {
+          total: totalBarbearias,
+          ativas: barbeariasAtivas,
+          inativas: barbeariasInativas,
+          novas30Dias: novasBarbearias30Dias
+        },
+        utilizadores: {
+          total: totalUtilizadores,
+          admins: totalAdmins,
+          barbeiros: totalBarbeiros,
+          clientes: totalClientes,
+          owners: totalOwners
+        },
+        marcacoes: {
+          total: totalMarcacoes,
+          pendentes: marcacoesPendentes,
+          aceitas: marcacoesAceitas,
+          concluidas: marcacoesConcluidas,
+          canceladas: marcacoesCanceladas,
+          ultimos7Dias: marcacoesUltimos7Dias
+        },
+        subscriptions: {
+          ativas: subscriptionsAtivas,
+          porPlano: subscriptionsPorPlano
+        }
+      });
+    }
+
+    // GET Master Barbearias List
+    if (path === 'master/barbearias') {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      const barbearias = await db.collection('barbearias')
+        .find({})
+        .sort({ criado_em: -1 })
+        .toArray();
+
+      // Enriquecer com dados adicionais
+      const barbeariasComDados = await Promise.all(
+        barbearias.map(async (b) => {
+          const totalUtilizadores = await db.collection('utilizadores').countDocuments({ barbearia_id: b._id.toString() });
+          const totalMarcacoes = await db.collection('marcacoes').countDocuments({ barbearia_id: b._id.toString() });
+          const subscription = await db.collection('subscriptions').findOne({ barbearia_id: b._id.toString() });
+          const owner = await db.collection('utilizadores').findOne({ 
+            barbearia_id: b._id.toString(), 
+            tipo: { $in: ['admin', 'owner'] } 
+          }, { projection: { nome: 1, email: 1 } });
+
+          return {
+            ...b,
+            totalUtilizadores,
+            totalMarcacoes,
+            subscription: subscription ? {
+              plano: subscription.plano,
+              status: subscription.status,
+              data_fim: subscription.data_fim
+            } : null,
+            owner
+          };
+        })
+      );
+
+      return NextResponse.json({ barbearias: barbeariasComDados });
+    }
+
+    // GET Master Barbearia Details
+    if (path.startsWith('master/barbearias/') && !path.includes('/toggle')) {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      const barbeariaId = path.split('/')[2];
+      const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(barbeariaId) });
+      
+      if (!barbearia) {
+        return NextResponse.json({ error: 'Barbearia não encontrada' }, { status: 404 });
+      }
+
+      const utilizadores = await db.collection('utilizadores')
+        .find({ barbearia_id: barbeariaId })
+        .project({ password: 0 })
+        .toArray();
+
+      const marcacoes = await db.collection('marcacoes')
+        .find({ barbearia_id: barbeariaId })
+        .sort({ data: -1 })
+        .limit(50)
+        .toArray();
+
+      const servicos = await db.collection('servicos')
+        .find({ barbearia_id: barbeariaId })
+        .toArray();
+
+      const subscription = await db.collection('subscriptions')
+        .findOne({ barbearia_id: barbeariaId });
+
+      return NextResponse.json({
+        barbearia,
+        utilizadores,
+        marcacoes,
+        servicos,
+        subscription
+      });
+    }
+
+    // GET Master Recent Activity
+    if (path === 'master/atividade') {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      // Últimas marcações
+      const ultimasMarcacoes = await db.collection('marcacoes')
+        .find({})
+        .sort({ criado_em: -1 })
+        .limit(20)
+        .toArray();
+
+      // Enriquecer com dados
+      const marcacoesComDados = await Promise.all(
+        ultimasMarcacoes.map(async (m) => {
+          const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(m.barbearia_id) });
+          const cliente = await db.collection('utilizadores').findOne(
+            { _id: new ObjectId(m.cliente_id) },
+            { projection: { nome: 1, email: 1 } }
+          );
+          return {
+            ...m,
+            barbearia_nome: barbearia?.nome,
+            cliente_nome: cliente?.nome
+          };
+        })
+      );
+
+      // Últimos registos
+      const ultimosRegistos = await db.collection('utilizadores')
+        .find({})
+        .sort({ criado_em: -1 })
+        .limit(10)
+        .project({ password: 0 })
+        .toArray();
+
+      return NextResponse.json({
+        ultimasMarcacoes: marcacoesComDados,
+        ultimosRegistos
+      });
+    }
+
     // GET Marcações
     if (path === 'marcacoes') {
       let query = {};
