@@ -214,6 +214,20 @@ export default function BarbeariaPublicPage() {
     }
   }, [selectedBarbeiro, selectedData, selectedServico]);
 
+  // Reset barbeiro selection when local changes
+  useEffect(() => {
+    setSelectedBarbeiro('');
+    setSelectedHora('');
+    setAvailableSlots([]);
+  }, [selectedLocal]);
+
+  // Get barbeiros filtered by selected local
+  const barbeirosDisponiveis = selectedLocal 
+    ? barbeiros.filter(b => 
+        b.local_id === selectedLocal || !b.local_id // barbeiros específicos do local ou sem local definido
+      )
+    : barbeiros;
+
   const handleBooking = async (e) => {
     e.preventDefault();
 
@@ -233,7 +247,8 @@ export default function BarbeariaPublicPage() {
           barbeiro_id: selectedBarbeiro,
           servico_id: selectedServico,
           data: selectedData,
-          hora: selectedHora
+          hora: selectedHora,
+          local_id: selectedLocal || null
         })
       });
 
@@ -242,6 +257,7 @@ export default function BarbeariaPublicPage() {
         setTimeout(() => {
           setShowBookingForm(false);
           setBookingSuccess(false);
+          setSelectedLocal('');
           setSelectedBarbeiro('');
           setSelectedServico('');
           setSelectedData('');
