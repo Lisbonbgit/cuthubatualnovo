@@ -1305,15 +1305,6 @@ export async function GET(request, { params }) {
       return NextResponse.json({ subscription });
     }
 
-    // GET Planos - Obter todos os planos disponíveis
-    if (path === 'planos') {
-      const planos = await db.collection('planos')
-        .find({ ativo: true })
-        .toArray();
-
-      return NextResponse.json({ planos });
-    }
-
     // GET Clientes (CRM)
     if (path === 'clientes') {
       if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
