@@ -1850,6 +1850,69 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ user: updatedCliente, success: true });
     }
 
+    // ==================== MASTER BACKOFFICE PUT ROUTES ====================
+
+    // Toggle Barbearia Status (ativar/desativar)
+    if (path.startsWith('master/barbearias/') && path.endsWith('/toggle')) {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      const barbeariaId = path.split('/')[2];
+      const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(barbeariaId) });
+      
+      if (!barbearia) {
+        return NextResponse.json({ error: 'Barbearia não encontrada' }, { status: 404 });
+      }
+
+      const novoStatus = !barbearia.ativa;
+      
+      await db.collection('barbearias').updateOne(
+        { _id: new ObjectId(barbeariaId) },
+        { 
+          $set: { 
+            ativa: novoStatus,
+            atualizado_em: new Date(),
+            atualizado_por: 'super_admin'
+          } 
+        }
+      );
+
+      return NextResponse.json({ 
+        success: true, 
+        ativa: novoStatus,
+        message: novoStatus ? 'Barbearia ativada com sucesso' : 'Barbearia desativada com sucesso'
+      });
+    }
+
+    // Update Barbearia by Super Admin
+    if (path.startsWith('master/barbearias/') && !path.endsWith('/toggle')) {
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Acesso negado. Apenas super_admin.' }, { status: 403 });
+      }
+
+      const barbeariaId = path.split('/')[2];
+      const { nome, descricao, ativa } = body;
+
+      const updateData = {
+        atualizado_em: new Date(),
+        atualizado_por: 'super_admin'
+      };
+
+      if (nome !== undefined) updateData.nome = nome;
+      if (descricao !== undefined) updateData.descricao = descricao;
+      if (ativa !== undefined) updateData.ativa = ativa;
+
+      await db.collection('barbearias').updateOne(
+        { _id: new ObjectId(barbeariaId) },
+        { $set: updateData }
+      );
+
+      const updatedBarbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(barbeariaId) });
+
+      return NextResponse.json({ barbearia: updatedBarbearia, success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
