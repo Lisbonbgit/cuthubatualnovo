@@ -330,7 +330,7 @@ export default function App() {
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2 text-zinc-400 text-sm">
-                  <li>✓ 3 Barbearias</li>
+                  <li>✓ Barbearias Ilimitadas</li>
                   <li>✓ Barbeiros Ilimitados</li>
                   <li>✓ Suporte 24/7</li>
                 </ul>
