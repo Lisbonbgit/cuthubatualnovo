@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { LogOut, Calendar, Plus } from 'lucide-react';
+import { FooterSimple } from '@/components/ui/footer';
 
 export default function ClientePanel() {
   const router = useRouter();
