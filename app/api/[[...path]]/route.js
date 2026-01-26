@@ -1997,6 +1997,36 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ success: true });
     }
 
+    // UPDATE Local (Filial)
+    if (path.startsWith('locais/') && !path.includes('/horarios')) {
+      if (decoded.tipo !== 'admin') {
+        return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+      }
+
+      const localId = path.split('/')[1];
+      const { nome, morada, telefone, email, horarios, ativo } = body;
+
+      const updateData = {
+        atualizado_em: new Date()
+      };
+
+      if (nome !== undefined) updateData.nome = nome;
+      if (morada !== undefined) updateData.morada = morada;
+      if (telefone !== undefined) updateData.telefone = telefone;
+      if (email !== undefined) updateData.email = email;
+      if (horarios !== undefined) updateData.horarios = horarios;
+      if (ativo !== undefined) updateData.ativo = ativo;
+
+      await db.collection('locais').updateOne(
+        { _id: new ObjectId(localId), barbearia_id: decoded.barbearia_id },
+        { $set: updateData }
+      );
+
+      const updatedLocal = await db.collection('locais').findOne({ _id: new ObjectId(localId) });
+
+      return NextResponse.json({ local: updatedLocal, success: true });
+    }
+
     // UPDATE Plano Cliente
     if (path.startsWith('planos-cliente/')) {
       if (decoded.tipo !== 'admin') {
