@@ -1600,6 +1600,18 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
           )}
         </CardContent>
       </Card>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={upgradeModal.isOpen}
+        onClose={() => setUpgradeModal({ ...upgradeModal, isOpen: false })}
+        onUpgrade={() => router.push('/gerir-plano')}
+        title="Limite de Barbeiros Atingido"
+        message={upgradeModal.message}
+        currentPlan={upgradeModal.currentPlan}
+        limit={upgradeModal.limit}
+        resourceType="barbeiros"
+      />
     </div>
   );
 }
