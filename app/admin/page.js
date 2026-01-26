@@ -2284,7 +2284,7 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
               <Button
                 variant="outline"
                 className="border-amber-600 text-amber-600 hover:bg-amber-600 hover:text-white"
-                onClick={() => router.push('/planos')}
+                onClick={() => router.push('/gerir-plano')}
               >
                 Gerir Plano
               </Button>
