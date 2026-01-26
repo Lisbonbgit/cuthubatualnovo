@@ -37,6 +37,7 @@ export default function BarbeariaPublicPage() {
 
   // Booking state
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [selectedLocal, setSelectedLocal] = useState('');
   const [selectedBarbeiro, setSelectedBarbeiro] = useState('');
   const [selectedServico, setSelectedServico] = useState('');
   const [selectedData, setSelectedData] = useState('');
