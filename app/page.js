@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Scissors, Clock, Users, Star, CheckCircle2 } from 'lucide-react';
+import { Footer } from '@/components/ui/footer';
 
 export default function App() {
   const router = useRouter();
