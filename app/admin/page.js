@@ -2261,6 +2261,24 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
     ? Math.ceil((new Date(subscription.trial_end) - new Date()) / (1000 * 60 * 60 * 24))
     : 0;
 
+  const getPlanName = (plano) => {
+    switch(plano) {
+      case 'basic': return 'Básico';
+      case 'pro': return 'Pro';
+      case 'enterprise': return 'Enterprise';
+      default: return plano || 'Não definido';
+    }
+  };
+
+  const getPlanPrice = (plano) => {
+    switch(plano) {
+      case 'basic': return 29;
+      case 'pro': return 49;
+      case 'enterprise': return 99;
+      default: return 0;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Subscription Info */}
@@ -2268,15 +2286,20 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
         <Card className="bg-gradient-to-r from-amber-900/20 to-zinc-800 border-amber-600">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <span>Plano Ativo: {subscription.plan_name}</span>
-              {subscription.status === 'active' && trialDaysLeft > 0 && (
+              <span>Plano Ativo: {getPlanName(subscription.plano)}</span>
+              {subscription.status === 'trialing' && (
+                <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded">
+                  Período de Teste
+                </span>
+              )}
+              {subscription.status === 'active' && (
                 <span className="text-xs bg-green-500 text-white px-2 py-1 rounded">
-                  Trial - {trialDaysLeft} dias restantes
+                  Ativo
                 </span>
               )}
             </CardTitle>
             <CardDescription className="text-zinc-300">
-              {subscription.price}€/mês • Próxima cobrança: {new Date(subscription.next_billing_date).toLocaleDateString('pt-PT')}
+              {getPlanPrice(subscription.plano)}€/mês • Próxima renovação: {subscription.data_fim ? new Date(subscription.data_fim).toLocaleDateString('pt-PT') : 'N/A'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -2287,6 +2310,30 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
                 onClick={() => router.push('/gerir-plano')}
               >
                 Gerir Plano
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mostrar aviso se não tiver subscription */}
+      {!subscription && (
+        <Card className="bg-gradient-to-r from-red-900/20 to-zinc-800 border-red-600">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <span>Sem Plano Ativo</span>
+            </CardTitle>
+            <CardDescription className="text-zinc-300">
+              Subscreva um plano para desbloquear todas as funcionalidades.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-3">
+              <Button
+                className="bg-amber-600 hover:bg-amber-700 text-white"
+                onClick={() => router.push('/gerir-plano')}
+              >
+                Ver Planos
               </Button>
             </div>
           </CardContent>
