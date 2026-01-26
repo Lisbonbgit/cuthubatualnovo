@@ -1,433 +1,422 @@
 #!/usr/bin/env python3
 """
-Backend Testing for BarbePRO - Barber Management Functionality
-Tests the following endpoints:
-1. POST /api/barbeiros (Create barber with new fields)
-2. PUT /api/barbeiros/{id} (Edit barber)
-3. GET /api/barbeiros (List barbers)
-4. PUT /api/marcacoes/{id} (Update booking status)
+Backend API Test Suite for Barbershop SaaS - Multi-Location Management (Locais)
+Testing the Locais endpoints for managing multiple locations/branches
 """
 
 import requests
 import json
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 
-# Base URL from environment
-BASE_URL = "https://cut-connect-3.preview.emergentagent.com"
-API_BASE = f"{BASE_URL}/api"
+# Configuration
+BASE_URL = "https://cut-connect-3.preview.emergentagent.com/api"
+ADMIN_EMAIL = "admin@teste.pt"
+ADMIN_PASSWORD = "admin123"
 
-# Test credentials
-ADMIN_CREDENTIALS = {
-    "email": "admin@premium.pt",
-    "password": "admin123"
-}
-
-BARBEIRO_CREDENTIALS = {
-    "email": "joao@premium.pt", 
-    "password": "barbeiro123"
-}
-
-class BarbePROTester:
+class LocaisAPITester:
     def __init__(self):
-        self.admin_token = None
-        self.barbeiro_token = None
-        self.created_barbeiro_id = None
-        self.test_marcacao_id = None
+        self.token = None
+        self.created_location_id = None
+        self.test_results = []
         
-    def login(self, credentials, user_type="admin"):
-        """Login and get JWT token"""
-        try:
-            print(f"🔐 Logging in as {user_type}...")
-            response = requests.post(f"{API_BASE}/auth/login", json=credentials)
-            
-            if response.status_code == 200:
-                data = response.json()
-                token = data.get('token')
-                user = data.get('user', {})
-                print(f"✅ Login successful for {user.get('nome', 'Unknown')} ({user.get('tipo', 'Unknown')})")
-                return token
-            else:
-                print(f"❌ Login failed: {response.status_code} - {response.text}")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Login error: {str(e)}")
-            return None
-    
-    def test_create_barbeiro(self):
-        """Test POST /api/barbeiros - Create barber with new fields"""
-        print("\n🧪 Testing POST /api/barbeiros (Create barber with new fields)")
-        
-        if not self.admin_token:
-            print("❌ Admin token required for this test")
-            return False
-            
-        # Test data with new fields
-        barbeiro_data = {
-            "nome": "Miguel Santos",
-            "email": "miguel@premium.pt",
-            "password": "barbeiro456",
-            "telemovel": "+351 912 345 678",
-            "biografia": "Especialista em cortes clássicos e modernos com 10 anos de experiência",
-            "especialidades": ["Corte Clássico", "Barbear Tradicional", "Styling"]
+    def log_result(self, test_name, success, message, details=None):
+        """Log test result"""
+        result = {
+            'test': test_name,
+            'success': success,
+            'message': message,
+            'details': details,
+            'timestamp': datetime.now().isoformat()
         }
-        
+        self.test_results.append(result)
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{status} {test_name}: {message}")
+        if details and not success:
+            print(f"   Details: {details}")
+    
+    def login_admin(self):
+        """Login as admin to get authentication token"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.post(f"{API_BASE}/barbeiros", json=barbeiro_data, headers=headers)
+            response = requests.post(f"{BASE_URL}/auth/login", json={
+                "email": ADMIN_EMAIL,
+                "password": ADMIN_PASSWORD
+            })
             
             if response.status_code == 200:
                 data = response.json()
-                barbeiro = data.get('barbeiro', {})
-                self.created_barbeiro_id = barbeiro.get('_id')
-                
-                # Verify all new fields are present
-                required_fields = ['nome', 'email', 'telemovel', 'biografia', 'especialidades', 'ativo']
-                missing_fields = [field for field in required_fields if field not in barbeiro]
-                
-                if missing_fields:
-                    print(f"❌ Missing fields in response: {missing_fields}")
-                    return False
-                
-                # Verify field values
-                if barbeiro.get('telemovel') != barbeiro_data['telemovel']:
-                    print(f"❌ Telemovel mismatch: expected {barbeiro_data['telemovel']}, got {barbeiro.get('telemovel')}")
-                    return False
-                    
-                if barbeiro.get('biografia') != barbeiro_data['biografia']:
-                    print(f"❌ Biografia mismatch")
-                    return False
-                    
-                if barbeiro.get('especialidades') != barbeiro_data['especialidades']:
-                    print(f"❌ Especialidades mismatch")
-                    return False
-                
-                print(f"✅ Barbeiro created successfully with ID: {self.created_barbeiro_id}")
-                print(f"   - Nome: {barbeiro.get('nome')}")
-                print(f"   - Email: {barbeiro.get('email')}")
-                print(f"   - Telemovel: {barbeiro.get('telemovel')}")
-                print(f"   - Biografia: {barbeiro.get('biografia')[:50]}...")
-                print(f"   - Especialidades: {barbeiro.get('especialidades')}")
-                print(f"   - Ativo: {barbeiro.get('ativo')}")
+                self.token = data.get('token')
+                user = data.get('user', {})
+                self.log_result(
+                    "Admin Login", 
+                    True, 
+                    f"Successfully logged in as {user.get('nome', 'Admin')}"
+                )
                 return True
-                
             else:
-                print(f"❌ Create barbeiro failed: {response.status_code} - {response.text}")
+                self.log_result(
+                    "Admin Login", 
+                    False, 
+                    f"Login failed with status {response.status_code}",
+                    response.text
+                )
                 return False
                 
         except Exception as e:
-            print(f"❌ Create barbeiro error: {str(e)}")
+            self.log_result("Admin Login", False, f"Login error: {str(e)}")
             return False
     
-    def test_get_barbeiros(self):
-        """Test GET /api/barbeiros - List barbers with new fields"""
-        print("\n🧪 Testing GET /api/barbeiros (List barbers)")
-        
-        if not self.admin_token:
-            print("❌ Admin token required for this test")
-            return False
-            
+    def get_headers(self):
+        """Get headers with authorization token"""
+        return {
+            "Authorization": f"Bearer {self.token}",
+            "Content-Type": "application/json"
+        }
+    
+    def test_get_locations_list(self):
+        """Test GET /api/locais - List all locations"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.get(f"{API_BASE}/barbeiros", headers=headers)
+            response = requests.get(f"{BASE_URL}/locais", headers=self.get_headers())
             
             if response.status_code == 200:
                 data = response.json()
+                locations = data.get('locais', [])
+                self.log_result(
+                    "GET Locations List", 
+                    True, 
+                    f"Retrieved {len(locations)} locations successfully"
+                )
+                
+                # Log existing locations for reference
+                if locations:
+                    print("   Existing locations:")
+                    for loc in locations:
+                        print(f"     - {loc.get('nome')} ({loc.get('_id')})")
+                
+                return True
+            else:
+                self.log_result(
+                    "GET Locations List", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("GET Locations List", False, f"Error: {str(e)}")
+            return False
+    
+    def test_create_location(self):
+        """Test POST /api/locais - Create new location"""
+        try:
+            location_data = {
+                "nome": "Filial Almada",
+                "morada": "Av. do Cristo Rei, 45 - Almada",
+                "telefone": "+351 21 234 5678",
+                "email": "almada@barbearia.pt",
+                "horarios": {
+                    "segunda": {"aberto": True, "abertura": "10:00", "fecho": "18:00"},
+                    "terca": {"aberto": True, "abertura": "10:00", "fecho": "18:00"},
+                    "quarta": {"aberto": True, "abertura": "10:00", "fecho": "18:00"},
+                    "quinta": {"aberto": True, "abertura": "10:00", "fecho": "18:00"},
+                    "sexta": {"aberto": True, "abertura": "10:00", "fecho": "18:00"},
+                    "sabado": {"aberto": True, "abertura": "09:00", "fecho": "14:00"},
+                    "domingo": {"aberto": False}
+                }
+            }
+            
+            response = requests.post(f"{BASE_URL}/locais", 
+                                   json=location_data, 
+                                   headers=self.get_headers())
+            
+            if response.status_code == 200:
+                data = response.json()
+                location = data.get('local', {})
+                self.created_location_id = location.get('_id')
+                
+                self.log_result(
+                    "POST Create Location", 
+                    True, 
+                    f"Created location '{location.get('nome')}' with ID {self.created_location_id}"
+                )
+                return True
+            else:
+                self.log_result(
+                    "POST Create Location", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("POST Create Location", False, f"Error: {str(e)}")
+            return False
+    
+    def test_create_location_missing_fields(self):
+        """Test POST /api/locais with missing required fields"""
+        try:
+            # Test with missing nome
+            response = requests.post(f"{BASE_URL}/locais", 
+                                   json={"morada": "Test Address"}, 
+                                   headers=self.get_headers())
+            
+            if response.status_code == 400:
+                self.log_result(
+                    "POST Create Location (Missing Fields)", 
+                    True, 
+                    "Correctly rejected request with missing required fields"
+                )
+                return True
+            else:
+                self.log_result(
+                    "POST Create Location (Missing Fields)", 
+                    False, 
+                    f"Should have returned 400, got {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("POST Create Location (Missing Fields)", False, f"Error: {str(e)}")
+            return False
+    
+    def test_update_location(self):
+        """Test PUT /api/locais/:id - Update location"""
+        if not self.created_location_id:
+            self.log_result("PUT Update Location", False, "No location ID available for update test")
+            return False
+            
+        try:
+            update_data = {
+                "nome": "Filial Almada - Atualizada",
+                "telefone": "+351 21 999 8888",
+                "email": "almada.nova@barbearia.pt"
+            }
+            
+            response = requests.put(f"{BASE_URL}/locais/{self.created_location_id}", 
+                                  json=update_data, 
+                                  headers=self.get_headers())
+            
+            if response.status_code == 200:
+                data = response.json()
+                location = data.get('local', {})
+                
+                self.log_result(
+                    "PUT Update Location", 
+                    True, 
+                    f"Updated location to '{location.get('nome')}'"
+                )
+                return True
+            else:
+                self.log_result(
+                    "PUT Update Location", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("PUT Update Location", False, f"Error: {str(e)}")
+            return False
+    
+    def test_get_single_location(self):
+        """Test GET /api/locais/:id - Get single location details"""
+        if not self.created_location_id:
+            self.log_result("GET Single Location", False, "No location ID available for single location test")
+            return False
+            
+        try:
+            response = requests.get(f"{BASE_URL}/locais/{self.created_location_id}", 
+                                  headers=self.get_headers())
+            
+            if response.status_code == 200:
+                data = response.json()
+                location = data.get('local', {})
                 barbeiros = data.get('barbeiros', [])
                 
-                if not barbeiros:
-                    print("❌ No barbeiros found")
-                    return False
-                
-                print(f"✅ Found {len(barbeiros)} barbeiros")
-                
-                # Check if our created barbeiro is in the list
-                created_barbeiro = None
-                if self.created_barbeiro_id:
-                    created_barbeiro = next((b for b in barbeiros if b.get('_id') == self.created_barbeiro_id), None)
-                
-                # Verify new fields are present in at least one barbeiro
-                sample_barbeiro = created_barbeiro or barbeiros[0]
-                required_fields = ['nome', 'email', 'telemovel', 'biografia', 'especialidades', 'ativo']
-                
-                for field in required_fields:
-                    if field not in sample_barbeiro:
-                        print(f"❌ Missing field '{field}' in barbeiro response")
-                        return False
-                
-                print("✅ All required fields present in barbeiros list:")
-                for barbeiro in barbeiros:
-                    print(f"   - {barbeiro.get('nome')} ({barbeiro.get('email')})")
-                    print(f"     Telemovel: {barbeiro.get('telemovel', 'N/A')}")
-                    print(f"     Especialidades: {barbeiro.get('especialidades', [])}")
-                    print(f"     Ativo: {barbeiro.get('ativo', True)}")
-                
+                self.log_result(
+                    "GET Single Location", 
+                    True, 
+                    f"Retrieved location '{location.get('nome')}' with {len(barbeiros)} barbers"
+                )
                 return True
-                
             else:
-                print(f"❌ Get barbeiros failed: {response.status_code} - {response.text}")
+                self.log_result(
+                    "GET Single Location", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
                 return False
                 
         except Exception as e:
-            print(f"❌ Get barbeiros error: {str(e)}")
+            self.log_result("GET Single Location", False, f"Error: {str(e)}")
             return False
     
-    def test_update_barbeiro(self):
-        """Test PUT /api/barbeiros/{id} - Edit barber"""
-        print("\n🧪 Testing PUT /api/barbeiros/{id} (Edit barber)")
-        
-        if not self.admin_token:
-            print("❌ Admin token required for this test")
+    def test_delete_location(self):
+        """Test DELETE /api/locais/:id - Delete/deactivate location"""
+        if not self.created_location_id:
+            self.log_result("DELETE Location", False, "No location ID available for delete test")
             return False
             
-        if not self.created_barbeiro_id:
-            print("❌ No barbeiro ID available for update test")
-            return False
-            
-        # Updated data
-        update_data = {
-            "nome": "Miguel Santos Silva",
-            "email": "miguel.silva@premium.pt",
-            "telemovel": "+351 913 456 789",
-            "biografia": "Especialista em cortes clássicos, modernos e barbear tradicional com mais de 10 anos de experiência no setor",
-            "especialidades": ["Corte Clássico", "Barbear Tradicional", "Styling", "Tratamentos Capilares"],
-            "ativo": True
-        }
-        
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.put(f"{API_BASE}/barbeiros/{self.created_barbeiro_id}", json=update_data, headers=headers)
+            response = requests.delete(f"{BASE_URL}/locais/{self.created_location_id}", 
+                                     headers=self.get_headers())
             
             if response.status_code == 200:
                 data = response.json()
-                barbeiro = data.get('barbeiro', {})
+                message = data.get('message', 'Location deleted successfully')
                 
-                # Verify updates
-                if barbeiro.get('nome') != update_data['nome']:
-                    print(f"❌ Nome not updated: expected {update_data['nome']}, got {barbeiro.get('nome')}")
-                    return False
-                    
-                if barbeiro.get('email') != update_data['email']:
-                    print(f"❌ Email not updated: expected {update_data['email']}, got {barbeiro.get('email')}")
-                    return False
-                    
-                if barbeiro.get('telemovel') != update_data['telemovel']:
-                    print(f"❌ Telemovel not updated")
-                    return False
-                    
-                if barbeiro.get('biografia') != update_data['biografia']:
-                    print(f"❌ Biografia not updated")
-                    return False
-                    
-                if barbeiro.get('especialidades') != update_data['especialidades']:
-                    print(f"❌ Especialidades not updated")
-                    return False
-                
-                print("✅ Barbeiro updated successfully:")
-                print(f"   - Nome: {barbeiro.get('nome')}")
-                print(f"   - Email: {barbeiro.get('email')}")
-                print(f"   - Telemovel: {barbeiro.get('telemovel')}")
-                print(f"   - Biografia: {barbeiro.get('biografia')[:50]}...")
-                print(f"   - Especialidades: {barbeiro.get('especialidades')}")
-                print(f"   - Ativo: {barbeiro.get('ativo')}")
+                self.log_result(
+                    "DELETE Location", 
+                    True, 
+                    f"Location soft-deleted: {message}"
+                )
                 return True
-                
             else:
-                print(f"❌ Update barbeiro failed: {response.status_code} - {response.text}")
+                self.log_result(
+                    "DELETE Location", 
+                    False, 
+                    f"Failed with status {response.status_code}",
+                    response.text
+                )
                 return False
                 
         except Exception as e:
-            print(f"❌ Update barbeiro error: {str(e)}")
+            self.log_result("DELETE Location", False, f"Error: {str(e)}")
             return False
     
-    def test_update_barbeiro_password(self):
-        """Test PUT /api/barbeiros/{id} - Update password"""
-        print("\n🧪 Testing PUT /api/barbeiros/{id} (Update password)")
-        
-        if not self.admin_token or not self.created_barbeiro_id:
-            print("❌ Admin token and barbeiro ID required for this test")
-            return False
-            
-        # Test password update
-        password_data = {
-            "nome": "Miguel Santos Silva",
-            "email": "miguel.silva@premium.pt",
-            "telemovel": "+351 913 456 789",
-            "biografia": "Especialista em cortes clássicos, modernos e barbear tradicional com mais de 10 anos de experiência no setor",
-            "especialidades": ["Corte Clássico", "Barbear Tradicional", "Styling", "Tratamentos Capilares"],
-            "ativo": True,
-            "password": "newpassword123"
-        }
-        
+    def test_unauthorized_access(self):
+        """Test that unauthenticated requests are rejected"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.put(f"{API_BASE}/barbeiros/{self.created_barbeiro_id}", json=password_data, headers=headers)
+            # Test without authorization header
+            response = requests.get(f"{BASE_URL}/locais")
             
-            if response.status_code == 200:
-                print("✅ Password update successful (password field should be hashed and not returned)")
-                data = response.json()
-                barbeiro = data.get('barbeiro', {})
-                
-                # Verify password is not in response
-                if 'password' in barbeiro:
-                    print("❌ Password field should not be returned in response")
-                    return False
-                    
-                print("✅ Password field correctly excluded from response")
+            if response.status_code == 401:
+                self.log_result(
+                    "Unauthorized Access Test", 
+                    True, 
+                    "Correctly rejected unauthenticated request"
+                )
                 return True
-                
             else:
-                print(f"❌ Password update failed: {response.status_code} - {response.text}")
+                self.log_result(
+                    "Unauthorized Access Test", 
+                    False, 
+                    f"Should have returned 401, got {response.status_code}",
+                    response.text
+                )
                 return False
                 
         except Exception as e:
-            print(f"❌ Password update error: {str(e)}")
+            self.log_result("Unauthorized Access Test", False, f"Error: {str(e)}")
             return False
     
-    def get_test_marcacao_id(self):
-        """Get a marcacao ID for testing status updates"""
+    def test_verify_locations_after_delete(self):
+        """Verify that deleted location is not in active list"""
         try:
-            headers = {"Authorization": f"Bearer {self.admin_token}"}
-            response = requests.get(f"{API_BASE}/marcacoes", headers=headers)
+            response = requests.get(f"{BASE_URL}/locais", headers=self.get_headers())
             
             if response.status_code == 200:
                 data = response.json()
-                marcacoes = data.get('marcacoes', [])
+                locations = data.get('locais', [])
                 
-                if marcacoes:
-                    # Find a marcacao that's not already completed
-                    for marcacao in marcacoes:
-                        if marcacao.get('status') in ['pendente', 'aceita']:
-                            return marcacao.get('_id')
-                    
-                    # If no pending/accepted, use the first one
-                    return marcacoes[0].get('_id')
-                    
-            return None
-            
-        except Exception as e:
-            print(f"❌ Error getting marcacao ID: {str(e)}")
-            return None
-    
-    def test_update_marcacao_status(self):
-        """Test PUT /api/marcacoes/{id} - Update booking status"""
-        print("\n🧪 Testing PUT /api/marcacoes/{id} (Update booking status)")
-        
-        # Get a marcacao ID to test with
-        marcacao_id = self.get_test_marcacao_id()
-        if not marcacao_id:
-            print("❌ No marcacao available for testing")
-            return False
-        
-        # Test different status updates
-        test_statuses = [
-            {"status": "aceita", "token": self.admin_token, "user": "admin"},
-            {"status": "concluida", "token": self.barbeiro_token, "user": "barbeiro"},
-            {"status": "rejeitada", "token": self.admin_token, "user": "admin"}
-        ]
-        
-        success_count = 0
-        
-        for test_case in test_statuses:
-            status = test_case["status"]
-            token = test_case["token"]
-            user_type = test_case["user"]
-            
-            if not token:
-                print(f"❌ No {user_type} token available for testing {status}")
-                continue
+                # Check if our deleted location is still in the active list
+                deleted_location_found = any(
+                    loc.get('_id') == self.created_location_id 
+                    for loc in locations
+                )
                 
-            print(f"   Testing status update to '{status}' as {user_type}...")
-            
-            try:
-                headers = {"Authorization": f"Bearer {token}"}
-                update_data = {
-                    "status": status,
-                    "observacoes": f"Status updated to {status} by {user_type} during testing"
-                }
-                
-                response = requests.put(f"{API_BASE}/marcacoes/{marcacao_id}", json=update_data, headers=headers)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    if data.get('success'):
-                        print(f"   ✅ Status updated to '{status}' successfully")
-                        success_count += 1
-                    else:
-                        print(f"   ❌ Status update response indicates failure: {data}")
+                if not deleted_location_found:
+                    self.log_result(
+                        "Verify Soft Delete", 
+                        True, 
+                        "Deleted location correctly removed from active list"
+                    )
+                    return True
                 else:
-                    print(f"   ❌ Status update to '{status}' failed: {response.status_code} - {response.text}")
-                    
-            except Exception as e:
-                print(f"   ❌ Status update to '{status}' error: {str(e)}")
-        
-        if success_count > 0:
-            print(f"✅ Marcacao status updates working ({success_count}/{len(test_statuses)} successful)")
-            return True
-        else:
-            print("❌ All marcacao status updates failed")
+                    self.log_result(
+                        "Verify Soft Delete", 
+                        False, 
+                        "Deleted location still appears in active list"
+                    )
+                    return False
+            else:
+                self.log_result(
+                    "Verify Soft Delete", 
+                    False, 
+                    f"Failed to get locations list: {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Verify Soft Delete", False, f"Error: {str(e)}")
             return False
     
     def run_all_tests(self):
-        """Run all barber management tests"""
-        print("🚀 Starting BarbePRO Backend Testing - Barber Management")
+        """Run all Locais API tests"""
+        print("🧪 Starting Multi-Location Management (Locais) API Tests")
         print("=" * 60)
         
-        # Login as admin and barbeiro
-        self.admin_token = self.login(ADMIN_CREDENTIALS, "admin")
-        self.barbeiro_token = self.login(BARBEIRO_CREDENTIALS, "barbeiro")
-        
-        if not self.admin_token:
-            print("❌ Cannot proceed without admin token")
+        # Step 1: Login
+        if not self.login_admin():
+            print("❌ Cannot proceed without authentication")
             return False
         
-        # Run tests
-        test_results = []
+        # Step 2: Test unauthorized access
+        self.test_unauthorized_access()
         
-        # Test 1: Create barbeiro
-        test_results.append(("POST /api/barbeiros", self.test_create_barbeiro()))
+        # Step 3: Get initial locations list
+        self.test_get_locations_list()
         
-        # Test 2: List barbeiros
-        test_results.append(("GET /api/barbeiros", self.test_get_barbeiros()))
+        # Step 4: Test creating location with missing fields
+        self.test_create_location_missing_fields()
         
-        # Test 3: Update barbeiro
-        test_results.append(("PUT /api/barbeiros/{id}", self.test_update_barbeiro()))
+        # Step 5: Create new location
+        if self.test_create_location():
+            # Step 6: Get single location details
+            self.test_get_single_location()
+            
+            # Step 7: Update the location
+            self.test_update_location()
+            
+            # Step 8: Delete the location
+            self.test_delete_location()
+            
+            # Step 9: Verify soft delete worked
+            self.test_verify_locations_after_delete()
         
-        # Test 4: Update barbeiro password
-        test_results.append(("PUT /api/barbeiros/{id} (password)", self.test_update_barbeiro_password()))
-        
-        # Test 5: Update marcacao status
-        test_results.append(("PUT /api/marcacoes/{id}", self.test_update_marcacao_status()))
-        
-        # Summary
+        # Final results
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
         print("=" * 60)
         
-        passed = 0
-        failed = 0
+        passed = sum(1 for r in self.test_results if r['success'])
+        total = len(self.test_results)
         
-        for test_name, result in test_results:
-            status = "✅ PASS" if result else "❌ FAIL"
-            print(f"{status} {test_name}")
-            if result:
-                passed += 1
-            else:
-                failed += 1
-        
-        print(f"\nTotal: {len(test_results)} tests")
+        print(f"Total Tests: {total}")
         print(f"Passed: {passed}")
-        print(f"Failed: {failed}")
+        print(f"Failed: {total - passed}")
+        print(f"Success Rate: {(passed/total)*100:.1f}%")
         
-        if failed == 0:
-            print("\n🎉 All tests passed!")
+        if passed == total:
+            print("\n🎉 ALL TESTS PASSED! Locais API is working correctly.")
             return True
         else:
-            print(f"\n⚠️  {failed} test(s) failed")
+            print(f"\n⚠️  {total - passed} test(s) failed. Check the details above.")
             return False
 
-if __name__ == "__main__":
-    tester = BarbePROTester()
+def main():
+    """Main test execution"""
+    tester = LocaisAPITester()
     success = tester.run_all_tests()
+    
+    # Exit with appropriate code
     sys.exit(0 if success else 1)
+
+if __name__ == "__main__":
+    main()
