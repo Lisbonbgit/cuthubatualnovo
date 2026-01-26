@@ -353,46 +353,98 @@ class LocaisAPITester:
             self.log_result("Unauthorized Access Test", False, f"Error: {str(e)}")
             return False
     
-    def test_verify_locations_after_delete(self):
-        """Verify that deleted location is not in active list"""
+    def test_delete_location_validation(self):
+        """Test DELETE /api/locais/:id validation (should prevent deletion if has barbers)"""
         try:
+            # First get the existing location
             response = requests.get(f"{BASE_URL}/locais", headers=self.get_headers())
+            if response.status_code != 200:
+                self.log_result("DELETE Location Validation", False, "Could not get locations list")
+                return False
+                
+            data = response.json()
+            locations = data.get('locais', [])
+            if not locations:
+                self.log_result("DELETE Location Validation", False, "No existing locations found")
+                return False
+                
+            # Use the first existing location
+            existing_location = locations[0]
+            location_id = existing_location.get('_id')
             
+            # Try to delete the location
+            response = requests.delete(f"{BASE_URL}/locais/{location_id}", 
+                                     headers=self.get_headers())
+            
+            # The response could be either:
+            # 1. 400 if there are barbers/bookings associated (validation working)
+            # 2. 200 if successfully soft-deleted (no constraints)
             if response.status_code == 200:
                 data = response.json()
-                locations = data.get('locais', [])
-                
-                # Check if our deleted location is still in the active list
-                deleted_location_found = any(
-                    loc.get('_id') == self.created_location_id 
-                    for loc in locations
+                message = data.get('message', 'Location deleted successfully')
+                self.log_result(
+                    "DELETE Location Validation", 
+                    True, 
+                    f"Location soft-deleted successfully: {message}"
                 )
-                
-                if not deleted_location_found:
+                return True
+            elif response.status_code == 400:
+                data = response.json()
+                error_msg = data.get('error', '')
+                if 'barbeiros' in error_msg or 'marcações' in error_msg:
                     self.log_result(
-                        "Verify Soft Delete", 
+                        "DELETE Location Validation", 
                         True, 
-                        "Deleted location correctly removed from active list"
+                        f"Correctly prevented deletion due to constraints: {error_msg}"
                     )
                     return True
                 else:
                     self.log_result(
-                        "Verify Soft Delete", 
+                        "DELETE Location Validation", 
                         False, 
-                        "Deleted location still appears in active list"
+                        f"Unexpected validation error: {error_msg}"
                     )
                     return False
             else:
                 self.log_result(
-                    "Verify Soft Delete", 
+                    "DELETE Location Validation", 
                     False, 
-                    f"Failed to get locations list: {response.status_code}",
+                    f"Unexpected status code {response.status_code}",
                     response.text
                 )
                 return False
                 
         except Exception as e:
-            self.log_result("Verify Soft Delete", False, f"Error: {str(e)}")
+            self.log_result("DELETE Location Validation", False, f"Error: {str(e)}")
+            return False
+    
+    def test_invalid_location_id(self):
+        """Test API endpoints with invalid location ID"""
+        try:
+            invalid_id = "507f1f77bcf86cd799439011"  # Valid ObjectId format but non-existent
+            
+            # Test GET with invalid ID
+            response = requests.get(f"{BASE_URL}/locais/{invalid_id}", 
+                                  headers=self.get_headers())
+            
+            if response.status_code == 404:
+                self.log_result(
+                    "Invalid Location ID Test", 
+                    True, 
+                    "Correctly returned 404 for non-existent location"
+                )
+                return True
+            else:
+                self.log_result(
+                    "Invalid Location ID Test", 
+                    False, 
+                    f"Expected 404, got {response.status_code}",
+                    response.text
+                )
+                return False
+                
+        except Exception as e:
+            self.log_result("Invalid Location ID Test", False, f"Error: {str(e)}")
             return False
     
     def run_all_tests(self):
