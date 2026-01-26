@@ -1201,7 +1201,22 @@ export async function GET(request, { params }) {
         .find({ barbearia_id: decoded.barbearia_id, tipo: 'barbeiro' })
         .project({ password: 0 })
         .toArray();
-      return NextResponse.json({ barbeiros });
+
+      // Adicionar informações do local a cada barbeiro
+      const barbeirosComLocal = await Promise.all(
+        barbeiros.map(async (barbeiro) => {
+          if (barbeiro.local_id) {
+            const local = await db.collection('locais').findOne(
+              { _id: new ObjectId(barbeiro.local_id) },
+              { projection: { nome: 1, morada: 1 } }
+            );
+            return { ...barbeiro, local };
+          }
+          return { ...barbeiro, local: null };
+        })
+      );
+
+      return NextResponse.json({ barbeiros: barbeirosComLocal });
     }
 
     // GET Serviços
