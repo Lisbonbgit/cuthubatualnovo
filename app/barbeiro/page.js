@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { LogOut, Calendar, User, Save, Plus, RefreshCw } from 'lucide-react';
 import { MarcacaoDetailModal } from '@/components/ui/modals';
 import { Sidebar } from '@/components/ui/sidebar';
+import { FooterSimple } from '@/components/ui/footer';
 
 export default function BarbeiroPanel() {
   const router = useRouter();
