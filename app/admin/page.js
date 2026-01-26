@@ -1617,6 +1617,22 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
                         {barbeiro.telemovel}
                       </div>
                     )}
+
+                    {/* Local de Trabalho */}
+                    {barbeiro.local_id && (
+                      <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                        <MapPin className="h-4 w-4 text-amber-500" />
+                        <span>
+                          {locais.find(l => l._id === barbeiro.local_id)?.nome || 'Local não encontrado'}
+                        </span>
+                      </div>
+                    )}
+                    {!barbeiro.local_id && locais.length > 0 && (
+                      <div className="flex items-center gap-2 text-zinc-500 text-sm">
+                        <MapPin className="h-4 w-4" />
+                        <span className="italic">Todos os locais</span>
+                      </div>
+                    )}
                     
                     {barbeiro.especialidades && barbeiro.especialidades.length > 0 && (
                       <div className="flex flex-wrap gap-1">
