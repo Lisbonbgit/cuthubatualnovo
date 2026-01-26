@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ConfirmModal, AlertModal } from '@/components/ui/modals';
+import { FooterSimple } from '@/components/ui/footer';
 
 export default function MasterBackoffice() {
   const router = useRouter();
