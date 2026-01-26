@@ -258,9 +258,49 @@ When the testing agent is invoked, the main agent should:
 4. Review findings and implement necessary fixes
 
 ### Backend Testing Instructions
-For testing the new manual booking feature:
+
+#### Feature: Multi-Location Management (Locais)
 
 **New Endpoints to Test:**
+1. `GET /api/locais` - List all locations for the barbershop (admin only)
+2. `POST /api/locais` - Create a new location (admin only)
+3. `PUT /api/locais/:id` - Update a location (admin only)
+4. `DELETE /api/locais/:id` - Delete/deactivate a location (admin only)
+
+**Test Credentials:**
+- Admin: admin@teste.pt / admin123
+
+**Expected Behavior:**
+- Admin can list, create, edit and delete locations
+- Each location has: nome, morada, telefone, email, horarios (per day)
+- Locations respect plan limits (limite_barbearias)
+- Locations can be activated/deactivated
+- API returns total barbeiros count for each location
+
+**Example Location Data:**
+```json
+{
+  "nome": "Loja Centro",
+  "morada": "Rua Principal, 123 - Lisboa",
+  "telefone": "+351 21 123 4567",
+  "email": "centro@barbearia.pt",
+  "horarios": {
+    "segunda": {"aberto": true, "abertura": "09:00", "fecho": "19:00"},
+    "terca": {"aberto": true, "abertura": "09:00", "fecho": "19:00"},
+    "quarta": {"aberto": true, "abertura": "09:00", "fecho": "19:00"},
+    "quinta": {"aberto": true, "abertura": "09:00", "fecho": "19:00"},
+    "sexta": {"aberto": true, "abertura": "09:00", "fecho": "19:00"},
+    "sabado": {"aberto": true, "abertura": "09:00", "fecho": "17:00"},
+    "domingo": {"aberto": false, "abertura": "09:00", "fecho": "13:00"}
+  }
+}
+```
+
+---
+
+#### Legacy: Manual Booking Feature
+
+**Endpoints:**
 1. `POST /api/clientes/manual` - Create manual client (admin/barbeiro only)
 2. `POST /api/marcacoes/manual` - Create manual booking (admin/barbeiro only)
 
