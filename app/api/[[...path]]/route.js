@@ -262,6 +262,35 @@ export async function POST(request, { params }) {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
+      // Verificar limite de barbeiros do plano
+      const subscription = await db.collection('subscriptions').findOne({
+        barbearia_id: decoded.barbearia_id,
+        status: { $in: ['active', 'trialing'] }
+      });
+
+      if (subscription) {
+        const plano = await db.collection('planos').findOne({ id: subscription.plano });
+        
+        if (plano && plano.limite_barbeiros !== -1) {
+          // Contar barbeiros ativos
+          const totalBarbeiros = await db.collection('utilizadores').countDocuments({
+            barbearia_id: decoded.barbearia_id,
+            tipo: 'barbeiro',
+            ativo: { $ne: false }
+          });
+
+          if (totalBarbeiros >= plano.limite_barbeiros) {
+            return NextResponse.json({ 
+              error: 'Limite de barbeiros atingido',
+              message: `O seu plano ${plano.nome} permite apenas ${plano.limite_barbeiros} barbeiro(s). Para adicionar mais barbeiros, atualize o seu plano.`,
+              upgrade_required: true,
+              current_plan: plano.nome,
+              limit: plano.limite_barbeiros
+            }, { status: 403 });
+          }
+        }
+      }
+
       const { email, password, nome, telemovel, biografia, especialidades } = body;
       
       const existingUser = await db.collection('utilizadores').findOne({ email });
