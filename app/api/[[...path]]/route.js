@@ -481,7 +481,7 @@ export async function POST(request, { params }) {
       const result = await db.collection('marcacoes').insertOne(marcacao);
 
       // Mock email notification
-      console.log(`[MOCK EMAIL] Nova marcação pendente para aprovação em ${data} às ${hora}`);
+      console.log(`[MOCK EMAIL] Nova marcação confirmada automaticamente para ${data} às ${hora}`);
 
       return NextResponse.json({ marcacao: { ...marcacao, _id: result.insertedId } });
     }
