@@ -189,8 +189,8 @@ export default function MasterBackoffice() {
 
   if (!mounted || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-violet-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-600"></div>
       </div>
     );
   }
@@ -200,18 +200,18 @@ export default function MasterBackoffice() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-violet-50">
       {/* Header */}
-      <header className="bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-xl flex items-center justify-center shadow-lg shadow-violet-200">
                 <Shield className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">BarbePRO</h1>
-                <p className="text-xs text-violet-400">Master Backoffice</p>
+                <h1 className="text-xl font-bold text-gray-900">BarbePRO</h1>
+                <p className="text-xs text-violet-600 font-medium">Master Backoffice</p>
               </div>
             </div>
 
@@ -221,17 +221,17 @@ export default function MasterBackoffice() {
                 size="sm"
                 onClick={handleRefresh}
                 disabled={refreshing}
-                className="text-slate-400 hover:text-white"
+                className="text-gray-500 hover:text-violet-600 hover:bg-violet-50"
               >
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
               </Button>
               
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-white">{user.nome}</p>
-                  <p className="text-xs text-violet-400">Super Admin</p>
+                  <p className="text-sm font-medium text-gray-900">{user.nome}</p>
+                  <p className="text-xs text-violet-600">Super Admin</p>
                 </div>
-                <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-violet-200">
                   {user.nome?.charAt(0).toUpperCase()}
                 </div>
               </div>
@@ -240,7 +240,7 @@ export default function MasterBackoffice() {
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="text-slate-400 hover:text-red-400"
+                className="text-gray-500 hover:text-red-600 hover:bg-red-50"
               >
                 Sair
               </Button>
@@ -250,7 +250,7 @@ export default function MasterBackoffice() {
       </header>
 
       {/* Navigation Tabs */}
-      <div className="bg-slate-900/50 border-b border-slate-800">
+      <div className="bg-white/60 backdrop-blur-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-1 overflow-x-auto py-2">
             {[
@@ -264,8 +264,8 @@ export default function MasterBackoffice() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-violet-600 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? 'bg-violet-600 text-white shadow-lg shadow-violet-200'
+                    : 'text-gray-600 hover:text-violet-600 hover:bg-violet-50'
                 }`}
               >
                 <tab.icon className="h-4 w-4" />
@@ -285,79 +285,79 @@ export default function MasterBackoffice() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Barbearias */}
-              <Card className="bg-gradient-to-br from-violet-900/40 to-purple-900/40 border-violet-800/50 hover:border-violet-600/50 transition-all">
+              <Card className="bg-white border-gray-200 shadow-lg shadow-violet-100/50 hover:shadow-xl hover:shadow-violet-100 transition-all">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-violet-300 text-sm font-medium">Total Barbearias</p>
-                      <p className="text-4xl font-bold text-white mt-2">{dashboardData.barbearias.total}</p>
+                      <p className="text-violet-600 text-sm font-medium">Total Barbearias</p>
+                      <p className="text-4xl font-bold text-gray-900 mt-2">{dashboardData.barbearias.total}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-green-400 text-sm flex items-center gap-1">
+                        <span className="text-emerald-600 text-sm flex items-center gap-1 font-medium">
                           <ArrowUpRight className="h-3 w-3" />
                           {dashboardData.barbearias.novas30Dias}
                         </span>
-                        <span className="text-slate-500 text-xs">últimos 30 dias</span>
+                        <span className="text-gray-400 text-xs">últimos 30 dias</span>
                       </div>
                     </div>
-                    <div className="w-14 h-14 bg-violet-600/30 rounded-2xl flex items-center justify-center">
-                      <Building2 className="h-7 w-7 text-violet-400" />
+                    <div className="w-14 h-14 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center">
+                      <Building2 className="h-7 w-7 text-violet-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Utilizadores */}
-              <Card className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 border-blue-800/50 hover:border-blue-600/50 transition-all">
+              <Card className="bg-white border-gray-200 shadow-lg shadow-blue-100/50 hover:shadow-xl hover:shadow-blue-100 transition-all">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-300 text-sm font-medium">Total Utilizadores</p>
-                      <p className="text-4xl font-bold text-white mt-2">{dashboardData.utilizadores.total}</p>
+                      <p className="text-blue-600 text-sm font-medium">Total Utilizadores</p>
+                      <p className="text-4xl font-bold text-gray-900 mt-2">{dashboardData.utilizadores.total}</p>
                       <div className="flex items-center gap-3 mt-2 text-xs">
-                        <span className="text-slate-400">{dashboardData.utilizadores.clientes} clientes</span>
-                        <span className="text-slate-400">{dashboardData.utilizadores.barbeiros} barbeiros</span>
+                        <span className="text-gray-500">{dashboardData.utilizadores.clientes} clientes</span>
+                        <span className="text-gray-500">{dashboardData.utilizadores.barbeiros} barbeiros</span>
                       </div>
                     </div>
-                    <div className="w-14 h-14 bg-blue-600/30 rounded-2xl flex items-center justify-center">
-                      <Users className="h-7 w-7 text-blue-400" />
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl flex items-center justify-center">
+                      <Users className="h-7 w-7 text-blue-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Marcações */}
-              <Card className="bg-gradient-to-br from-emerald-900/40 to-green-900/40 border-emerald-800/50 hover:border-emerald-600/50 transition-all">
+              <Card className="bg-white border-gray-200 shadow-lg shadow-emerald-100/50 hover:shadow-xl hover:shadow-emerald-100 transition-all">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-emerald-300 text-sm font-medium">Total Marcações</p>
-                      <p className="text-4xl font-bold text-white mt-2">{dashboardData.marcacoes.total}</p>
+                      <p className="text-emerald-600 text-sm font-medium">Total Marcações</p>
+                      <p className="text-4xl font-bold text-gray-900 mt-2">{dashboardData.marcacoes.total}</p>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-emerald-400 text-sm flex items-center gap-1">
+                        <span className="text-emerald-600 text-sm flex items-center gap-1 font-medium">
                           <ArrowUpRight className="h-3 w-3" />
                           {dashboardData.marcacoes.ultimos7Dias}
                         </span>
-                        <span className="text-slate-500 text-xs">últimos 7 dias</span>
+                        <span className="text-gray-400 text-xs">últimos 7 dias</span>
                       </div>
                     </div>
-                    <div className="w-14 h-14 bg-emerald-600/30 rounded-2xl flex items-center justify-center">
-                      <Calendar className="h-7 w-7 text-emerald-400" />
+                    <div className="w-14 h-14 bg-gradient-to-br from-emerald-100 to-green-100 rounded-2xl flex items-center justify-center">
+                      <Calendar className="h-7 w-7 text-emerald-600" />
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Subscriptions */}
-              <Card className="bg-gradient-to-br from-amber-900/40 to-orange-900/40 border-amber-800/50 hover:border-amber-600/50 transition-all">
+              <Card className="bg-white border-gray-200 shadow-lg shadow-amber-100/50 hover:shadow-xl hover:shadow-amber-100 transition-all">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-amber-300 text-sm font-medium">Subscriptions Ativas</p>
-                      <p className="text-4xl font-bold text-white mt-2">{dashboardData.subscriptions.ativas}</p>
-                      <p className="text-slate-500 text-xs mt-2">Receita preparada para futura integração</p>
+                      <p className="text-amber-600 text-sm font-medium">Subscriptions Ativas</p>
+                      <p className="text-4xl font-bold text-gray-900 mt-2">{dashboardData.subscriptions.ativas}</p>
+                      <p className="text-gray-400 text-xs mt-2">Faturamento em breve</p>
                     </div>
-                    <div className="w-14 h-14 bg-amber-600/30 rounded-2xl flex items-center justify-center">
-                      <CreditCard className="h-7 w-7 text-amber-400" />
+                    <div className="w-14 h-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-2xl flex items-center justify-center">
+                      <CreditCard className="h-7 w-7 text-amber-600" />
                     </div>
                   </div>
                 </CardContent>
@@ -367,68 +367,68 @@ export default function MasterBackoffice() {
             {/* Second Row Stats */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Status Barbearias */}
-              <Card className="bg-slate-900/50 border-slate-800">
+              <Card className="bg-white border-gray-200 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Store className="h-5 w-5 text-violet-400" />
+                  <CardTitle className="text-gray-900 flex items-center gap-2">
+                    <Store className="h-5 w-5 text-violet-600" />
                     Status Barbearias
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-900/20 rounded-lg border border-green-800/30">
+                    <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                       <div className="flex items-center gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-400" />
-                        <span className="text-slate-300">Ativas</span>
+                        <CheckCircle className="h-5 w-5 text-emerald-600" />
+                        <span className="text-gray-700 font-medium">Ativas</span>
                       </div>
-                      <span className="text-2xl font-bold text-green-400">{dashboardData.barbearias.ativas}</span>
+                      <span className="text-2xl font-bold text-emerald-600">{dashboardData.barbearias.ativas}</span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-red-900/20 rounded-lg border border-red-800/30">
+                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                       <div className="flex items-center gap-3">
-                        <XCircle className="h-5 w-5 text-red-400" />
-                        <span className="text-slate-300">Inativas</span>
+                        <XCircle className="h-5 w-5 text-red-600" />
+                        <span className="text-gray-700 font-medium">Inativas</span>
                       </div>
-                      <span className="text-2xl font-bold text-red-400">{dashboardData.barbearias.inativas}</span>
+                      <span className="text-2xl font-bold text-red-600">{dashboardData.barbearias.inativas}</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Status Marcações */}
-              <Card className="bg-slate-900/50 border-slate-800">
+              <Card className="bg-white border-gray-200 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-emerald-400" />
+                  <CardTitle className="text-gray-900 flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-emerald-600" />
                     Status Marcações
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-yellow-900/20 rounded-lg border border-yellow-800/30 text-center">
-                      <p className="text-2xl font-bold text-yellow-400">{dashboardData.marcacoes.pendentes}</p>
-                      <p className="text-xs text-slate-400">Pendentes</p>
+                    <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-center">
+                      <p className="text-2xl font-bold text-amber-600">{dashboardData.marcacoes.pendentes}</p>
+                      <p className="text-xs text-gray-600">Pendentes</p>
                     </div>
-                    <div className="p-3 bg-green-900/20 rounded-lg border border-green-800/30 text-center">
-                      <p className="text-2xl font-bold text-green-400">{dashboardData.marcacoes.aceitas}</p>
-                      <p className="text-xs text-slate-400">Aceitas</p>
+                    <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200 text-center">
+                      <p className="text-2xl font-bold text-emerald-600">{dashboardData.marcacoes.aceitas}</p>
+                      <p className="text-xs text-gray-600">Aceitas</p>
                     </div>
-                    <div className="p-3 bg-blue-900/20 rounded-lg border border-blue-800/30 text-center">
-                      <p className="text-2xl font-bold text-blue-400">{dashboardData.marcacoes.concluidas}</p>
-                      <p className="text-xs text-slate-400">Concluídas</p>
+                    <div className="p-3 bg-blue-50 rounded-lg border border-blue-200 text-center">
+                      <p className="text-2xl font-bold text-blue-600">{dashboardData.marcacoes.concluidas}</p>
+                      <p className="text-xs text-gray-600">Concluídas</p>
                     </div>
-                    <div className="p-3 bg-red-900/20 rounded-lg border border-red-800/30 text-center">
-                      <p className="text-2xl font-bold text-red-400">{dashboardData.marcacoes.canceladas}</p>
-                      <p className="text-xs text-slate-400">Canceladas</p>
+                    <div className="p-3 bg-red-50 rounded-lg border border-red-200 text-center">
+                      <p className="text-2xl font-bold text-red-600">{dashboardData.marcacoes.canceladas}</p>
+                      <p className="text-xs text-gray-600">Canceladas</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Tipos de Utilizadores */}
-              <Card className="bg-slate-900/50 border-slate-800">
+              <Card className="bg-white border-gray-200 shadow-lg">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Users className="h-5 w-5 text-blue-400" />
+                  <CardTitle className="text-gray-900 flex items-center gap-2">
+                    <Users className="h-5 w-5 text-blue-600" />
                     Tipos de Utilizadores
                   </CardTitle>
                 </CardHeader>
@@ -441,10 +441,10 @@ export default function MasterBackoffice() {
                       { label: 'Clientes', value: dashboardData.utilizadores.clientes, color: 'emerald' },
                     ].map((item) => (
                       <div key={item.label} className="flex items-center justify-between">
-                        <span className="text-slate-400 text-sm">{item.label}</span>
+                        <span className="text-gray-600 text-sm">{item.label}</span>
                         <div className="flex items-center gap-3">
-                          <div className={`h-2 bg-${item.color}-500 rounded-full`} style={{ width: `${Math.max((item.value / dashboardData.utilizadores.total) * 100, 5)}px` }}></div>
-                          <span className="text-white font-semibold w-8 text-right">{item.value}</span>
+                          <div className={`h-2 rounded-full bg-${item.color}-500`} style={{ width: `${Math.max((item.value / dashboardData.utilizadores.total) * 100, 10)}px` }}></div>
+                          <span className="text-gray-900 font-semibold w-8 text-right">{item.value}</span>
                         </div>
                       </div>
                     ))}
@@ -454,18 +454,18 @@ export default function MasterBackoffice() {
             </div>
 
             {/* Recent Barbearias */}
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-violet-400" />
+                  <CardTitle className="text-gray-900 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-violet-600" />
                     Últimas Barbearias Registadas
                   </CardTitle>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab('barbearias')}
-                    className="text-violet-400 hover:text-violet-300"
+                    className="text-violet-600 hover:text-violet-700 hover:bg-violet-50"
                   >
                     Ver todas
                     <ChevronRight className="h-4 w-4 ml-1" />
@@ -475,21 +475,21 @@ export default function MasterBackoffice() {
               <CardContent>
                 <div className="space-y-3">
                   {barbearias.slice(0, 5).map((b) => (
-                    <div key={b._id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors">
+                    <div key={b._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-violet-50 transition-colors border border-gray-100">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
                           {b.nome?.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-white font-medium">{b.nome}</p>
-                          <p className="text-slate-500 text-xs">{b.owner?.email || 'Sem owner'}</p>
+                          <p className="text-gray-900 font-medium">{b.nome}</p>
+                          <p className="text-gray-500 text-xs">{b.owner?.email || 'Sem owner'}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge className={b.ativa !== false ? 'bg-green-900/50 text-green-400 border-green-700' : 'bg-red-900/50 text-red-400 border-red-700'}>
+                        <Badge className={b.ativa !== false ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-red-100 text-red-700 border-red-300'}>
                           {b.ativa !== false ? 'Ativa' : 'Inativa'}
                         </Badge>
-                        <span className="text-slate-500 text-xs">
+                        <span className="text-gray-400 text-xs">
                           {b.criado_em ? new Date(b.criado_em).toLocaleDateString('pt-PT') : 'N/A'}
                         </span>
                       </div>
@@ -507,105 +507,105 @@ export default function MasterBackoffice() {
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Pesquisar barbearias..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-slate-900 border-slate-700 text-white"
+                  className="pl-10 bg-white border-gray-300 text-gray-900 focus:border-violet-500 focus:ring-violet-500"
                 />
               </div>
               <div className="flex gap-2">
-                <Badge className="bg-green-900/50 text-green-400 border-green-700 px-3 py-1">
+                <Badge className="bg-emerald-100 text-emerald-700 border-emerald-300 px-3 py-1">
                   {barbearias.filter(b => b.ativa !== false).length} Ativas
                 </Badge>
-                <Badge className="bg-red-900/50 text-red-400 border-red-700 px-3 py-1">
+                <Badge className="bg-red-100 text-red-700 border-red-300 px-3 py-1">
                   {barbearias.filter(b => b.ativa === false).length} Inativas
                 </Badge>
               </div>
             </div>
 
             {/* Barbearias Table */}
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="border-slate-800 hover:bg-slate-800/50">
-                        <TableHead className="text-slate-400">Barbearia</TableHead>
-                        <TableHead className="text-slate-400">Owner/Admin</TableHead>
-                        <TableHead className="text-slate-400 text-center">Utilizadores</TableHead>
-                        <TableHead className="text-slate-400 text-center">Marcações</TableHead>
-                        <TableHead className="text-slate-400">Plano</TableHead>
-                        <TableHead className="text-slate-400">Registo</TableHead>
-                        <TableHead className="text-slate-400 text-center">Estado</TableHead>
-                        <TableHead className="text-slate-400 text-right">Ações</TableHead>
+                      <TableRow className="border-gray-200 bg-gray-50">
+                        <TableHead className="text-gray-600 font-semibold">Barbearia</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Owner/Admin</TableHead>
+                        <TableHead className="text-gray-600 font-semibold text-center">Utilizadores</TableHead>
+                        <TableHead className="text-gray-600 font-semibold text-center">Marcações</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Plano</TableHead>
+                        <TableHead className="text-gray-600 font-semibold">Registo</TableHead>
+                        <TableHead className="text-gray-600 font-semibold text-center">Estado</TableHead>
+                        <TableHead className="text-gray-600 font-semibold text-right">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredBarbearias.map((b) => (
-                        <TableRow key={b._id} className="border-slate-800 hover:bg-slate-800/50">
+                        <TableRow key={b._id} className="border-gray-200 hover:bg-violet-50/50">
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold">
+                              <div className="w-10 h-10 bg-gradient-to-br from-violet-600 to-purple-700 rounded-lg flex items-center justify-center text-white font-bold shadow-md">
                                 {b.nome?.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="text-white font-medium">{b.nome}</p>
-                                <p className="text-slate-500 text-xs">/{b.slug}</p>
+                                <p className="text-gray-900 font-medium">{b.nome}</p>
+                                <p className="text-gray-500 text-xs">/{b.slug}</p>
                               </div>
                             </div>
                           </TableCell>
                           <TableCell>
                             <div>
-                              <p className="text-white text-sm">{b.owner?.nome || 'N/A'}</p>
-                              <p className="text-slate-500 text-xs">{b.owner?.email || 'Sem email'}</p>
+                              <p className="text-gray-900 text-sm">{b.owner?.nome || 'N/A'}</p>
+                              <p className="text-gray-500 text-xs">{b.owner?.email || 'Sem email'}</p>
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-white font-semibold">{b.totalUtilizadores || 0}</span>
+                            <span className="text-gray-900 font-semibold">{b.totalUtilizadores || 0}</span>
                           </TableCell>
                           <TableCell className="text-center">
-                            <span className="text-white font-semibold">{b.totalMarcacoes || 0}</span>
+                            <span className="text-gray-900 font-semibold">{b.totalMarcacoes || 0}</span>
                           </TableCell>
                           <TableCell>
                             {b.subscription ? (
                               <Badge className={
-                                b.subscription.plano === 'enterprise' ? 'bg-violet-900/50 text-violet-400 border-violet-700' :
-                                b.subscription.plano === 'pro' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
-                                'bg-slate-800 text-slate-400 border-slate-600'
+                                b.subscription.plano === 'enterprise' ? 'bg-violet-100 text-violet-700 border-violet-300' :
+                                b.subscription.plano === 'pro' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                                'bg-gray-100 text-gray-600 border-gray-300'
                               }>
                                 {b.subscription.plano?.toUpperCase() || 'BÁSICO'}
                               </Badge>
                             ) : (
-                              <Badge className="bg-slate-800 text-slate-500 border-slate-600">SEM PLANO</Badge>
+                              <Badge className="bg-gray-100 text-gray-500 border-gray-300">SEM PLANO</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-slate-400 text-sm">
+                          <TableCell className="text-gray-600 text-sm">
                             {b.criado_em ? new Date(b.criado_em).toLocaleDateString('pt-PT') : 'N/A'}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge className={b.ativa !== false ? 'bg-green-900/50 text-green-400 border-green-700' : 'bg-red-900/50 text-red-400 border-red-700'}>
+                            <Badge className={b.ativa !== false ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-red-100 text-red-700 border-red-300'}>
                               {b.ativa !== false ? 'Ativa' : 'Inativa'}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
+                                <Button variant="ghost" size="sm" className="text-gray-500 hover:text-violet-600 hover:bg-violet-50">
                                   <MoreVertical className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                              <DropdownMenuContent align="end" className="bg-white border-gray-200 shadow-lg">
                                 <DropdownMenuItem 
-                                  className="text-slate-300 hover:text-white focus:text-white focus:bg-slate-700"
+                                  className="text-gray-700 hover:text-violet-600 focus:text-violet-600 focus:bg-violet-50"
                                   onClick={() => window.open(`/barbearia/${b.slug}`, '_blank')}
                                 >
                                   <Eye className="h-4 w-4 mr-2" />
                                   Ver Página
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
-                                  className={`focus:bg-slate-700 ${b.ativa !== false ? 'text-red-400 hover:text-red-300 focus:text-red-300' : 'text-green-400 hover:text-green-300 focus:text-green-300'}`}
+                                  className={`focus:bg-gray-50 ${b.ativa !== false ? 'text-red-600 hover:text-red-700 focus:text-red-700' : 'text-emerald-600 hover:text-emerald-700 focus:text-emerald-700'}`}
                                   onClick={() => setConfirmModal({ isOpen: true, barbearia: b })}
                                 >
                                   <Power className="h-4 w-4 mr-2" />
@@ -622,8 +622,8 @@ export default function MasterBackoffice() {
 
                 {filteredBarbearias.length === 0 && (
                   <div className="text-center py-12">
-                    <Store className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">Nenhuma barbearia encontrada</p>
+                    <Store className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Nenhuma barbearia encontrada</p>
                   </div>
                 )}
               </CardContent>
@@ -635,34 +635,34 @@ export default function MasterBackoffice() {
         {activeTab === 'atividade' && atividade && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Últimas Marcações */}
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-emerald-400" />
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-emerald-600" />
                   Últimas Marcações
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-gray-500">
                   Marcações recentes em todas as barbearias
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-[500px] overflow-y-auto">
                   {atividade.ultimasMarcacoes?.map((m) => (
-                    <div key={m._id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <div key={m._id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-violet-300 transition-colors">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-white font-medium">{m.cliente_nome || 'Cliente'}</span>
+                        <span className="text-gray-900 font-medium">{m.cliente_nome || 'Cliente'}</span>
                         <Badge className={
-                          m.status === 'pendente' ? 'bg-yellow-900/50 text-yellow-400 border-yellow-700' :
-                          m.status === 'aceita' ? 'bg-green-900/50 text-green-400 border-green-700' :
-                          m.status === 'concluida' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
-                          'bg-red-900/50 text-red-400 border-red-700'
+                          m.status === 'pendente' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                          m.status === 'aceita' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
+                          m.status === 'concluida' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                          'bg-red-100 text-red-700 border-red-300'
                         }>
                           {m.status}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-violet-400">{m.barbearia_nome}</span>
-                        <span className="text-slate-500">
+                        <span className="text-violet-600 font-medium">{m.barbearia_nome}</span>
+                        <span className="text-gray-500">
                           {m.data} às {m.hora}
                         </span>
                       </div>
@@ -671,8 +671,8 @@ export default function MasterBackoffice() {
 
                   {(!atividade.ultimasMarcacoes || atividade.ultimasMarcacoes.length === 0) && (
                     <div className="text-center py-8">
-                      <Calendar className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-                      <p className="text-slate-400">Sem marcações recentes</p>
+                      <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">Sem marcações recentes</p>
                     </div>
                   )}
                 </div>
@@ -680,38 +680,38 @@ export default function MasterBackoffice() {
             </Card>
 
             {/* Últimos Registos */}
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <UserPlus className="h-5 w-5 text-blue-400" />
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-blue-600" />
                   Últimos Registos
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-gray-500">
                   Novos utilizadores na plataforma
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-[500px] overflow-y-auto">
                   {atividade.ultimosRegistos?.map((u) => (
-                    <div key={u._id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <div key={u._id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-cyan-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
                           {u.nome?.charAt(0).toUpperCase()}
                         </div>
                         <div className="flex-1">
-                          <p className="text-white font-medium">{u.nome}</p>
-                          <p className="text-slate-500 text-xs">{u.email}</p>
+                          <p className="text-gray-900 font-medium">{u.nome}</p>
+                          <p className="text-gray-500 text-xs">{u.email}</p>
                         </div>
                         <Badge className={
-                          u.tipo === 'owner' ? 'bg-violet-900/50 text-violet-400 border-violet-700' :
-                          u.tipo === 'admin' ? 'bg-purple-900/50 text-purple-400 border-purple-700' :
-                          u.tipo === 'barbeiro' ? 'bg-blue-900/50 text-blue-400 border-blue-700' :
-                          'bg-emerald-900/50 text-emerald-400 border-emerald-700'
+                          u.tipo === 'owner' ? 'bg-violet-100 text-violet-700 border-violet-300' :
+                          u.tipo === 'admin' ? 'bg-purple-100 text-purple-700 border-purple-300' :
+                          u.tipo === 'barbeiro' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                          'bg-emerald-100 text-emerald-700 border-emerald-300'
                         }>
                           {u.tipo}
                         </Badge>
                       </div>
-                      <p className="text-slate-600 text-xs mt-2">
+                      <p className="text-gray-400 text-xs mt-2">
                         {u.criado_em ? new Date(u.criado_em).toLocaleString('pt-PT') : 'Data não disponível'}
                       </p>
                     </div>
@@ -719,8 +719,8 @@ export default function MasterBackoffice() {
 
                   {(!atividade.ultimosRegistos || atividade.ultimosRegistos.length === 0) && (
                     <div className="text-center py-8">
-                      <Users className="h-10 w-10 text-slate-600 mx-auto mb-3" />
-                      <p className="text-slate-400">Sem registos recentes</p>
+                      <Users className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">Sem registos recentes</p>
                     </div>
                   )}
                 </div>
@@ -732,52 +732,52 @@ export default function MasterBackoffice() {
         {/* Configurações Tab */}
         {activeTab === 'configuracoes' && (
           <div className="space-y-6">
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-white border-gray-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-slate-400" />
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-gray-600" />
                   Configurações do Sistema
                 </CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardDescription className="text-gray-500">
                   Configurações gerais do SaaS BarbePRO
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="p-6 bg-slate-800/50 rounded-lg border border-slate-700">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-violet-400" />
+                  <div className="p-6 bg-gradient-to-br from-violet-50 to-purple-50 rounded-lg border border-violet-200">
+                    <h3 className="text-gray-900 font-semibold mb-2 flex items-center gap-2">
+                      <Shield className="h-5 w-5 text-violet-600" />
                       Informações do Super Admin
                     </h3>
                     <div className="grid grid-cols-2 gap-4 mt-4">
                       <div>
-                        <p className="text-slate-500 text-xs uppercase">Nome</p>
-                        <p className="text-white">{user.nome}</p>
+                        <p className="text-gray-500 text-xs uppercase font-medium">Nome</p>
+                        <p className="text-gray-900 font-medium">{user.nome}</p>
                       </div>
                       <div>
-                        <p className="text-slate-500 text-xs uppercase">Email</p>
-                        <p className="text-white">{user.email}</p>
+                        <p className="text-gray-500 text-xs uppercase font-medium">Email</p>
+                        <p className="text-gray-900 font-medium">{user.email}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-6 bg-slate-800/50 rounded-lg border border-slate-700">
-                    <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
-                      <CreditCard className="h-5 w-5 text-amber-400" />
+                  <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200">
+                    <h3 className="text-gray-900 font-semibold mb-2 flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-amber-600" />
                       Faturamento (Futuro)
                     </h3>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-gray-600 text-sm">
                       A integração de faturamento será implementada numa versão futura. 
                       Esta área permitirá visualizar receitas, faturas e gerir pagamentos das subscriptions.
                     </p>
                   </div>
 
-                  <div className="p-6 bg-amber-900/20 rounded-lg border border-amber-800/30">
-                    <h3 className="text-amber-400 font-semibold mb-2 flex items-center gap-2">
+                  <div className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                    <h3 className="text-blue-700 font-semibold mb-2 flex items-center gap-2">
                       <AlertCircle className="h-5 w-5" />
                       MVP - Versão Inicial
                     </h3>
-                    <p className="text-slate-400 text-sm">
+                    <p className="text-gray-600 text-sm">
                       Este é o Backoffice Master em versão MVP. Funcionalidades avançadas como relatórios 
                       detalhados, gestão de planos e faturamento serão adicionadas em versões futuras.
                     </p>
