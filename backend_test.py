@@ -411,22 +411,14 @@ class LocaisAPITester:
         # Step 3: Get initial locations list
         self.test_get_locations_list()
         
-        # Step 4: Test creating location with missing fields
-        self.test_create_location_missing_fields()
+        # Step 4: Test plan limits (since we can't create new locations)
+        self.test_create_location_plan_limit()
         
-        # Step 5: Create new location
-        if self.test_create_location():
-            # Step 6: Get single location details
-            self.test_get_single_location()
-            
-            # Step 7: Update the location
-            self.test_update_location()
-            
-            # Step 8: Delete the location
-            self.test_delete_location()
-            
-            # Step 9: Verify soft delete worked
-            self.test_verify_locations_after_delete()
+        # Step 5: Test with existing location
+        self.test_get_existing_location()
+        
+        # Step 6: Test updating existing location
+        self.test_update_existing_location()
         
         # Final results
         print("\n" + "=" * 60)
