@@ -154,32 +154,38 @@ class LocaisAPITester:
             self.log_result("POST Create Location", False, f"Error: {str(e)}")
             return False
     
-    def test_create_location_missing_fields(self):
-        """Test POST /api/locais with missing required fields"""
+    def test_create_location_plan_limit(self):
+        """Test POST /api/locais with plan limits"""
         try:
-            # Test with missing nome
+            # Test creating location when plan limit is reached
+            location_data = {
+                "nome": "Test Location",
+                "morada": "Test Address"
+            }
             response = requests.post(f"{BASE_URL}/locais", 
-                                   json={"morada": "Test Address"}, 
+                                   json=location_data, 
                                    headers=self.get_headers())
             
-            if response.status_code == 400:
-                self.log_result(
-                    "POST Create Location (Missing Fields)", 
-                    True, 
-                    "Correctly rejected request with missing required fields"
-                )
-                return True
-            else:
-                self.log_result(
-                    "POST Create Location (Missing Fields)", 
-                    False, 
-                    f"Should have returned 400, got {response.status_code}",
-                    response.text
-                )
-                return False
+            if response.status_code == 403:
+                data = response.json()
+                if data.get('upgrade_required'):
+                    self.log_result(
+                        "POST Create Location (Plan Limit)", 
+                        True, 
+                        f"Correctly enforced plan limit: {data.get('message')}"
+                    )
+                    return True
+            
+            self.log_result(
+                "POST Create Location (Plan Limit)", 
+                False, 
+                f"Expected 403 with upgrade_required, got {response.status_code}",
+                response.text
+            )
+            return False
                 
         except Exception as e:
-            self.log_result("POST Create Location (Missing Fields)", False, f"Error: {str(e)}")
+            self.log_result("POST Create Location (Plan Limit)", False, f"Error: {str(e)}")
             return False
     
     def test_update_location(self):
