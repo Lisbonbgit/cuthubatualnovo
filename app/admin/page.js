@@ -110,7 +110,8 @@ export default function AdminPanel() {
           fetchHorarios(token),
           fetchBarbeariaSettings(token),
           fetchClientes(token),
-          fetchPlanosCliente(token)
+          fetchPlanosCliente(token),
+          fetchLocais(token)
         ]);
       } else {
         router.push('/');
