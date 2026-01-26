@@ -1258,6 +1258,7 @@ function ClientesTab({ clientes, fetchClientes }) {
 }
 
 function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
+  const router = useRouter();
   const [showForm, setShowForm] = useState(false);
   const [editingBarbeiro, setEditingBarbeiro] = useState(null);
   const [nome, setNome] = useState('');
@@ -1268,6 +1269,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
   const [especialidades, setEspecialidades] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [upgradeModal, setUpgradeModal] = useState({ isOpen: false, message: '', currentPlan: '', limit: 0 });
 
   const resetForm = () => {
     setNome('');
@@ -1336,7 +1338,19 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
         fetchBarbeiros();
       } else {
         const data = await response.json();
-        setError(data.error);
+        
+        // Verificar se é erro de limite de plano
+        if (data.upgrade_required) {
+          setUpgradeModal({
+            isOpen: true,
+            message: data.message,
+            currentPlan: data.current_plan,
+            limit: data.limit
+          });
+          setShowForm(false);
+        } else {
+          setError(data.error);
+        }
       }
     } catch (error) {
       setError('Erro ao guardar barbeiro');
