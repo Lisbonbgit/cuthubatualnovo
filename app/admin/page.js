@@ -2932,3 +2932,432 @@ function PlanosClienteTab({ planos, fetchPlanos, stripeConfigured }) {
     </Card>
   );
 }
+
+function LocaisTab({ locais, fetchLocais }) {
+  const router = useRouter();
+  const [showForm, setShowForm] = useState(false);
+  const [editingLocal, setEditingLocal] = useState(null);
+  const [nome, setNome] = useState('');
+  const [morada, setMorada] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [upgradeModal, setUpgradeModal] = useState({ isOpen: false, message: '', currentPlan: '', limit: 0 });
+
+  // Horários por dia da semana (cada local tem horários independentes)
+  const diasSemana = [
+    { key: 'segunda', label: 'Segunda-feira' },
+    { key: 'terca', label: 'Terça-feira' },
+    { key: 'quarta', label: 'Quarta-feira' },
+    { key: 'quinta', label: 'Quinta-feira' },
+    { key: 'sexta', label: 'Sexta-feira' },
+    { key: 'sabado', label: 'Sábado' },
+    { key: 'domingo', label: 'Domingo' }
+  ];
+
+  const defaultHorarios = {
+    segunda: { aberto: true, abertura: '09:00', fecho: '19:00' },
+    terca: { aberto: true, abertura: '09:00', fecho: '19:00' },
+    quarta: { aberto: true, abertura: '09:00', fecho: '19:00' },
+    quinta: { aberto: true, abertura: '09:00', fecho: '19:00' },
+    sexta: { aberto: true, abertura: '09:00', fecho: '19:00' },
+    sabado: { aberto: true, abertura: '09:00', fecho: '17:00' },
+    domingo: { aberto: false, abertura: '09:00', fecho: '13:00' }
+  };
+
+  const [horarios, setHorarios] = useState(defaultHorarios);
+
+  const resetForm = () => {
+    setNome('');
+    setMorada('');
+    setTelefone('');
+    setEmail('');
+    setHorarios(defaultHorarios);
+    setEditingLocal(null);
+    setError('');
+  };
+
+  const handleEdit = (local) => {
+    setEditingLocal(local);
+    setNome(local.nome || '');
+    setMorada(local.morada || '');
+    setTelefone(local.telefone || '');
+    setEmail(local.email || '');
+    setHorarios(local.horarios || defaultHorarios);
+    setShowForm(true);
+  };
+
+  const handleHorarioChange = (dia, campo, valor) => {
+    setHorarios(prev => ({
+      ...prev,
+      [dia]: {
+        ...prev[dia],
+        [campo]: campo === 'aberto' ? valor : valor
+      }
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const url = editingLocal 
+        ? `/api/locais/${editingLocal._id}`
+        : '/api/locais';
+      
+      const method = editingLocal ? 'PUT' : 'POST';
+      
+      const bodyData = {
+        nome,
+        morada,
+        telefone,
+        email,
+        horarios
+      };
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(bodyData)
+      });
+
+      if (response.ok) {
+        resetForm();
+        setShowForm(false);
+        fetchLocais();
+      } else {
+        const data = await response.json();
+        
+        // Verificar se é erro de limite de plano
+        if (data.upgrade_required) {
+          setUpgradeModal({
+            isOpen: true,
+            message: data.message,
+            currentPlan: data.current_plan,
+            limit: data.limit
+          });
+          setShowForm(false);
+        } else {
+          setError(data.error || 'Erro ao guardar local');
+        }
+      }
+    } catch (error) {
+      setError('Erro ao guardar local');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Tem certeza que deseja remover este local? Esta ação não pode ser revertida.')) return;
+
+    try {
+      const response = await fetch(`/api/locais/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+
+      if (response.ok) {
+        fetchLocais();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Erro ao remover local');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Erro ao remover local');
+    }
+  };
+
+  const handleToggleAtivo = async (local) => {
+    try {
+      await fetch(`/api/locais/${local._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...local,
+          ativo: !local.ativo
+        })
+      });
+      fetchLocais();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const formatHorarios = (horarios) => {
+    if (!horarios) return 'Não definidos';
+    const diasAbertos = diasSemana.filter(d => horarios[d.key]?.aberto);
+    if (diasAbertos.length === 0) return 'Fechado';
+    if (diasAbertos.length === 7) return 'Todos os dias';
+    if (diasAbertos.length >= 5) {
+      const primeiro = horarios[diasAbertos[0]?.key];
+      return `${diasAbertos.length} dias/semana • ${primeiro?.abertura || '09:00'} - ${primeiro?.fecho || '19:00'}`;
+    }
+    return `${diasAbertos.length} dias/semana`;
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-white flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-amber-500" />
+                Locais / Lojas
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Gerir os diferentes locais/sucursais da sua barbearia
+              </CardDescription>
+            </div>
+            <Button
+              onClick={() => {
+                resetForm();
+                setShowForm(!showForm);
+              }}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Adicionar Local
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {/* Formulário de Criação/Edição */}
+          {showForm && (
+            <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
+              <h3 className="text-white font-semibold text-lg mb-4">
+                {editingLocal ? 'Editar Local' : 'Novo Local'}
+              </h3>
+              
+              {error && (
+                <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
+                  {error}
+                </div>
+              )}
+              
+              {/* Informações Básicas */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Nome do Local *</Label>
+                  <Input
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="Ex: Loja Centro, Filial Almada"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Morada *</Label>
+                  <Input
+                    value={morada}
+                    onChange={(e) => setMorada(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="Ex: Rua Principal, 123 - Lisboa"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Telefone</Label>
+                  <Input
+                    type="tel"
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="+351 21 xxx xxxx"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Email</Label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="local@barbearia.pt"
+                  />
+                </div>
+              </div>
+
+              {/* Horários de Funcionamento */}
+              <div className="space-y-3">
+                <Label className="text-zinc-300 text-base font-semibold">Horários de Funcionamento</Label>
+                <div className="bg-zinc-800 rounded-lg p-4 space-y-3">
+                  {diasSemana.map((dia) => (
+                    <div key={dia.key} className="flex items-center gap-4 py-2 border-b border-zinc-700 last:border-0">
+                      <div className="w-32">
+                        <span className="text-zinc-300 text-sm">{dia.label}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={horarios[dia.key]?.aberto || false}
+                          onChange={(e) => handleHorarioChange(dia.key, 'aberto', e.target.checked)}
+                          className="w-4 h-4 accent-amber-600"
+                        />
+                        <span className="text-zinc-400 text-sm">
+                          {horarios[dia.key]?.aberto ? 'Aberto' : 'Fechado'}
+                        </span>
+                      </div>
+                      {horarios[dia.key]?.aberto && (
+                        <div className="flex items-center gap-2 ml-4">
+                          <Input
+                            type="time"
+                            value={horarios[dia.key]?.abertura || '09:00'}
+                            onChange={(e) => handleHorarioChange(dia.key, 'abertura', e.target.value)}
+                            className="bg-zinc-900 border-zinc-700 text-white w-28 text-sm"
+                          />
+                          <span className="text-zinc-500">até</span>
+                          <Input
+                            type="time"
+                            value={horarios[dia.key]?.fecho || '19:00'}
+                            onChange={(e) => handleHorarioChange(dia.key, 'fecho', e.target.value)}
+                            className="bg-zinc-900 border-zinc-700 text-white w-28 text-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
+                  {loading ? 'A guardar...' : (editingLocal ? 'Guardar Alterações' : 'Criar Local')}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="border-zinc-700"
+                  onClick={() => {
+                    resetForm();
+                    setShowForm(false);
+                  }}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Lista de Locais */}
+          {locais.length === 0 ? (
+            <div className="text-center py-12">
+              <MapPin className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400">Nenhum local registado</p>
+              <p className="text-zinc-500 text-sm mt-2">
+                Adicione os diferentes locais/sucursais da sua barbearia para gerir cada um separadamente
+              </p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {locais.map((local) => (
+                <Card key={local._id} className={`bg-zinc-900 border-zinc-700 ${local.ativo === false ? 'opacity-60' : ''}`}>
+                  <CardHeader className="pb-2">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg flex items-center justify-center">
+                          <MapPin className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-white text-lg">{local.nome}</CardTitle>
+                          <p className="text-zinc-400 text-sm truncate max-w-[180px]">{local.morada}</p>
+                        </div>
+                      </div>
+                      <div className={`px-2 py-1 rounded text-xs ${local.ativo !== false ? 'bg-green-900/50 text-green-400' : 'bg-red-900/50 text-red-400'}`}>
+                        {local.ativo !== false ? 'Ativo' : 'Inativo'}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {/* Contactos */}
+                    {local.telefone && (
+                      <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                        <Phone className="h-4 w-4 text-zinc-500" />
+                        {local.telefone}
+                      </div>
+                    )}
+                    {local.email && (
+                      <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                        <Mail className="h-4 w-4 text-zinc-500" />
+                        {local.email}
+                      </div>
+                    )}
+                    
+                    {/* Horários resumidos */}
+                    <div className="flex items-center gap-2 text-zinc-300 text-sm">
+                      <Clock className="h-4 w-4 text-zinc-500" />
+                      {formatHorarios(local.horarios)}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex gap-4 text-sm pt-2 border-t border-zinc-800">
+                      <div className="text-center">
+                        <span className="text-amber-500 font-bold">{local.total_barbeiros || 0}</span>
+                        <span className="text-zinc-500 ml-1">barbeiros</span>
+                      </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1 border-zinc-700 hover:bg-zinc-800"
+                        onClick={() => handleEdit(local)}
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className={`border-zinc-700 ${local.ativo !== false ? 'hover:bg-yellow-900/30' : 'hover:bg-green-900/30'}`}
+                        onClick={() => handleToggleAtivo(local)}
+                      >
+                        {local.ativo !== false ? 'Desativar' : 'Ativar'}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDelete(local._id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        isOpen={upgradeModal.isOpen}
+        onClose={() => setUpgradeModal({ ...upgradeModal, isOpen: false })}
+        onUpgrade={() => router.push('/gerir-plano')}
+        title="Limite de Locais Atingido"
+        message={upgradeModal.message}
+        currentPlan={upgradeModal.currentPlan}
+        limit={upgradeModal.limit}
+        resourceType="locais"
+      />
+    </div>
+  );
+}
