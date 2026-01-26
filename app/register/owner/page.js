@@ -159,6 +159,9 @@ export default function RegisterOwnerPage() {
           </p>
         </div>
       </div>
+
+      {/* Footer */}
+      <FooterSimple variant="dark" />
     </div>
   );
 }
