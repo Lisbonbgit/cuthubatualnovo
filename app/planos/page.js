@@ -353,6 +353,9 @@ export default function PlanosPage() {
           ]}
         />
       )}
+
+      {/* Footer */}
+      <FooterSimple variant="dark" />
     </div>
   );
 }
