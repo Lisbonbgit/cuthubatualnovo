@@ -125,6 +125,65 @@ export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confi
   );
 }
 
+// Modal de Upgrade de Plano (quando limite é atingido)
+export function UpgradeModal({ isOpen, onClose, onUpgrade, title, message, currentPlan, limit, resourceType }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto h-16 w-16 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+            <AlertTriangle className="h-8 w-8 text-amber-500" />
+          </div>
+          <CardTitle className="text-white text-xl">{title || 'Limite Atingido'}</CardTitle>
+          <CardDescription className="text-zinc-300 text-base mt-2">
+            {message}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-zinc-900 rounded-lg p-4">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-zinc-400 text-sm">Plano Atual</span>
+              <span className="text-white font-semibold">{currentPlan}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-zinc-400 text-sm">Limite de {resourceType}</span>
+              <span className="text-amber-500 font-semibold">{limit}</span>
+            </div>
+          </div>
+
+          <div className="bg-green-900/20 border border-green-800/50 rounded-lg p-4">
+            <p className="text-green-400 text-sm font-medium mb-1">💡 Dica</p>
+            <p className="text-zinc-300 text-sm">
+              Faça upgrade do seu plano para desbloquear mais {resourceType} e funcionalidades avançadas.
+            </p>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              className="flex-1 border-zinc-700 text-zinc-300"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                onUpgrade();
+                onClose();
+              }}
+              className="flex-1 bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Ver Planos
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export function CancelConfirmModal({ isOpen, onClose, onConfirm, marcacao, loading }) {
   if (!isOpen || !marcacao) return null;
 
