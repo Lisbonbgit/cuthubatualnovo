@@ -1150,18 +1150,33 @@ export async function GET(request, { params }) {
         .find({ barbearia_id: barbearia._id.toString(), ativo: { $ne: false } })
         .toArray();
 
+      // Buscar locais ativos
+      const locais = await db.collection('locais')
+        .find({ barbearia_id: barbearia._id.toString(), ativo: { $ne: false } })
+        .toArray();
+
       // Buscar apenas barbeiros ativos
       const barbeiros = await db.collection('utilizadores')
         .find({ barbearia_id: barbearia._id.toString(), tipo: 'barbeiro', ativo: { $ne: false } })
         .project({ password: 0 })
         .toArray();
 
+      // Adicionar informações do local a cada barbeiro
+      const barbeirosComLocal = barbeiros.map(barbeiro => {
+        if (barbeiro.local_id) {
+          const local = locais.find(l => l._id.toString() === barbeiro.local_id);
+          return { ...barbeiro, local: local ? { _id: local._id, nome: local.nome } : null };
+        }
+        return { ...barbeiro, local: null };
+      });
+
       return NextResponse.json({
         barbearia,
         servicos,
         produtos,
         planos,
-        barbeiros
+        locais,
+        barbeiros: barbeirosComLocal
       });
     }
 
