@@ -188,20 +188,34 @@ class LocaisAPITester:
             self.log_result("POST Create Location (Plan Limit)", False, f"Error: {str(e)}")
             return False
     
-    def test_update_location(self):
-        """Test PUT /api/locais/:id - Update location"""
-        if not self.created_location_id:
-            self.log_result("PUT Update Location", False, "No location ID available for update test")
-            return False
-            
+    def test_update_existing_location(self):
+        """Test PUT /api/locais/:id - Update existing location"""
         try:
+            # First get the existing location
+            response = requests.get(f"{BASE_URL}/locais", headers=self.get_headers())
+            if response.status_code != 200:
+                self.log_result("PUT Update Existing Location", False, "Could not get locations list")
+                return False
+                
+            data = response.json()
+            locations = data.get('locais', [])
+            if not locations:
+                self.log_result("PUT Update Existing Location", False, "No existing locations found")
+                return False
+                
+            # Use the first existing location
+            existing_location = locations[0]
+            location_id = existing_location.get('_id')
+            original_name = existing_location.get('nome')
+            
+            # Update the location
             update_data = {
-                "nome": "Filial Almada - Atualizada",
+                "nome": f"{original_name} - Atualizada",
                 "telefone": "+351 21 999 8888",
-                "email": "almada.nova@barbearia.pt"
+                "email": "updated@barbearia.pt"
             }
             
-            response = requests.put(f"{BASE_URL}/locais/{self.created_location_id}", 
+            response = requests.put(f"{BASE_URL}/locais/{location_id}", 
                                   json=update_data, 
                                   headers=self.get_headers())
             
@@ -209,15 +223,21 @@ class LocaisAPITester:
                 data = response.json()
                 location = data.get('local', {})
                 
+                # Restore original name
+                restore_data = {"nome": original_name}
+                requests.put(f"{BASE_URL}/locais/{location_id}", 
+                           json=restore_data, 
+                           headers=self.get_headers())
+                
                 self.log_result(
-                    "PUT Update Location", 
+                    "PUT Update Existing Location", 
                     True, 
-                    f"Updated location to '{location.get('nome')}'"
+                    f"Successfully updated location (restored to original name)"
                 )
                 return True
             else:
                 self.log_result(
-                    "PUT Update Location", 
+                    "PUT Update Existing Location", 
                     False, 
                     f"Failed with status {response.status_code}",
                     response.text
@@ -225,7 +245,7 @@ class LocaisAPITester:
                 return False
                 
         except Exception as e:
-            self.log_result("PUT Update Location", False, f"Error: {str(e)}")
+            self.log_result("PUT Update Existing Location", False, f"Error: {str(e)}")
             return False
     
     def test_get_single_location(self):
