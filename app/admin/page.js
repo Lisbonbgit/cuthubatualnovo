@@ -1517,6 +1517,31 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
                 </div>
               </div>
 
+              {/* Linha 2.5: Local de Trabalho */}
+              {locais.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-zinc-300 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-amber-500" />
+                    Local de Trabalho
+                  </Label>
+                  <select
+                    value={localId}
+                    onChange={(e) => setLocalId(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2"
+                  >
+                    <option value="">Sem local específico (todos os locais)</option>
+                    {locais.filter(l => l.ativo !== false).map(local => (
+                      <option key={local._id} value={local._id}>
+                        {local.nome} - {local.morada}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-zinc-500 text-xs">
+                    Selecione o local onde este barbeiro trabalha. Se não selecionar, ele poderá atender em qualquer local.
+                  </p>
+                </div>
+              )}
+
               {/* Linha 3: Especialidades */}
               <div className="space-y-2">
                 <Label className="text-zinc-300">Especialidades</Label>
