@@ -43,6 +43,9 @@ export default function MasterBackoffice() {
   const [barbearias, setBarbearias] = useState([]);
   const [atividade, setAtividade] = useState(null);
   const [suporteTickets, setSuporteTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [respostaTexto, setRespostaTexto] = useState('');
+  const [filtroStatusSuporte, setFiltroStatusSuporte] = useState('todos');
   
   // UI states
   const [searchTerm, setSearchTerm] = useState('');
