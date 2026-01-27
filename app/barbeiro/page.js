@@ -65,7 +65,17 @@ export default function BarbeiroPanel() {
       if (response.ok) {
         const data = await response.json();
         if (data.user.tipo !== 'barbeiro') {
-          router.push('/');
+          // Se não for barbeiro, redireciona para área correta
+          if (data.user.tipo === 'admin' || data.user.tipo === 'owner') {
+            window.location.href = '/admin';
+          } else if (data.user.tipo === 'cliente') {
+            window.location.href = '/cliente';
+          } else if (data.user.tipo === 'super_admin') {
+            window.location.href = '/master';
+          } else {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+          }
           return;
         }
         setUser(data.user);
@@ -75,7 +85,8 @@ export default function BarbeiroPanel() {
           fetchServicos(token)
         ]);
       } else {
-        router.push('/');
+        localStorage.removeItem('token');
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Error:', error);
