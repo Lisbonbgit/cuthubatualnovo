@@ -2344,42 +2344,6 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
     }
   };
 
-  const handleWhatsappSubmit = async (e) => {
-    e.preventDefault();
-    setWhatsappLoading(true);
-    setWhatsappSuccess('');
-    setWhatsappError('');
-
-    try {
-      const response = await fetch('/api/barbearia/whatsapp-config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({ 
-          whatsapp_enabled: whatsappEnabled,
-          twilio_account_sid: twilioAccountSid,
-          twilio_auth_token: twilioAuthToken,
-          twilio_whatsapp_number: twilioWhatsappNumber
-        })
-      });
-
-      if (response.ok) {
-        setWhatsappSuccess('Configuração do WhatsApp guardada com sucesso!');
-        setTwilioAuthToken(''); // Limpar por segurança
-        fetchSettings();
-      } else {
-        const data = await response.json();
-        setWhatsappError(data.error || 'Erro ao guardar configuração');
-      }
-    } catch (error) {
-      setWhatsappError('Erro ao guardar configuração');
-    } finally {
-      setWhatsappLoading(false);
-    }
-  };
-
   if (!barbearia) {
     return <div className="text-white">A carregar...</div>;
   }
