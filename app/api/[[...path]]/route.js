@@ -332,7 +332,7 @@ export async function POST(request, { params }) {
 
     // SERVIÇOS - Create
     if (path === 'servicos') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -351,7 +351,7 @@ export async function POST(request, { params }) {
 
     // PRODUTOS - Create
     if (path === 'produtos') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
