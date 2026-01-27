@@ -90,7 +90,8 @@ export default function BarbeiroPanel() {
       }
     } catch (error) {
       console.error('Error:', error);
-      router.push('/');
+      localStorage.removeItem('token');
+      window.location.href = '/';
     } finally {
       setLoading(false);
     }
