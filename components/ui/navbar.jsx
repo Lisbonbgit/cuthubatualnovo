@@ -53,7 +53,7 @@ export function Navbar() {
           className="flex items-center gap-2 hover:opacity-80 transition-opacity"
         >
           <Scissors className="h-6 w-6 text-amber-500" />
-          <span className="text-white font-bold text-lg">BarberShop SaaS</span>
+          <span className="text-white font-bold text-lg">CutHub</span>
         </button>
 
         {/* User Section */}
