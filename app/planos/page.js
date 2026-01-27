@@ -88,14 +88,8 @@ export default function PlanosPage() {
   };
 
   const handleSelectPlan = (planId) => {
-    if (!user) {
-      // User not logged in - show registration form
-      setSelectedPlan(planId);
-      setShowRegisterForm(true);
-    } else {
-      // User logged in - proceed to subscribe
-      handleSubscribe(planId);
-    }
+    // Go directly to setup page with plan ID
+    window.location.href = `/setup?plan=${planId}`;
   };
 
   const handleRegisterAndSubscribe = async (e) => {
