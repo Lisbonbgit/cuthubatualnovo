@@ -119,7 +119,8 @@ export default function AdminPanel() {
           fetchBarbeariaSettings(token),
           fetchClientes(token),
           fetchPlanosCliente(token),
-          fetchLocais(token)
+          fetchLocais(token),
+          fetchSuporteTickets(token)
         ]);
       } else {
         localStorage.removeItem('token');
