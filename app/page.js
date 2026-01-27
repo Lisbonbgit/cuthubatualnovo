@@ -101,12 +101,17 @@ export default function App() {
     );
   }
 
-  // For users who should be redirected (admin, barbeiro, cliente, super_admin), show nothing
-  // Owners with barbershop stay on this page
-  if (user && user.tipo !== 'owner') {
-    return null;
+  // Se há utilizador logado, mostra loading enquanto redireciona
+  // NUNCA mostrar a página de venda para utilizadores logados
+  if (user) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-amber-500 text-xl">A redirecionar...</div>
+      </div>
+    );
   }
 
+  // Apenas utilizadores NÃO logados veem a página de venda
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Hero Section */}
