@@ -197,6 +197,17 @@ export default function BarbeariaPublicPage() {
   };
 
   const fetchAvailableSlots = async () => {
+    // Se não permite escolha de profissional, apenas verificar servico e data
+    if (barbearia.permitir_escolha_profissional === false) {
+      if (!selectedData || !selectedServico) return;
+      // Pegar qualquer profissional disponível ou null
+      const token = localStorage.getItem('token');
+      // Criar slots genéricos baseados apenas no serviço e data
+      setAvailableSlots([]);
+      return;
+    }
+    
+    // Se permite escolha, profissional é obrigatório
     if (!selectedBarbeiro || !selectedData || !selectedServico) return;
 
     const token = localStorage.getItem('token');
@@ -209,10 +220,18 @@ export default function BarbeariaPublicPage() {
   };
 
   useEffect(() => {
-    if (selectedBarbeiro && selectedData && selectedServico) {
-      fetchAvailableSlots();
+    if (barbearia.permitir_escolha_profissional === false) {
+      // Se não permite escolha, buscar slots assim que tiver servico e data
+      if (selectedData && selectedServico) {
+        fetchAvailableSlots();
+      }
+    } else {
+      // Se permite escolha, precisa de profissional também
+      if (selectedBarbeiro && selectedData && selectedServico) {
+        fetchAvailableSlots();
+      }
     }
-  }, [selectedBarbeiro, selectedData, selectedServico]);
+  }, [selectedBarbeiro, selectedData, selectedServico, barbearia.permitir_escolha_profissional]);
 
   // Reset barbeiro selection when local changes
   useEffect(() => {
