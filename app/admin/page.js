@@ -2744,6 +2744,13 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
           </form>
         </CardContent>
       </Card>
+
+      {/* Copy URL Success Modal */}
+      <CopySuccessModal
+        isOpen={showCopyModal}
+        onClose={() => setShowCopyModal(false)}
+        url={copiedUrl}
+      />
     </div>
   );
 }
