@@ -947,7 +947,7 @@ export default function BarbeariaPublicPage() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label className="text-zinc-300">Barbeiro</Label>
+                        <Label className="text-zinc-300">Profissional</Label>
                         <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
                           <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
                             <SelectValue placeholder="Selecione um barbeiro" />
@@ -1103,7 +1103,7 @@ export default function BarbeariaPublicPage() {
                             <TableHead className="text-zinc-300">Data</TableHead>
                             <TableHead className="text-zinc-300">Hora</TableHead>
                             <TableHead className="text-zinc-300">Serviço</TableHead>
-                            <TableHead className="text-zinc-300">Barbeiro</TableHead>
+                            <TableHead className="text-zinc-300">Profissional</TableHead>
                             <TableHead className="text-zinc-300">Preço</TableHead>
                             <TableHead className="text-zinc-300">Status</TableHead>
                             <TableHead className="text-zinc-300">Ações</TableHead>
