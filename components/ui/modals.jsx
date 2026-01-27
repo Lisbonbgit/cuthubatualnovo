@@ -87,7 +87,7 @@ export function CopySuccessModal({ isOpen, onClose, url, autoClose = true, autoC
   );
 }
 
-export function SuccessModal({ isOpen, onClose, title, message, details, autoClose = true, autoCloseDelay = 2500 }) {
+export function SuccessModal({ isOpen, onClose, title, message, details, autoClose = false, autoCloseDelay = 2500 }) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
