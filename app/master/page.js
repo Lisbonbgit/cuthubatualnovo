@@ -929,7 +929,7 @@ export default function MasterBackoffice() {
                   Configurações do Sistema
                 </CardTitle>
                 <CardDescription className="text-gray-500">
-                  Configurações gerais do SaaS BarbePRO
+                  Configurações gerais do SaaS CutHub
                 </CardDescription>
               </CardHeader>
               <CardContent>
