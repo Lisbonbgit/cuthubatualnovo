@@ -2401,7 +2401,14 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ nome, descricao, telefone, email_contacto: emailContacto, imagem_hero: imagemHero })
+        body: JSON.stringify({ 
+          nome, 
+          descricao, 
+          telefone, 
+          email_contacto: emailContacto, 
+          imagem_hero: imagemHero,
+          permitir_escolha_profissional: permitirEscolhaProfissional
+        })
       });
       alert('Configurações atualizadas com sucesso!');
       fetchSettings();
