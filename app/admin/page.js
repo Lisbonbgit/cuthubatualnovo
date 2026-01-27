@@ -311,6 +311,15 @@ export default function AdminPanel() {
           />
         )}
 
+        {activeTab === 'suporte' && (
+          <SuporteTab 
+            tickets={suporteTickets}
+            fetchTickets={() => fetchSuporteTickets(localStorage.getItem('token'))}
+          />
+        )}
+          />
+        )}
+
         {/* Footer */}
         <FooterSimple variant="dark" />
       </main>
