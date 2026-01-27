@@ -195,17 +195,11 @@ export default function SetupPage() {
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-zinc-950 flex flex-col">
+      {/* Navbar */}
+      <Navbar />
+      
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-xl mx-auto">
-          <Button
-            variant="ghost"
-            className="text-zinc-400 hover:text-white mb-4"
-            onClick={() => router.push('/planos')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar aos Planos
-          </Button>
-
           <div className="text-center mb-6">
             <Scissors className="h-12 w-12 text-amber-600 mx-auto mb-3" />
             <h1 className="text-3xl font-bold text-white mb-2">Criar Sua Barbearia</h1>
