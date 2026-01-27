@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +10,7 @@ import { Scissors, Loader2, Check, ArrowLeft } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
 
-export default function SetupPage() {
+function SetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const planFromUrl = searchParams.get('plan');
