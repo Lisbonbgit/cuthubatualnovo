@@ -47,6 +47,12 @@ export default function SetupPage() {
   };
 
   const checkIfAlreadyHasBarbearia = async () => {
+    // Only run on client side
+    if (typeof window === 'undefined') {
+      setChecking(false);
+      return;
+    }
+    
     const token = localStorage.getItem('token');
     
     if (!token) {
