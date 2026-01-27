@@ -1271,7 +1271,7 @@ export async function GET(request, { params }) {
           interval: 'month',
           features: [
             '1 barbearia',
-            'Até 2 barbeiros',
+            'Até 2 profissionais',
             'Marcações ilimitadas',
             'Suporte por email'
           ],
@@ -1289,7 +1289,7 @@ export async function GET(request, { params }) {
           popular: true,
           features: [
             'Até 2 barbearias',
-            'Até 5 barbeiros',
+            'Até 5 profissionais',
             'Marcações ilimitadas',
             'Suporte prioritário',
             'Relatórios avançados'
@@ -1307,7 +1307,7 @@ export async function GET(request, { params }) {
           interval: 'month',
           features: [
             'Até 5 barbearias',
-            'Barbeiros ilimitados',
+            'Profissionais ilimitados',
             'Marcações ilimitadas',
             'Suporte 24/7',
             'API access',
