@@ -317,8 +317,6 @@ export default function AdminPanel() {
             fetchTickets={() => fetchSuporteTickets(localStorage.getItem('token'))}
           />
         )}
-          />
-        )}
 
         {/* Footer */}
         <FooterSimple variant="dark" />
