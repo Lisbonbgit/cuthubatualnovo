@@ -206,7 +206,8 @@ export default function MasterBackoffice() {
     await Promise.all([
       fetchDashboard(token),
       fetchBarbearias(token),
-      fetchAtividade(token)
+      fetchAtividade(token),
+      fetchSuporteTickets(token)
     ]);
     setRefreshing(false);
   };
