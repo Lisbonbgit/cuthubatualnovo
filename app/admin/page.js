@@ -2359,6 +2359,9 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [telefone, setTelefone] = useState('');
   const [emailContacto, setEmailContacto] = useState('');
   const [imagemHero, setImagemHero] = useState('');
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const [heroImagePreview, setHeroImagePreview] = useState('');
+  const [uploadingHero, setUploadingHero] = useState(false);
   const [loading, setLoading] = useState(false);
   
   // Copy URL modal
@@ -2379,6 +2382,7 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       setTelefone(barbearia.telefone || '');
       setEmailContacto(barbearia.email_contacto || '');
       setImagemHero(barbearia.imagem_hero || '');
+      setHeroImagePreview(barbearia.imagem_hero || '');
       setStripePublicKey(barbearia.stripe_public_key || '');
       // Secret key não é retornada por segurança - só mostramos se está configurada
     }
