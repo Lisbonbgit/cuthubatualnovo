@@ -1927,6 +1927,9 @@ function ProdutosTab({ produtos, fetchProdutos }) {
   const [preco, setPreco] = useState('');
   const [descricao, setDescricao] = useState('');
   const [imagem, setImagem] = useState('');
+  const [imagemFile, setImagemFile] = useState(null);
+  const [imagemPreview, setImagemPreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
