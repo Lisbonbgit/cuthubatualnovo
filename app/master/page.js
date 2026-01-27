@@ -801,6 +801,116 @@ export default function MasterBackoffice() {
           </div>
         )}
 
+        {/* Suporte Tab */}
+        {activeTab === 'suporte' && (
+          <div className="space-y-6">
+            {/* Filtros */}
+            <div className="flex gap-2">
+              {[
+                { id: 'todos', label: 'Todos', count: suporteTickets.length },
+                { id: 'aberto', label: 'Abertos', count: suporteTickets.filter(t => t.status === 'aberto').length },
+                { id: 'em_andamento', label: 'Em Andamento', count: suporteTickets.filter(t => t.status === 'em_andamento').length },
+                { id: 'resolvido', label: 'Resolvidos', count: suporteTickets.filter(t => t.status === 'resolvido').length },
+                { id: 'fechado', label: 'Fechados', count: suporteTickets.filter(t => t.status === 'fechado').length },
+              ].map((filtro) => (
+                <Button
+                  key={filtro.id}
+                  size="sm"
+                  onClick={() => setFiltroStatusSuporte(filtro.id)}
+                  className={filtroStatusSuporte === filtro.id 
+                    ? 'bg-violet-600 text-white' 
+                    : 'bg-white text-gray-600 border border-gray-300 hover:bg-violet-50'
+                  }
+                >
+                  {filtro.label} ({filtro.count})
+                </Button>
+              ))}
+            </div>
+
+            {/* Lista de Tickets */}
+            <Card className="bg-white border-gray-200 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5 text-violet-600" />
+                  Tickets de Suporte
+                </CardTitle>
+                <CardDescription className="text-gray-500">
+                  Gerir pedidos de suporte de todas as barbearias
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {suporteTickets.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Nenhum ticket de suporte</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {suporteTickets
+                      .filter(ticket => filtroStatusSuporte === 'todos' || ticket.status === filtroStatusSuporte)
+                      .map((ticket) => (
+                        <Card 
+                          key={ticket._id} 
+                          className="bg-gray-50 border-gray-200 hover:border-violet-300 transition-all cursor-pointer"
+                          onClick={() => setSelectedTicket(ticket)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <h4 className="text-gray-900 font-semibold">{ticket.assunto}</h4>
+                                  <Badge className={
+                                    ticket.status === 'aberto' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                                    ticket.status === 'em_andamento' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                                    ticket.status === 'resolvido' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
+                                    'bg-gray-100 text-gray-600 border-gray-300'
+                                  }>
+                                    {ticket.status === 'em_andamento' ? 'Em Andamento' : 
+                                     ticket.status === 'aberto' ? 'Aberto' :
+                                     ticket.status === 'resolvido' ? 'Resolvido' : 'Fechado'}
+                                  </Badge>
+                                  <Badge className={
+                                    ticket.prioridade === 'urgente' ? 'bg-red-100 text-red-700 border-red-300' :
+                                    ticket.prioridade === 'alta' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                                    ticket.prioridade === 'normal' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                                    'bg-gray-100 text-gray-600 border-gray-300'
+                                  }>
+                                    {ticket.prioridade.charAt(0).toUpperCase() + ticket.prioridade.slice(1)}
+                                  </Badge>
+                                </div>
+                                <p className="text-gray-600 text-sm line-clamp-2 mb-2">{ticket.mensagem}</p>
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  <span className="flex items-center gap-1">
+                                    <Store className="h-3 w-3" />
+                                    {ticket.barbearia_nome || 'Sem barbearia'}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Users className="h-3 w-3" />
+                                    {ticket.user_nome} ({ticket.user_email})
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {new Date(ticket.criado_em).toLocaleDateString('pt-PT')} às{' '}
+                                    {new Date(ticket.criado_em).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                              </div>
+                              {ticket.respostas?.length > 0 && (
+                                <Badge className="bg-violet-100 text-violet-700 border-violet-300">
+                                  {ticket.respostas.length} resposta(s)
+                                </Badge>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Configurações Tab */}
         {activeTab === 'configuracoes' && (
           <div className="space-y-6">
