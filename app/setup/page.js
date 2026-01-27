@@ -188,12 +188,21 @@ function SetupContent() {
         
         if (barbeariaData.admin_token) {
           localStorage.setItem('token', barbeariaData.admin_token);
-          // Redirect to admin panel
-          alert('✅ Barbearia criada com sucesso!\n\nA redirecionar para o painel admin...');
-          window.location.href = '/admin';
+          
+          // Show success modal with details
+          setSuccessDetails([
+            { label: 'Email de Login', value: emailAdmin },
+            { label: 'Barbearia', value: nomeBarbearia },
+            { label: 'Próximo Passo', value: 'Adicionar barbeiros e serviços' }
+          ]);
+          setShowSuccessModal(true);
+          
+          // Redirect after modal closes (3s)
+          setTimeout(() => {
+            window.location.href = '/admin';
+          }, 3000);
         } else {
           // Fallback: redirect to login
-          alert('✅ Barbearia criada com sucesso!\n\nFaça login com:\nEmail: ' + emailAdmin);
           window.location.href = '/';
         }
       } else {
