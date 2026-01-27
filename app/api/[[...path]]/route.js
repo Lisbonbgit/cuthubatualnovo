@@ -445,6 +445,48 @@ export async function POST(request, { params }) {
       return NextResponse.json({ plano: { ...plano, _id: result.insertedId } });
     }
 
+    // SUPORTE - Create ticket
+    if (path === 'suporte') {
+      const { assunto, mensagem, prioridade } = body;
+
+      if (!assunto || !mensagem) {
+        return NextResponse.json({ error: 'Assunto e mensagem são obrigatórios' }, { status: 400 });
+      }
+
+      // Get user and barbershop info
+      const userInfo = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
+      let barbeariaInfo = null;
+      if (decoded.barbearia_id) {
+        barbeariaInfo = await db.collection('barbearias').findOne({ _id: new ObjectId(decoded.barbearia_id) });
+      }
+
+      const ticket = {
+        user_id: decoded.userId,
+        user_nome: userInfo?.nome || 'Desconhecido',
+        user_email: userInfo?.email || decoded.email,
+        user_tipo: decoded.tipo,
+        barbearia_id: decoded.barbearia_id || null,
+        barbearia_nome: barbeariaInfo?.nome || null,
+        assunto,
+        mensagem,
+        prioridade: prioridade || 'normal',
+        status: 'aberto',
+        respostas: [],
+        criado_em: new Date(),
+        atualizado_em: new Date()
+      };
+
+      const result = await db.collection('suporte_tickets').insertOne(ticket);
+
+      // Mock email notification
+      console.log(`[MOCK EMAIL] Novo ticket de suporte: ${assunto} - de ${userInfo?.email}`);
+
+      return NextResponse.json({ 
+        ticket: { ...ticket, _id: result.insertedId },
+        message: 'Ticket criado com sucesso! Entraremos em contacto em breve.'
+      });
+    }
+
     // MARCAÇÕES - Create
     if (path === 'marcacoes') {
       const { barbeiro_id, servico_id, data, hora, local_id } = body;
