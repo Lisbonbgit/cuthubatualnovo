@@ -28,7 +28,7 @@ export default function SetupPage() {
   const checkUserStatus = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/');
+      window.location.href = '/';
       return;
     }
 
@@ -40,7 +40,7 @@ export default function SetupPage() {
 
       if (!meResponse.ok) {
         localStorage.removeItem('token');
-        router.push('/');
+        window.location.href = '/';
         return;
       }
 
@@ -48,13 +48,13 @@ export default function SetupPage() {
 
       // If user is admin or barbeiro, they should go to admin panel
       if (meData.user.tipo === 'admin' || meData.user.tipo === 'barbeiro') {
-        router.push('/admin');
+        window.location.href = '/admin';
         return;
       }
 
       // If user is cliente, they shouldn't be here
       if (meData.user.tipo === 'cliente') {
-        router.push('/');
+        window.location.href = '/';
         return;
       }
 
