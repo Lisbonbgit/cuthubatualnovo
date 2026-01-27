@@ -21,6 +21,10 @@ function SetupContent() {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState('');
   
+  // Success modal state
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successDetails, setSuccessDetails] = useState([]);
+  
   // Plan state
   const [selectedPlan, setSelectedPlan] = useState(planFromUrl || 'pro');
   const [plans, setPlans] = useState([]);
