@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Scissors, ArrowLeft } from 'lucide-react';
-import { SuccessModal } from '@/components/ui/modals';
 import { FooterSimple } from '@/components/ui/footer';
 
 export default function SetupPage() {
