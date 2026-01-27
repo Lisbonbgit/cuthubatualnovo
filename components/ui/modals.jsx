@@ -190,7 +190,7 @@ export function ErrorModal({ isOpen, onClose, title, message }) {
               {/* Title and Message */}
               <div>
                 <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
-                {message && <p className="text-zinc-400 text-sm">{message}</p>}
+                <p className="text-zinc-400 text-sm whitespace-pre-line">{message}</p>
               </div>
 
               {/* Close Button */}
@@ -201,7 +201,7 @@ export function ErrorModal({ isOpen, onClose, title, message }) {
                 }}
                 className="w-full bg-red-600 hover:bg-red-700"
               >
-                Entendi
+                OK
               </Button>
             </div>
           </CardContent>
