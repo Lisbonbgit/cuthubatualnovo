@@ -900,7 +900,7 @@ Até breve!`;
 
     // CLIENTES MANUAL - Criar cliente manualmente (Admin/Barbeiro)
     if (path === 'clientes/manual') {
-      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -942,7 +942,7 @@ Até breve!`;
 
     // MARCAÇÕES MANUAL - Criar marcação manual (Admin/Barbeiro)
     if (path === 'marcacoes/manual') {
-      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1112,7 +1112,7 @@ Até breve!`;
 
     // WHATSAPP - Enviar notificação manual
     if (path === 'notifications/whatsapp') {
-      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1560,7 +1560,7 @@ export async function GET(request, { params }) {
 
     // GET Locais - Listar todos os locais da barbearia
     if (path === 'locais') {
-      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1642,7 +1642,7 @@ export async function GET(request, { params }) {
 
     // GET Clientes (CRM)
     if (path === 'clientes') {
-      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'barbeiro' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
