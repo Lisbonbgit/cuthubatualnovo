@@ -97,8 +97,13 @@ export default function AdminPanel() {
       
       if (response.ok) {
         const data = await response.json();
-        // Permitir admin, owner e barbeiro acessarem o painel
-        if (!['admin', 'owner', 'barbeiro'].includes(data.user.tipo)) {
+        // Apenas admin e owner podem acessar o painel admin
+        if (!['admin', 'owner'].includes(data.user.tipo)) {
+          // Barbeiro vai para a sua página específica
+          if (data.user.tipo === 'barbeiro') {
+            window.location.href = '/barbeiro';
+            return;
+          }
           localStorage.removeItem('token');
           window.location.href = '/';
           return;
