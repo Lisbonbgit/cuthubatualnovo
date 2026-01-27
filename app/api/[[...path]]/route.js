@@ -1935,7 +1935,7 @@ export async function GET(request, { params }) {
         query.cliente_id = decoded.userId;
       } else if (decoded.tipo === 'barbeiro') {
         query.barbeiro_id = decoded.userId;
-      } else if (decoded.tipo === 'admin') {
+      } else if (decoded.tipo === 'admin' || decoded.tipo === 'owner') {
         query.barbearia_id = decoded.barbearia_id;
       }
 
