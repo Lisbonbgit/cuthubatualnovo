@@ -97,8 +97,10 @@ export default function AdminPanel() {
       
       if (response.ok) {
         const data = await response.json();
-        if (data.user.tipo !== 'admin') {
-          router.push('/');
+        // Permitir admin, owner e barbeiro acessarem o painel
+        if (!['admin', 'owner', 'barbeiro'].includes(data.user.tipo)) {
+          localStorage.removeItem('token');
+          window.location.href = '/';
           return;
         }
         setUser(data.user);
@@ -114,7 +116,8 @@ export default function AdminPanel() {
           fetchLocais(token)
         ]);
       } else {
-        router.push('/');
+        localStorage.removeItem('token');
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Error:', error);
