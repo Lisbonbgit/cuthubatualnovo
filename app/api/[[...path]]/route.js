@@ -371,7 +371,7 @@ export async function POST(request, { params }) {
 
     // LOCAIS - Create (Criar novo local/filial)
     if (path === 'locais') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
