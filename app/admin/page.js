@@ -2008,7 +2008,7 @@ function ProdutosTab({ produtos, fetchProdutos }) {
       const url = editingProduto ? `/api/produtos/${editingProduto._id}` : '/api/produtos';
       const method = editingProduto ? 'PUT' : 'POST';
 
-      await fetch(url, {
+      const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -2017,6 +2017,27 @@ function ProdutosTab({ produtos, fetchProdutos }) {
         body: JSON.stringify({ nome, preco, descricao, imagem: imagem || null })
       });
 
+      const data = await response.json();
+      
+      // If there's a new image file, upload it
+      if (imagemFile && data.produto) {
+        setUploadingImage(true);
+        const produtoId = editingProduto ? editingProduto._id : data.produto._id;
+        
+        const formData = new FormData();
+        formData.append('image', imagemFile);
+
+        await fetch(`/api/produtos/${produtoId}/upload-image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: formData
+        });
+        
+        setUploadingImage(false);
+      }
+
       resetForm();
       setShowForm(false);
       fetchProdutos();
@@ -2024,6 +2045,7 @@ function ProdutosTab({ produtos, fetchProdutos }) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+      setUploadingImage(false);
     }
   };
 
