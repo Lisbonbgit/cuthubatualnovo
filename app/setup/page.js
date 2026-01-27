@@ -69,13 +69,13 @@ export default function SetupPage() {
         // Check if owner already has a barbershop
         if (subData.has_barbearia) {
           // Already has barbershop, redirect to home
-          router.push('/');
+          window.location.href = '/';
           return;
         }
 
         if (!subData.has_subscription || subData.subscription?.status !== 'active') {
           // No active subscription, redirect to plans
-          router.push('/planos');
+          window.location.href = '/planos';
           return;
         }
       }
