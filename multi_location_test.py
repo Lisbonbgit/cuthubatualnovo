@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timedelta
 
 # Configuration
-BASE_URL = "https://cut-connect-3.preview.emergentagent.com/api"
+BASE_URL = "https://ticketsupport-2.preview.emergentagent.com/api"
 ADMIN_EMAIL = "admin@teste.pt"
 ADMIN_PASSWORD = "admin123"
 
