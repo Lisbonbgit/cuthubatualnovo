@@ -336,23 +336,8 @@ export default function PlanosPage() {
 
   return (
     <div className="min-h-screen min-h-[100dvh] bg-zinc-950 flex flex-col">
-      {/* Header */}
-      <header className="bg-zinc-900 border-b border-zinc-800">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Escolha o Seu Plano</h1>
-            {user && <p className="text-zinc-400 text-sm">Olá, {user.nome}</p>}
-          </div>
-          <Button
-            variant="ghost"
-            className="text-zinc-400 hover:text-white"
-            onClick={() => router.push('/')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       <main className="flex-1">
         <div className="container mx-auto px-4 py-12 md:py-16">
