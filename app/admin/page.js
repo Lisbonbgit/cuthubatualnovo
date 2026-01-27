@@ -121,7 +121,8 @@ export default function AdminPanel() {
       }
     } catch (error) {
       console.error('Error:', error);
-      router.push('/');
+      localStorage.removeItem('token');
+      window.location.href = '/';
     } finally {
       setLoading(false);
     }
