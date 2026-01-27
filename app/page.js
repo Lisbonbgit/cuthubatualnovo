@@ -37,7 +37,7 @@ export default function App() {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        redirectBasedOnUserType(data.user);
+        await redirectBasedOnUserType(data.user);
       } else {
         localStorage.removeItem('token');
       }
