@@ -804,7 +804,7 @@ Até breve!`;
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
-      const { nome, descricao, telefone, email_contacto, imagem_hero } = body;
+      const { nome, descricao, telefone, email_contacto, imagem_hero, permitir_escolha_profissional } = body;
 
       await db.collection('barbearias').updateOne(
         { _id: new ObjectId(decoded.barbearia_id) },
@@ -815,6 +815,7 @@ Até breve!`;
             telefone: telefone || '',
             email_contacto: email_contacto || '',
             imagem_hero: imagem_hero || '',
+            permitir_escolha_profissional: permitir_escolha_profissional !== undefined ? permitir_escolha_profissional : true,
             atualizado_em: new Date()
           } 
         }
