@@ -268,7 +268,23 @@ export async function POST(request, { params }) {
 
       await db.collection('horarios_funcionamento').insertMany(horariosPadrao);
 
-      return NextResponse.json({ barbearia: { ...barbearia, _id: barbeariaId } });
+      // Gerar token para o admin criado (para login automático)
+      const adminToken = jwt.sign(
+        { 
+          userId: admin._id.toString(),
+          email: admin.email,
+          tipo: admin.tipo,
+          barbearia_id: barbeariaId
+        },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return NextResponse.json({ 
+        barbearia: { ...barbearia, _id: barbeariaId },
+        admin_token: adminToken,
+        admin_email: email_admin
+      });
     }
 
     // Protected routes - require authentication
