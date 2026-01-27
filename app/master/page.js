@@ -87,6 +87,7 @@ export default function MasterBackoffice() {
       fetchDashboard(token);
       fetchBarbearias(token);
       fetchAtividade(token);
+      fetchSuporteTickets(token);
     } catch (error) {
       console.error('Auth error:', error);
       router.push('/');
