@@ -670,6 +670,7 @@ Até breve!`;
       const subscription = {
         user_id: decoded.userId,
         plan_id,
+        plano: plan_id, // Adicionar campo 'plano' para compatibilidade
         plan_name: plans[plan_id].name,
         price: plans[plan_id].price,
         status: 'active',
