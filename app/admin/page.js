@@ -2194,17 +2194,20 @@ function ProdutosTab({ produtos, fetchProdutos }) {
           <div className="grid md:grid-cols-3 gap-4">
             {produtos.map((produto) => (
               <Card key={produto._id} className="bg-zinc-900 border-zinc-700 overflow-hidden">
-                {produto.imagem && (
-                  <div className="h-40 overflow-hidden">
+                <div className="h-40 overflow-hidden bg-zinc-800">
+                  {produto.imagem ? (
                     <img 
                       src={produto.imagem} 
                       alt={produto.nome}
                       className="w-full h-full object-cover"
-                      onError={(e) => e.target.parentElement.style.display = 'none'}
                     />
-                  </div>
-                )}
-                <CardHeader className={produto.imagem ? 'pt-3' : ''}>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="h-16 w-16 text-zinc-600" />
+                    </div>
+                  )}
+                </div>
+                <CardHeader className="pt-3">
                   <CardTitle className="text-white text-lg">{produto.nome}</CardTitle>
                   {produto.descricao && (
                     <CardDescription className="text-zinc-400 line-clamp-2">{produto.descricao}</CardDescription>
