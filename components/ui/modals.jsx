@@ -160,33 +160,53 @@ export function SuccessModal({ isOpen, onClose, title, message, details, autoClo
 }
 
 export function ErrorModal({ isOpen, onClose, title, message }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-red-500" />
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div 
+        className={`transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Error Icon */}
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+                  <AlertCircle className="h-8 w-8 text-white" />
+                </div>
+              </div>
+
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+                {message && <p className="text-zinc-400 text-sm">{message}</p>}
+              </div>
+
+              {/* Close Button */}
+              <Button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onClose, 300);
+                }}
+                className="w-full bg-red-600 hover:bg-red-700"
+              >
+                Entendi
+              </Button>
             </div>
-            <CardTitle className="text-white text-xl">{title}</CardTitle>
-          </div>
-          {message && (
-            <CardDescription className="text-zinc-300 text-base">
-              {message}
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent>
-          <Button
-            onClick={onClose}
-            className="w-full bg-red-600 hover:bg-red-700"
-          >
-            Entendi
-          </Button>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
