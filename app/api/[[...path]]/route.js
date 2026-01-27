@@ -1410,69 +1410,6 @@ export async function GET(request, { params }) {
       });
     }
 
-    // GET Available Plans
-    if (path === 'plans') {
-      const plans = [
-        {
-          id: 'basic',
-          name: 'Básico',
-          price: 29,
-          currency: 'EUR',
-          interval: 'month',
-          features: [
-            '1 barbearia',
-            'Até 2 barbeiros',
-            'Marcações ilimitadas',
-            'Suporte por email'
-          ],
-          limits: {
-            barbearias: 1,
-            barbeiros: 2
-          }
-        },
-        {
-          id: 'pro',
-          name: 'Pro',
-          price: 49,
-          currency: 'EUR',
-          interval: 'month',
-          popular: true,
-          features: [
-            '1 barbearia',
-            'Até 5 barbeiros',
-            'Marcações ilimitadas',
-            'Suporte prioritário',
-            'Relatórios avançados'
-          ],
-          limits: {
-            barbearias: 1,
-            barbeiros: 5
-          }
-        },
-        {
-          id: 'enterprise',
-          name: 'Enterprise',
-          price: 99,
-          currency: 'EUR',
-          interval: 'month',
-          features: [
-            'Até 5 barbearias',
-            'Barbeiros ilimitados',
-            'Marcações ilimitadas',
-            'Suporte 24/7',
-            'API access',
-            'White-label'
-          ],
-          limits: {
-            barbearias: 5,
-            barbeiros: 999
-          }
-        }
-      ];
-
-      return NextResponse.json({ plans });
-    }
-
     // GET Barbearia Settings
     if (path === 'barbearia/settings') {
       if (decoded.tipo !== 'admin') {
