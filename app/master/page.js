@@ -6,11 +6,13 @@ import {
   Building2, Users, Calendar, TrendingUp, Activity, Settings,
   ChevronRight, Search, MoreVertical, Power, Eye, RefreshCw,
   BarChart3, Shield, Clock, CheckCircle, XCircle, AlertCircle,
-  UserPlus, Store, CreditCard, ArrowUpRight, ArrowDownRight
+  UserPlus, Store, CreditCard, ArrowUpRight, ArrowDownRight,
+  HelpCircle, MessageSquare, Send
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
   Table,
@@ -40,6 +42,7 @@ export default function MasterBackoffice() {
   const [dashboardData, setDashboardData] = useState(null);
   const [barbearias, setBarbearias] = useState([]);
   const [atividade, setAtividade] = useState(null);
+  const [suporteTickets, setSuporteTickets] = useState([]);
   
   // UI states
   const [searchTerm, setSearchTerm] = useState('');
