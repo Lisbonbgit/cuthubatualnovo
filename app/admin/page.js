@@ -2234,6 +2234,10 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [imagemHero, setImagemHero] = useState('');
   const [loading, setLoading] = useState(false);
   
+  // Copy URL modal
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState('');
+  
   // Stripe config
   const [stripePublicKey, setStripePublicKey] = useState('');
   const [stripeSecretKey, setStripeSecretKey] = useState('');
