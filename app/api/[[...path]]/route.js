@@ -2341,6 +2341,55 @@ export async function PUT(request, { params }) {
       return NextResponse.json({ barbearia: updatedBarbearia, success: true });
     }
 
+    // PUT Suporte Ticket - Atualizar status ou responder
+    if (path.startsWith('suporte/')) {
+      const ticketId = path.split('/')[1];
+      const { status, resposta } = body;
+
+      // Apenas super_admin pode responder/atualizar tickets
+      if (decoded.tipo !== 'super_admin') {
+        return NextResponse.json({ error: 'Apenas administradores podem responder tickets' }, { status: 403 });
+      }
+
+      const updateData = {
+        atualizado_em: new Date()
+      };
+
+      if (status) {
+        updateData.status = status;
+      }
+
+      // Se tem resposta, adiciona ao array de respostas
+      if (resposta) {
+        const novaResposta = {
+          texto: resposta,
+          autor: 'Suporte',
+          autor_id: decoded.userId,
+          data: new Date()
+        };
+
+        await db.collection('suporte_tickets').updateOne(
+          { _id: new ObjectId(ticketId) },
+          { 
+            $set: updateData,
+            $push: { respostas: novaResposta }
+          }
+        );
+
+        // Mock email notification
+        const ticket = await db.collection('suporte_tickets').findOne({ _id: new ObjectId(ticketId) });
+        console.log(`[MOCK EMAIL] Resposta ao ticket enviada para ${ticket?.user_email}`);
+      } else {
+        await db.collection('suporte_tickets').updateOne(
+          { _id: new ObjectId(ticketId) },
+          { $set: updateData }
+        );
+      }
+
+      const updatedTicket = await db.collection('suporte_tickets').findOne({ _id: new ObjectId(ticketId) });
+      return NextResponse.json({ ticket: updatedTicket, success: true });
+    }
+
     return NextResponse.json({ error: 'Rota não encontrada' }, { status: 404 });
 
   } catch (error) {
