@@ -52,16 +52,19 @@ export default function App() {
   };
 
   const redirectBasedOnUserType = async (user) => {
+    // REGRA: Utilizadores logados NUNCA veem a página de venda
+    // Todos são redirecionados para a sua área respectiva
+    
     if (user.tipo === 'super_admin') {
-      router.push('/master');
+      window.location.href = '/master';
     } else if (user.tipo === 'admin') {
-      router.push('/admin');
+      window.location.href = '/admin';
     } else if (user.tipo === 'barbeiro') {
-      router.push('/barbeiro');
+      window.location.href = '/admin'; // Barbeiros também vão para o admin (versão limitada)
     } else if (user.tipo === 'cliente') {
-      router.push('/cliente');
+      window.location.href = '/cliente';
     } else if (user.tipo === 'owner') {
-      // Check if owner already has a barbershop
+      // Owner vai para admin se tiver barbearia, senão para setup/planos
       try {
         const subResponse = await fetch('/api/subscriptions/status', {
           headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -69,19 +72,18 @@ export default function App() {
         const subData = await subResponse.json();
         
         if (subData.has_barbearia) {
-          // Owner already has barbershop - just show home page (don't redirect)
-          // They can manage subscription from here
-          return; // Stay on home page
+          // Owner com barbearia vai para o admin
+          window.location.href = '/admin';
         } else if (subData.has_subscription) {
-          // Has subscription but no barbershop - go to setup
-          router.push('/setup');
+          // Tem subscrição mas não tem barbearia - vai criar
+          window.location.href = '/setup';
         } else {
-          // No subscription - go to plans
-          router.push('/planos');
+          // Não tem subscrição - vai escolher plano
+          window.location.href = '/planos';
         }
       } catch (error) {
         console.error('Error checking subscription:', error);
-        router.push('/planos');
+        window.location.href = '/planos';
       }
     }
   };
