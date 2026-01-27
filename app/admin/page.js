@@ -2275,15 +2275,6 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
   const [stripeSuccess, setStripeSuccess] = useState('');
   const [stripeError, setStripeError] = useState('');
 
-  // WhatsApp/Twilio config
-  const [whatsappEnabled, setWhatsappEnabled] = useState(false);
-  const [twilioAccountSid, setTwilioAccountSid] = useState('');
-  const [twilioAuthToken, setTwilioAuthToken] = useState('');
-  const [twilioWhatsappNumber, setTwilioWhatsappNumber] = useState('');
-  const [whatsappLoading, setWhatsappLoading] = useState(false);
-  const [whatsappSuccess, setWhatsappSuccess] = useState('');
-  const [whatsappError, setWhatsappError] = useState('');
-
   useEffect(() => {
     if (barbearia) {
       setNome(barbearia.nome || '');
@@ -2292,10 +2283,6 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
       setEmailContacto(barbearia.email_contacto || '');
       setImagemHero(barbearia.imagem_hero || '');
       setStripePublicKey(barbearia.stripe_public_key || '');
-      // WhatsApp
-      setWhatsappEnabled(barbearia.whatsapp_enabled || false);
-      setTwilioAccountSid(barbearia.twilio_account_sid || '');
-      setTwilioWhatsappNumber(barbearia.twilio_whatsapp_number || '');
       // Secret key não é retornada por segurança - só mostramos se está configurada
     }
   }, [barbearia]);
