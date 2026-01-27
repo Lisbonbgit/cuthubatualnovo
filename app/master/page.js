@@ -137,6 +137,68 @@ export default function MasterBackoffice() {
     }
   };
 
+  const fetchSuporteTickets = async (token) => {
+    try {
+      const url = filtroStatusSuporte === 'todos' 
+        ? '/api/suporte'
+        : `/api/suporte?status=${filtroStatusSuporte}`;
+      
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSuporteTickets(data.tickets || []);
+      }
+    } catch (error) {
+      console.error('Suporte tickets error:', error);
+    }
+  };
+
+  const handleResponderTicket = async (ticketId, resposta, novoStatus) => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`/api/suporte/${ticketId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ 
+          resposta, 
+          status: novoStatus 
+        })
+      });
+
+      if (res.ok) {
+        setAlertModal({
+          isOpen: true,
+          title: 'Sucesso',
+          message: 'Resposta enviada com sucesso!',
+          type: 'success'
+        });
+        setSelectedTicket(null);
+        setRespostaTexto('');
+        fetchSuporteTickets(token);
+      } else {
+        const data = await res.json();
+        setAlertModal({
+          isOpen: true,
+          title: 'Erro',
+          message: data.error || 'Erro ao enviar resposta',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Erro',
+        message: 'Erro de conexão',
+        type: 'error'
+      });
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     const token = localStorage.getItem('token');
