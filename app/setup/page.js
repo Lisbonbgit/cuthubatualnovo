@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Scissors, Loader2, Check, ArrowLeft } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
+import { SuccessModal } from '@/components/ui/modals';
 
 function SetupContent() {
   const router = useRouter();
