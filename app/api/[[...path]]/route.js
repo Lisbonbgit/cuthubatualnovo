@@ -687,7 +687,7 @@ Até breve!`;
 
     // Subscription Change - Alterar plano existente
     if (path === 'subscription/change') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -735,7 +735,7 @@ Até breve!`;
 
     // Subscription Cancel - Cancelar subscrição
     if (path === 'subscription/cancel') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -768,7 +768,7 @@ Até breve!`;
 
     // BARBEARIA - Update Settings
     if (path === 'barbearia/settings') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -833,7 +833,7 @@ Até breve!`;
 
     // BARBEARIA - WhatsApp/Twilio Configuration
     if (path === 'barbearia/whatsapp-config') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1510,7 +1510,7 @@ export async function GET(request, { params }) {
 
     // GET Barbearia Settings
     if (path === 'barbearia/settings') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1544,7 +1544,7 @@ export async function GET(request, { params }) {
 
     // GET Subscription - Obter subscrição atual
     if (path === 'subscription') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1613,7 +1613,7 @@ export async function GET(request, { params }) {
     if (path.startsWith('locais/') && !path.includes('/horarios')) {
       const localId = path.split('/')[1];
       
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -1716,7 +1716,7 @@ export async function GET(request, { params }) {
 
     // GET Planos Cliente (para barbearia)
     if (path === 'planos-cliente') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -2154,7 +2154,7 @@ export async function PUT(request, { params }) {
 
     // UPDATE Serviço
     if (path.startsWith('servicos/')) {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -2171,7 +2171,7 @@ export async function PUT(request, { params }) {
 
     // UPDATE Local (Filial)
     if (path.startsWith('locais/') && !path.includes('/horarios')) {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -2201,7 +2201,7 @@ export async function PUT(request, { params }) {
 
     // UPDATE Plano Cliente
     if (path.startsWith('planos-cliente/')) {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -2218,7 +2218,7 @@ export async function PUT(request, { params }) {
 
     // UPDATE Barbeiro
     if (path.startsWith('barbeiros/')) {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
