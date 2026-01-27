@@ -512,7 +512,7 @@ export async function POST(request, { params }) {
       const plans = {
         basic: { name: 'Básico', price: 29, barbearias_limit: 1, barbeiros_limit: 2 },
         pro: { name: 'Pro', price: 49, barbearias_limit: 1, barbeiros_limit: 5 },
-        enterprise: { name: 'Enterprise', price: 99, barbearias_limit: 3, barbeiros_limit: 999 }
+        enterprise: { name: 'Enterprise', price: 99, barbearias_limit: 5, barbeiros_limit: 999 }
       };
 
       if (!plans[plan_id]) {
