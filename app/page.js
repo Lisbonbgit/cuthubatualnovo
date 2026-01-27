@@ -92,7 +92,9 @@ export default function App() {
     );
   }
 
-  if (user) {
+  // For users who should be redirected (admin, barbeiro, cliente, super_admin), show nothing
+  // Owners with barbershop stay on this page
+  if (user && user.tipo !== 'owner') {
     return null;
   }
 
