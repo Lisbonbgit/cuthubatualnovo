@@ -49,7 +49,7 @@ export default function App() {
     }
   };
 
-  const redirectBasedOnUserType = (user) => {
+  const redirectBasedOnUserType = async (user) => {
     if (user.tipo === 'super_admin') {
       router.push('/master');
     } else if (user.tipo === 'admin') {
@@ -59,8 +59,28 @@ export default function App() {
     } else if (user.tipo === 'cliente') {
       router.push('/cliente');
     } else if (user.tipo === 'owner') {
-      // Owner sem barbearia vai para setup, com barbearia vai ver planos/dashboard
-      router.push('/setup');
+      // Check if owner already has a barbershop
+      try {
+        const subResponse = await fetch('/api/subscriptions/status', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        const subData = await subResponse.json();
+        
+        if (subData.has_barbearia) {
+          // Owner already has barbershop - just show home page (don't redirect)
+          // They can manage subscription from here
+          return; // Stay on home page
+        } else if (subData.has_subscription) {
+          // Has subscription but no barbershop - go to setup
+          router.push('/setup');
+        } else {
+          // No subscription - go to plans
+          router.push('/planos');
+        }
+      } catch (error) {
+        console.error('Error checking subscription:', error);
+        router.push('/planos');
+      }
     }
   };
 
