@@ -1529,6 +1529,30 @@ export async function GET(request, { params }) {
       return NextResponse.json({ locais: locaisComStats });
     }
 
+    // GET Suporte Tickets
+    if (path === 'suporte') {
+      let query = {};
+      
+      // Super admin vê todos os tickets
+      if (decoded.tipo === 'super_admin') {
+        // Pode filtrar por status
+        const status = searchParams.get('status');
+        if (status && status !== 'todos') {
+          query.status = status;
+        }
+      } else {
+        // Outros utilizadores veem apenas os seus tickets
+        query.user_id = decoded.userId;
+      }
+
+      const tickets = await db.collection('suporte_tickets')
+        .find(query)
+        .sort({ criado_em: -1 })
+        .toArray();
+
+      return NextResponse.json({ tickets });
+    }
+
     // GET Local por ID
     if (path.startsWith('locais/') && !path.includes('/horarios')) {
       const localId = path.split('/')[1];
