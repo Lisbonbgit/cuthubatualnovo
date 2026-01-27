@@ -263,7 +263,9 @@ export default function BarbeariaPublicPage() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          barbeiro_id: selectedBarbeiro,
+          barbeiro_id: barbearia.permitir_escolha_profissional === false 
+            ? (barbeirosDisponiveis[0]?._id || null) 
+            : selectedBarbeiro,
           servico_id: selectedServico,
           data: selectedData,
           hora: selectedHora,
