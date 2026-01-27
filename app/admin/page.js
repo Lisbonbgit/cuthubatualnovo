@@ -793,7 +793,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes, lastUpdate, isRefreshing, onM
                 {/* Selecção Barbeiro e Serviço */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-zinc-300">Barbeiro *</Label>
+                    <Label className="text-zinc-300">Profissional *</Label>
                     <select
                       value={selectedBarbeiroId}
                       onChange={(e) => setSelectedBarbeiroId(e.target.value)}
@@ -1003,7 +1003,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes, lastUpdate, isRefreshing, onM
                       <TableHead className="text-zinc-300">Data</TableHead>
                       <TableHead className="text-zinc-300">Hora</TableHead>
                       <TableHead className="text-zinc-300">Cliente</TableHead>
-                      <TableHead className="text-zinc-300">Barbeiro</TableHead>
+                      <TableHead className="text-zinc-300">Profissional</TableHead>
                       <TableHead className="text-zinc-300">Serviço</TableHead>
                       <TableHead className="text-zinc-300">Status</TableHead>
                       <TableHead className="text-zinc-300">Ações</TableHead>
@@ -1467,7 +1467,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-white">Barbeiros</CardTitle>
+              <CardTitle className="text-white">Profissionais</CardTitle>
               <CardDescription className="text-zinc-400">Gerir equipa de barbeiros - criar contas de acesso</CardDescription>
             </div>
             <Button
