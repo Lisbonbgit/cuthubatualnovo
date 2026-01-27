@@ -793,7 +793,7 @@ Até breve!`;
 
     // BARBEARIA - Stripe Configuration
     if (path === 'barbearia/stripe-config') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
