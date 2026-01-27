@@ -1385,7 +1385,7 @@ export async function GET(request, { params }) {
           currency: 'EUR',
           interval: 'month',
           features: [
-            'Até 3 barbearias',
+            'Até 5 barbearias',
             'Barbeiros ilimitados',
             'Marcações ilimitadas',
             'Suporte 24/7',
@@ -1393,7 +1393,7 @@ export async function GET(request, { params }) {
             'White-label'
           ],
           limits: {
-            barbearias: 3,
+            barbearias: 5,
             barbeiros: 999
           }
         }
