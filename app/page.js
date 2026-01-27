@@ -86,6 +86,11 @@ export default function App() {
     }
   };
 
+  // Show nothing until mounted to avoid hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
