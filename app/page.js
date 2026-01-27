@@ -111,7 +111,7 @@ export default function App() {
             <Button 
               size="lg" 
               className="bg-amber-600 hover:bg-amber-700 text-white text-lg px-10 py-7"
-              onClick={() => router.push('/register/owner')}
+              onClick={() => router.push('/planos')}
             >
               <Scissors className="mr-2 h-5 w-5" />
               Criar Minha Barbearia
