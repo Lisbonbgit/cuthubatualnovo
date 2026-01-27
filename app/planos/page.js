@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Check, Loader2, Crown, Zap, Rocket, ArrowLeft, Scissors } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
+import { Navbar } from '@/components/ui/navbar';
 
 export default function PlanosPage() {
   const router = useRouter();
