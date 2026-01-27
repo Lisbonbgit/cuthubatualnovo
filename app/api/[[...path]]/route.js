@@ -11,6 +11,51 @@ if (!JWT_SECRET) {
 }
 const MONGO_URL = process.env.MONGO_URL;
 
+// Twilio WhatsApp Configuration
+const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
+const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
+const TWILIO_WHATSAPP_FROM = process.env.TWILIO_WHATSAPP_FROM || 'whatsapp:+14155238886';
+
+// Initialize Twilio client
+let twilioClient = null;
+if (TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN) {
+  twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+}
+
+// Function to send WhatsApp notification
+async function sendWhatsAppNotification(to, message) {
+  if (!twilioClient) {
+    console.log('[WhatsApp] Twilio not configured. Skipping WhatsApp notification.');
+    return { success: false, error: 'Twilio not configured' };
+  }
+
+  try {
+    // Ensure phone number has whatsapp: prefix and country code
+    let formattedPhone = to;
+    if (!formattedPhone.startsWith('whatsapp:')) {
+      // If number doesn't start with +, add +351 (Portugal)
+      if (!formattedPhone.startsWith('+')) {
+        formattedPhone = `+351${formattedPhone}`;
+      }
+      formattedPhone = `whatsapp:${formattedPhone}`;
+    }
+
+    console.log(`[WhatsApp] Sending to: ${formattedPhone}`);
+    
+    const result = await twilioClient.messages.create({
+      body: message,
+      from: TWILIO_WHATSAPP_FROM,
+      to: formattedPhone
+    });
+
+    console.log(`[WhatsApp] Message sent successfully. SID: ${result.sid}`);
+    return { success: true, sid: result.sid };
+  } catch (error) {
+    console.error('[WhatsApp] Error sending message:', error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 let cachedClient = null;
 
 async function connectToDatabase() {
