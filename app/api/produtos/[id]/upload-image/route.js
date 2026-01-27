@@ -192,9 +192,3 @@ export async function DELETE(request, { params }) {
     }, { status: 500 });
   }
 }
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
