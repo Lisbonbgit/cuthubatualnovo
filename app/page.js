@@ -17,9 +17,11 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [heroImage, setHeroImage] = useState(null);
 
   useEffect(() => {
     setMounted(true);
+    fetchSaaSSettings();
     const token = localStorage.getItem('token');
     if (token) {
       fetchCurrentUser(token);
@@ -27,6 +29,18 @@ export default function App() {
       setLoading(false);
     }
   }, []);
+
+  const fetchSaaSSettings = async () => {
+    try {
+      const response = await fetch('/api/saas/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setHeroImage(data.settings?.hero_image);
+      }
+    } catch (error) {
+      console.error('Error fetching SaaS settings:', error);
+    }
+  };
 
   const fetchCurrentUser = async (token) => {
     try {
