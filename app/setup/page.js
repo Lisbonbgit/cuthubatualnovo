@@ -110,6 +110,11 @@ export default function SetupPage() {
     setError('');
     setLoading(true);
 
+    // Safety check for browser environment
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     try {
       // Step 1: Create owner account using admin credentials
       const registerResponse = await fetch('/api/auth/register', {
