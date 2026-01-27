@@ -102,6 +102,7 @@ export default function MasterBackoffice() {
       fetchBarbearias(token);
       fetchAtividade(token);
       fetchSuporteTickets(token);
+      fetchHeroImage();
     } catch (error) {
       console.error('Auth error:', error);
       router.push('/');
