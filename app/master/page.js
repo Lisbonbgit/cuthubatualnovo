@@ -971,6 +971,185 @@ export default function MasterBackoffice() {
         )}
       </main>
 
+      {/* Modal de Detalhes do Ticket */}
+      {selectedTicket && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <Card className="bg-white border-gray-200 max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle className="text-gray-900 text-xl mb-2">{selectedTicket.assunto}</CardTitle>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge className={
+                      selectedTicket.status === 'aberto' ? 'bg-amber-100 text-amber-700 border-amber-300' :
+                      selectedTicket.status === 'em_andamento' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                      selectedTicket.status === 'resolvido' ? 'bg-emerald-100 text-emerald-700 border-emerald-300' :
+                      'bg-gray-100 text-gray-600 border-gray-300'
+                    }>
+                      {selectedTicket.status === 'em_andamento' ? 'Em Andamento' : 
+                       selectedTicket.status === 'aberto' ? 'Aberto' :
+                       selectedTicket.status === 'resolvido' ? 'Resolvido' : 'Fechado'}
+                    </Badge>
+                    <Badge className={
+                      selectedTicket.prioridade === 'urgente' ? 'bg-red-100 text-red-700 border-red-300' :
+                      selectedTicket.prioridade === 'alta' ? 'bg-orange-100 text-orange-700 border-orange-300' :
+                      selectedTicket.prioridade === 'normal' ? 'bg-blue-100 text-blue-700 border-blue-300' :
+                      'bg-gray-100 text-gray-600 border-gray-300'
+                    }>
+                      {selectedTicket.prioridade.charAt(0).toUpperCase() + selectedTicket.prioridade.slice(1)}
+                    </Badge>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    setSelectedTicket(null);
+                    setRespostaTexto('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Info do Ticket */}
+              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div>
+                  <p className="text-gray-500 text-xs uppercase font-medium mb-1">Barbearia</p>
+                  <p className="text-gray-900 font-medium">{selectedTicket.barbearia_nome || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs uppercase font-medium mb-1">Utilizador</p>
+                  <p className="text-gray-900 font-medium">{selectedTicket.user_nome}</p>
+                  <p className="text-gray-600 text-xs">{selectedTicket.user_email}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs uppercase font-medium mb-1">Data de Criação</p>
+                  <p className="text-gray-900 text-sm">
+                    {new Date(selectedTicket.criado_em).toLocaleDateString('pt-PT')} às{' '}
+                    {new Date(selectedTicket.criado_em).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs uppercase font-medium mb-1">Tipo de Utilizador</p>
+                  <Badge className="bg-violet-100 text-violet-700 border-violet-300">
+                    {selectedTicket.user_tipo}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Mensagem Original */}
+              <div>
+                <h4 className="text-gray-900 font-semibold mb-2">Mensagem:</h4>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedTicket.mensagem}</p>
+                </div>
+              </div>
+
+              {/* Respostas Anteriores */}
+              {selectedTicket.respostas && selectedTicket.respostas.length > 0 && (
+                <div>
+                  <h4 className="text-gray-900 font-semibold mb-3">Histórico de Respostas:</h4>
+                  <div className="space-y-3">
+                    {selectedTicket.respostas.map((resposta, idx) => (
+                      <div key={idx} className="bg-violet-50 border border-violet-200 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-violet-700 font-semibold text-sm">{resposta.autor}</span>
+                          <span className="text-gray-500 text-xs">
+                            {new Date(resposta.data).toLocaleDateString('pt-PT')} às{' '}
+                            {new Date(resposta.data).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                        <p className="text-gray-700">{resposta.texto}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Formulário de Resposta */}
+              <div className="border-t border-gray-200 pt-4">
+                <h4 className="text-gray-900 font-semibold mb-3">Adicionar Resposta:</h4>
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-gray-700 mb-2">Mensagem de Resposta</Label>
+                    <textarea
+                      value={respostaTexto}
+                      onChange={(e) => setRespostaTexto(e.target.value)}
+                      className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-3 py-2 min-h-[120px] focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                      placeholder="Escreva a sua resposta aqui..."
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-gray-700 mb-2">Alterar Status</Label>
+                    <div className="grid grid-cols-4 gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                        onClick={() => handleResponderTicket(selectedTicket._id, respostaTexto, 'aberto')}
+                        disabled={!respostaTexto.trim()}
+                      >
+                        Aberto
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                        onClick={() => handleResponderTicket(selectedTicket._id, respostaTexto, 'em_andamento')}
+                        disabled={!respostaTexto.trim()}
+                      >
+                        Em Andamento
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => handleResponderTicket(selectedTicket._id, respostaTexto, 'resolvido')}
+                        disabled={!respostaTexto.trim()}
+                      >
+                        Resolvido
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        onClick={() => handleResponderTicket(selectedTicket._id, respostaTexto, 'fechado')}
+                        disabled={!respostaTexto.trim()}
+                      >
+                        Fechar
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+                      onClick={() => handleResponderTicket(selectedTicket._id, respostaTexto, selectedTicket.status)}
+                      disabled={!respostaTexto.trim()}
+                    >
+                      <Send className="mr-2 h-4 w-4" />
+                      Enviar Resposta
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-gray-300"
+                      onClick={() => {
+                        setSelectedTicket(null);
+                        setRespostaTexto('');
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Confirm Modal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
