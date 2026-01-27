@@ -2411,6 +2411,85 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
     }
   };
 
+  const handleHeroImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        alert('Formato inválido! Use JPG, PNG ou WebP');
+        return;
+      }
+      
+      if (file.size > 10 * 1024 * 1024) {
+        alert('Imagem muito grande! Máximo 10MB');
+        return;
+      }
+
+      setHeroImageFile(file);
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHeroImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadHeroImage = async () => {
+    if (!heroImageFile) return;
+    
+    setUploadingHero(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', heroImageFile);
+
+      const res = await fetch('/api/barbearia/upload-hero', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        alert('Imagem de capa atualizada com sucesso!');
+        setHeroImageFile(null);
+        fetchSettings();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Erro ao fazer upload');
+      }
+    } catch (error) {
+      alert('Erro de conexão');
+    } finally {
+      setUploadingHero(false);
+    }
+  };
+
+  const handleRemoveHeroImage = async () => {
+    if (!confirm('Tem certeza que deseja remover a imagem de capa?')) return;
+
+    try {
+      const res = await fetch('/api/barbearia/upload-hero', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (res.ok) {
+        alert('Imagem de capa removida com sucesso!');
+        setImagemHero('');
+        setHeroImagePreview('');
+        setHeroImageFile(null);
+        fetchSettings();
+      }
+    } catch (error) {
+      alert('Erro ao remover imagem');
+    }
+  };
+
   const handleStripeSubmit = async (e) => {
     e.preventDefault();
     setStripeLoading(true);
