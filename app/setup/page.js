@@ -178,12 +178,19 @@ function SetupContent() {
       const barbeariaData = await barbeariaResponse.json();
 
       if (barbeariaResponse.ok) {
-        // Clear owner token
+        // Clear owner token and set admin token
         localStorage.removeItem('token');
         
-        // Show success and redirect
-        alert('✅ Barbearia criada com sucesso!\n\nFaça login com:\nEmail: ' + emailAdmin);
-        window.location.href = '/';
+        if (barbeariaData.admin_token) {
+          localStorage.setItem('token', barbeariaData.admin_token);
+          // Redirect to admin panel
+          alert('✅ Barbearia criada com sucesso!\n\nA redirecionar para o painel admin...');
+          window.location.href = '/admin';
+        } else {
+          // Fallback: redirect to login
+          alert('✅ Barbearia criada com sucesso!\n\nFaça login com:\nEmail: ' + emailAdmin);
+          window.location.href = '/';
+        }
       } else {
         setError(barbeariaData.error || 'Erro ao criar barbearia');
       }
