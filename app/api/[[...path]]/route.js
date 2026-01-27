@@ -570,6 +570,52 @@ export async function POST(request, { params }) {
 
       const result = await db.collection('marcacoes').insertOne(marcacao);
 
+      // Send WhatsApp notification
+      try {
+        // Get client info
+        const cliente = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
+        
+        // Get barbeiro info
+        const barbeiro = await db.collection('utilizadores').findOne({ _id: new ObjectId(barbeiro_id) });
+        
+        // Get barbearia info
+        const barbearia = await db.collection('barbearias').findOne({ 
+          _id: new ObjectId(marcacao.barbearia_id) 
+        });
+
+        // Get local info if exists
+        let localInfo = '';
+        if (local_id) {
+          const local = await db.collection('locais').findOne({ _id: new ObjectId(local_id) });
+          if (local && local.morada) {
+            localInfo = `\n📍 Local: ${local.morada}`;
+          }
+        }
+
+        // Format WhatsApp message
+        const whatsappMessage = `Olá ${cliente?.nome || 'Cliente'}! 
+
+A sua marcação foi confirmada:
+📅 Data: ${data}
+🕐 Hora: ${hora}
+💈 Serviço: ${servicoObj.nome}
+👨‍🦰 Barbeiro: ${barbeiro?.nome || 'N/A'}
+
+Barbearia: ${barbearia?.nome || 'CutHub'}${localInfo}
+
+Até breve!`;
+
+        // Send WhatsApp if client has phone number
+        if (cliente?.telemovel) {
+          await sendWhatsAppNotification(cliente.telemovel, whatsappMessage);
+        } else {
+          console.log('[WhatsApp] Cliente sem número de telemóvel. Notificação não enviada.');
+        }
+      } catch (error) {
+        console.error('[WhatsApp] Error preparing notification:', error);
+        // Don't fail the request if WhatsApp fails
+      }
+
       // Mock email notification
       console.log(`[MOCK EMAIL] Nova marcação confirmada automaticamente para ${data} às ${hora}`);
 
