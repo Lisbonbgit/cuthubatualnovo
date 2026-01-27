@@ -1315,9 +1315,15 @@ export async function GET(request, { params }) {
         user_id: decoded.userId
       }, { sort: { created_at: -1 } });
 
+      // Check if owner has any barbershops
+      const barbearia = await db.collection('barbearias').findOne({
+        owner_id: decoded.userId
+      });
+
       if (!subscription) {
         return NextResponse.json({ 
           has_subscription: false,
+          has_barbearia: !!barbearia,
           requires_subscription: true 
         });
       }
@@ -1330,6 +1336,8 @@ export async function GET(request, { params }) {
 
       return NextResponse.json({
         has_subscription: true,
+        has_barbearia: !!barbearia,
+        barbearia: barbearia ? { nome: barbearia.nome, slug: barbearia.slug } : null,
         subscription: {
           ...subscription,
           trial_ended: trialEnded,
