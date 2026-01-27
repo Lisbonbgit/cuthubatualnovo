@@ -1804,8 +1804,12 @@ export async function GET(request, { params }) {
         { $group: { _id: '$plano', count: { $sum: 1 } } }
       ]).toArray();
 
-      // Receita total (simulada - baseada em subscriptions)
-      const subscriptionsAtivas = await db.collection('subscriptions').countDocuments({ status: 'active' });
+      // Subscriptions ativas (contar por barbearia_id OU user_id)
+      const allSubscriptions = await db.collection('subscriptions')
+        .find({ status: { $in: ['active', 'trialing'] } })
+        .toArray();
+      
+      const subscriptionsAtivas = allSubscriptions.length;
 
       return NextResponse.json({
         barbearias: {
