@@ -215,24 +215,6 @@ export default function SetupPage() {
         </div>
       </div>
 
-      {/* Success Modal */}
-      {showSuccessModal && successData && (
-        <SuccessModal
-          isOpen={showSuccessModal}
-          onClose={() => {
-            setShowSuccessModal(false);
-            router.push('/');
-          }}
-          title={successData.title || 'Sucesso!'}
-          message={successData.message}
-          details={[
-            { label: 'Barbearia', value: successData.nome },
-            { label: 'URL Pública', value: `/barbearia/${successData.slug}` },
-            { label: 'Email Admin', value: successData.adminEmail }
-          ]}
-        />
-      )}
-
       {/* Footer */}
       <FooterSimple variant="dark" />
     </div>
