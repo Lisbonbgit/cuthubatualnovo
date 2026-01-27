@@ -437,7 +437,7 @@ export async function POST(request, { params }) {
 
     // PLANOS CLIENTE - Create
     if (path === 'planos-cliente') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
@@ -874,7 +874,7 @@ Até breve!`;
 
     // PLANOS CLIENTE - Create
     if (path === 'planos-cliente') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
