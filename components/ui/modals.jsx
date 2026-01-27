@@ -211,6 +211,66 @@ export function ErrorModal({ isOpen, onClose, title, message }) {
   );
 }
 
+// Generic Info Modal - Following CopySuccessModal design pattern  
+export function InfoModal({ isOpen, onClose, title, message, autoClose = false, autoCloseDelay = 3000 }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      if (autoClose) {
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }, autoCloseDelay);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isOpen, autoClose, autoCloseDelay, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div 
+        className={`transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Info Icon */}
+              <div className="relative">
+                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                  <AlertCircle className="h-5 w-5 text-white" />
+                </div>
+              </div>
+
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+                {message && <p className="text-zinc-400 text-sm whitespace-pre-line">{message}</p>}
+              </div>
+
+              {/* Close Button */}
+              <Button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onClose, 300);
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                OK
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 export function ConfirmModal({ isOpen, onClose, onConfirm, title, message, confirmText = 'Confirmar', cancelText = 'Cancelar' }) {
   if (!isOpen) return null;
 
