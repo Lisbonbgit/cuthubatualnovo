@@ -271,7 +271,7 @@ export async function POST(request, { params }) {
 
     // BARBEIROS - Add (Admin only)
     if (path === 'barbeiros') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
