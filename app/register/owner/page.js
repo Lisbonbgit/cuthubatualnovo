@@ -51,10 +51,10 @@ export default function RegisterOwnerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
+    <div className="min-h-screen min-h-[100dvh] bg-zinc-950 flex flex-col">
       {/* Main Content - Centered */}
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
+      <main className="flex-1 flex items-center justify-center px-4 py-8 md:py-12">
+        <div className="w-full max-w-md mx-auto">
           {/* Back button */}
           <Button
             variant="ghost"
@@ -65,25 +65,25 @@ export default function RegisterOwnerPage() {
             Voltar
           </Button>
 
-          <div className="text-center mb-8">
-            <Scissors className="h-16 w-16 text-amber-600 mx-auto mb-4" />
-            <h1 className="text-4xl font-bold text-white mb-2">Crie Sua Barbearia</h1>
-            <p className="text-zinc-400">
+          <div className="text-center mb-6 md:mb-8">
+            <Scissors className="h-12 w-12 md:h-16 md:w-16 text-amber-600 mx-auto mb-3 md:mb-4" />
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Crie Sua Barbearia</h1>
+            <p className="text-zinc-400 text-sm md:text-base">
               Registe-se para começar a gerir a sua barbearia online
             </p>
           </div>
 
           <Card className="bg-zinc-800 border-zinc-700">
-            <CardHeader>
-              <CardTitle className="text-white">Criar Conta de Dono</CardTitle>
-              <CardDescription className="text-zinc-400">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-white text-lg md:text-xl">Criar Conta de Dono</CardTitle>
+              <CardDescription className="text-zinc-400 text-sm">
                 Após o registo, escolherá um plano para começar
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                  <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
+                  <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded text-sm">
                     {error}
                   </div>
                 )}
@@ -95,7 +95,7 @@ export default function RegisterOwnerPage() {
                     type="text"
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
-                    className="bg-zinc-900 border-zinc-700 text-white"
+                    className="bg-zinc-900 border-zinc-700 text-white h-11"
                     placeholder="Ex: Pedro Silva"
                     required
                   />
@@ -108,7 +108,7 @@ export default function RegisterOwnerPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-zinc-900 border-zinc-700 text-white"
+                    className="bg-zinc-900 border-zinc-700 text-white h-11"
                     placeholder="seu@email.com"
                     required
                   />
@@ -121,7 +121,7 @@ export default function RegisterOwnerPage() {
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-zinc-900 border-zinc-700 text-white"
+                    className="bg-zinc-900 border-zinc-700 text-white h-11"
                     placeholder="Mínimo 6 caracteres"
                     minLength="6"
                     required
@@ -130,7 +130,7 @@ export default function RegisterOwnerPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-amber-600 hover:bg-amber-700"
+                  className="w-full bg-amber-600 hover:bg-amber-700 h-11 text-base"
                   disabled={loading}
                 >
                   {loading ? 'A registar...' : 'Continuar para Escolher Plano'}
@@ -161,9 +161,9 @@ export default function RegisterOwnerPage() {
             </p>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* Footer - Fixed at bottom */}
+      {/* Footer */}
       <FooterSimple variant="dark" />
     </div>
   );
