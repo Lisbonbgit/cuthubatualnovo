@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Scissors, Loader2, Check, ArrowLeft } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
+import { Navbar } from '@/components/ui/navbar';
 
 export default function SetupPage() {
   const router = useRouter();
