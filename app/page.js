@@ -176,9 +176,9 @@ export default function App() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LoginForm onSuccess={(user) => {
+              <LoginForm onSuccess={async (user) => {
                 setShowAuthModal(false);
-                redirectBasedOnUserType(user);
+                await redirectBasedOnUserType(user);
               }} />
             </CardContent>
           </Card>
