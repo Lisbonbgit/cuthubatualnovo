@@ -262,6 +262,141 @@ export default function MasterBackoffice() {
     setConfirmModal({ isOpen: false, barbearia: null });
   };
 
+  const fetchHeroImage = async () => {
+    try {
+      const res = await fetch('/api/saas/settings');
+      if (res.ok) {
+        const data = await res.json();
+        setHeroImage(data.settings?.hero_image || null);
+        setHeroImagePreview(data.settings?.hero_image || '');
+      }
+    } catch (error) {
+      console.error('Error fetching hero image:', error);
+    }
+  };
+
+  const handleHeroImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        setAlertModal({
+          isOpen: true,
+          title: 'Erro',
+          message: 'Formato inválido! Use JPG, PNG ou WebP',
+          type: 'error'
+        });
+        return;
+      }
+      
+      // Validate file size (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setAlertModal({
+          isOpen: true,
+          title: 'Erro',
+          message: 'Imagem muito grande! Máximo 10MB',
+          type: 'error'
+        });
+        return;
+      }
+
+      setHeroImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setHeroImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUploadHeroImage = async () => {
+    if (!heroImageFile) return;
+    
+    setUploadingHero(true);
+    const token = localStorage.getItem('token');
+
+    try {
+      const formData = new FormData();
+      formData.append('image', heroImageFile);
+
+      const res = await fetch('/api/master/upload-hero', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAlertModal({
+          isOpen: true,
+          title: 'Sucesso',
+          message: 'Imagem de capa atualizada com sucesso!',
+          type: 'success'
+        });
+        setHeroImage(data.hero_image);
+        setHeroImageFile(null);
+        fetchHeroImage();
+      } else {
+        const data = await res.json();
+        setAlertModal({
+          isOpen: true,
+          title: 'Erro',
+          message: data.error || 'Erro ao fazer upload',
+          type: 'error'
+        });
+      }
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Erro',
+        message: 'Erro de conexão',
+        type: 'error'
+      });
+    } finally {
+      setUploadingHero(false);
+    }
+  };
+
+  const handleRemoveHeroImage = async () => {
+    if (!confirm('Tem certeza que deseja remover a imagem de capa?')) return;
+    
+    const token = localStorage.getItem('token');
+
+    try {
+      const res = await fetch('/api/master/upload-hero', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        setAlertModal({
+          isOpen: true,
+          title: 'Sucesso',
+          message: 'Imagem de capa removida com sucesso!',
+          type: 'success'
+        });
+        setHeroImage(null);
+        setHeroImagePreview('');
+        setHeroImageFile(null);
+        fetchHeroImage();
+      }
+    } catch (error) {
+      setAlertModal({
+        isOpen: true,
+        title: 'Erro',
+        message: 'Erro ao remover imagem',
+        type: 'error'
+      });
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
