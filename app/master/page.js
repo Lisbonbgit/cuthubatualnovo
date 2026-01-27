@@ -47,6 +47,12 @@ export default function MasterBackoffice() {
   const [respostaTexto, setRespostaTexto] = useState('');
   const [filtroStatusSuporte, setFiltroStatusSuporte] = useState('todos');
   
+  // Hero image states
+  const [heroImage, setHeroImage] = useState(null);
+  const [heroImageFile, setHeroImageFile] = useState(null);
+  const [heroImagePreview, setHeroImagePreview] = useState('');
+  const [uploadingHero, setUploadingHero] = useState(false);
+  
   // UI states
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
