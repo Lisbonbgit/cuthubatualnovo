@@ -2695,6 +2695,29 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
               />
             </div>
 
+            <div className="space-y-3 p-4 bg-zinc-900 rounded-lg border border-zinc-700">
+              <Label className="text-zinc-300 text-base font-semibold">Preferências de Marcação</Label>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="permitirEscolha"
+                  checked={permitirEscolhaProfissional}
+                  onChange={(e) => setPermitirEscolhaProfissional(e.target.checked)}
+                  className="mt-1 w-5 h-5 rounded border-zinc-700 bg-zinc-800 text-amber-600"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="permitirEscolha" className="text-zinc-300 cursor-pointer font-medium">
+                    Permitir que o cliente escolha o profissional
+                  </Label>
+                  <p className="text-zinc-500 text-xs mt-1">
+                    {permitirEscolhaProfissional 
+                      ? 'Clientes poderão escolher o profissional ao fazer marcação' 
+                      : 'O sistema atribuirá automaticamente ou a marcação será feita sem profissional específico'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label className="text-zinc-300">Imagem de Capa da Página Pública</Label>
               <div className="space-y-3">
