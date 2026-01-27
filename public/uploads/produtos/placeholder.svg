@@ -1,0 +1,5 @@
+<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="200" fill="#27272a"/>
+  <text x="50%" y="45%" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="16" fill="#71717a">Sem Imagem</text>
+  <path d="M100 80 L100 120 M80 100 L120 100" stroke="#71717a" stroke-width="3" stroke-linecap="round"/>
+</svg>
