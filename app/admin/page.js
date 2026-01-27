@@ -2471,8 +2471,10 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
                 <Button
                   type="button"
                   onClick={() => {
-                    navigator.clipboard.writeText(`${window.location.origin}/barbearia/${barbearia.slug}`);
-                    alert('URL copiada!');
+                    const url = `${window.location.origin}/barbearia/${barbearia.slug}`;
+                    navigator.clipboard.writeText(url);
+                    setCopiedUrl(url);
+                    setShowCopyModal(true);
                   }}
                   variant="outline"
                   className="border-zinc-700"
