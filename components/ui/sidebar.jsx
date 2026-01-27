@@ -13,7 +13,7 @@ const menuConfigs = {
   admin: [
     { id: 'marcacoes', label: 'Marcações', icon: Calendar },
     { id: 'clientes', label: 'Clientes', icon: Users },
-    { id: 'barbeiros', label: 'Barbeiros', icon: User },
+    { id: 'barbeiros', label: 'Profissionais', icon: User },
     { id: 'servicos', label: 'Serviços', icon: Scissors },
     { id: 'produtos', label: 'Produtos', icon: Package },
     { id: 'planos', label: 'Planos', icon: CreditCard },
