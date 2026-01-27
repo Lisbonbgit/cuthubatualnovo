@@ -130,7 +130,7 @@ export function Footer({ variant = 'dark' }) {
       <div className={`${isDark ? 'bg-zinc-950' : 'bg-gray-50'} py-6`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className={`${isDark ? 'text-zinc-400' : 'text-gray-600'} text-sm`}>
-            © 2026 Lisbon Business Software . Todos os direitos reservados.
+            © 2026 CutHub. Todos os direitos reservados.
           </p>
           <p className={`${isDark ? 'text-zinc-500' : 'text-gray-500'} text-xs mt-1`}>
             Plataforma de gestão para barbearias
