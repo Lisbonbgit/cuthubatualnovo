@@ -255,7 +255,7 @@ export default function App() {
       <section className="py-20 bg-zinc-950">
         <div className="container">
           <h2 className="text-4xl font-bold text-white text-center mb-16">
-            Junte-se a Centenas de Barbearias em Portugal
+            Junte-se a Centenas de Barbearias em todo o mundo
           </h2>
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
