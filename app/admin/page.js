@@ -2687,26 +2687,66 @@ function ConfiguracoesTab({ barbearia, subscription, fetchSettings }) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">Imagem de Capa (URL)</Label>
-              <Input
-                value={imagemHero}
-                onChange={(e) => setImagemHero(e.target.value)}
-                className="bg-zinc-900 border-zinc-700 text-white"
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
-              <p className="text-zinc-500 text-xs">
-                URL da imagem que aparece na página pública da sua barbearia. Recomendado: 1920x800 pixels
-              </p>
-              {imagemHero && (
-                <div className="mt-2 rounded-lg overflow-hidden h-32">
-                  <img 
-                    src={imagemHero} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
+              <Label className="text-zinc-300">Imagem de Capa da Página Pública</Label>
+              <div className="space-y-3">
+                {/* Preview da imagem de capa */}
+                {heroImagePreview && (
+                  <div className="relative rounded-lg overflow-hidden">
+                    <img 
+                      src={heroImagePreview} 
+                      alt="Hero Preview" 
+                      className="w-full h-48 object-cover border-2 border-zinc-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveHeroImage}
+                      className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold shadow-lg"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                
+                {!heroImagePreview && (
+                  <div className="w-full h-48 bg-zinc-900 rounded-lg border-2 border-dashed border-zinc-700 flex items-center justify-center">
+                    <div className="text-center">
+                      <Package className="h-12 w-12 text-zinc-600 mx-auto mb-2" />
+                      <p className="text-zinc-500 text-sm">Nenhuma imagem de capa definida</p>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload controls */}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer">
+                    <div className="bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      {heroImagePreview ? 'Alterar Imagem' : 'Escolher Imagem'}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleHeroImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                  
+                  {heroImageFile && (
+                    <Button
+                      type="button"
+                      onClick={handleUploadHeroImage}
+                      disabled={uploadingHero}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {uploadingHero ? 'A carregar...' : 'Guardar Imagem'}
+                    </Button>
+                  )}
                 </div>
-              )}
+                
+                <p className="text-zinc-500 text-xs">
+                  Recomendado: Imagem horizontal (1920x800px). Formatos: JPG, PNG ou WebP (máx. 10MB)
+                </p>
+              </div>
             </div>
 
             <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
