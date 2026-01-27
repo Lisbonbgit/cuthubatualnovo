@@ -1168,7 +1168,7 @@ export async function GET(request, { params }) {
     const path = params?.path ? params.path.join('/') : '';
     const { searchParams } = new URL(request.url);
     const client = await connectToDatabase();
-    const db = client.db('barbearia_saas');
+    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
 
     // Public routes
     // GET Available Plans (public - no auth required)
