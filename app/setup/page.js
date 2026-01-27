@@ -386,6 +386,15 @@ function SetupContent() {
       </main>
 
       <FooterSimple variant="dark" />
+      
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Barbearia Criada com Sucesso!"
+        message="A redirecionar para o painel admin..."
+        details={successDetails}
+      />
     </div>
   );
 }
