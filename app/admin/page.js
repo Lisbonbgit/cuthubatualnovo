@@ -2126,30 +2126,48 @@ function ProdutosTab({ produtos, fetchProdutos }) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-zinc-300">URL da Imagem</Label>
-              <Input
-                value={imagem}
-                onChange={(e) => setImagem(e.target.value)}
-                className="bg-zinc-800 border-zinc-700 text-white"
-                placeholder="https://exemplo.com/imagem.jpg"
-              />
-              <p className="text-zinc-500 text-xs">Cole o URL de uma imagem do produto (Unsplash, Imgur, etc.)</p>
-              {imagem && (
-                <div className="mt-2">
-                  <p className="text-zinc-400 text-xs mb-1">Pré-visualização:</p>
-                  <img 
-                    src={imagem} 
-                    alt="Preview" 
-                    className="h-20 w-20 object-cover rounded border border-zinc-700"
-                    onError={(e) => e.target.style.display = 'none'}
-                  />
+              <Label className="text-zinc-300">Imagem do Produto</Label>
+              <div className="space-y-3">
+                {/* Preview da imagem */}
+                {(imagemPreview || editingProduto?.imagem) && (
+                  <div className="relative inline-block">
+                    <img 
+                      src={imagemPreview || editingProduto?.imagem} 
+                      alt="Preview" 
+                      className="h-32 w-32 object-cover rounded-lg border-2 border-zinc-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                )}
+                
+                {/* Input de arquivo */}
+                <div className="flex items-center gap-3">
+                  <label className="cursor-pointer">
+                    <div className="bg-zinc-700 hover:bg-zinc-600 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      {imagemPreview || editingProduto?.imagem ? 'Alterar Imagem' : 'Escolher Imagem'}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <p className="text-zinc-500 text-xs">JPG, PNG ou WebP (máx. 5MB)</p>
                 </div>
-              )}
+              </div>
             </div>
 
             <div className="flex gap-2">
-              <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
-                {loading ? 'A guardar...' : (editingProduto ? 'Guardar Alterações' : 'Adicionar')}
+              <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading || uploadingImage}>
+                {uploadingImage ? 'A carregar imagem...' : loading ? 'A guardar...' : (editingProduto ? 'Guardar Alterações' : 'Adicionar')}
               </Button>
               <Button 
                 type="button" 
