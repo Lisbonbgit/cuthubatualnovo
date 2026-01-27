@@ -1093,6 +1093,71 @@ export default function MasterBackoffice() {
                     </div>
                   </div>
 
+                  <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-lg border border-emerald-200">
+                    <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
+                      <Building2 className="h-5 w-5 text-emerald-600" />
+                      Imagem de Capa da Home
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      {/* Preview da imagem de capa */}
+                      {heroImagePreview && (
+                        <div className="relative">
+                          <img 
+                            src={heroImagePreview} 
+                            alt="Hero Image" 
+                            className="w-full h-48 object-cover rounded-lg border-2 border-emerald-300"
+                          />
+                          <button
+                            onClick={handleRemoveHeroImage}
+                            className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold shadow-lg"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      )}
+                      
+                      {!heroImagePreview && (
+                        <div className="w-full h-48 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                          <div className="text-center">
+                            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                            <p className="text-gray-500 text-sm">Nenhuma imagem de capa definida</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Upload controls */}
+                      <div className="flex items-center gap-3">
+                        <label className="cursor-pointer">
+                          <div className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2">
+                            <Building2 className="h-4 w-4" />
+                            {heroImagePreview ? 'Alterar Imagem de Capa' : 'Escolher Imagem de Capa'}
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/jpg,image/png,image/webp"
+                            onChange={handleHeroImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                        
+                        {heroImageFile && (
+                          <Button
+                            onClick={handleUploadHeroImage}
+                            disabled={uploadingHero}
+                            className="bg-violet-600 hover:bg-violet-700"
+                          >
+                            {uploadingHero ? 'A carregar...' : 'Guardar Imagem'}
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <p className="text-gray-600 text-xs">
+                        Recomendado: Imagem horizontal (1920x800px ou similar). Formatos: JPG, PNG ou WebP (máx. 10MB)
+                      </p>
+                    </div>
+                  </div>
+
                   <div className="p-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200">
                     <h3 className="text-gray-900 font-semibold mb-2 flex items-center gap-2">
                       <CreditCard className="h-5 w-5 text-amber-600" />
