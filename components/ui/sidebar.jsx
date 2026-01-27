@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { 
   Calendar, Users, Scissors, Package, Clock, Settings, 
   CreditCard, User, LogOut, ChevronLeft, ChevronRight,
-  LayoutDashboard, History, UserCircle, MapPin
+  LayoutDashboard, History, UserCircle, MapPin, HelpCircle
 } from 'lucide-react';
 
 // Configurações de menu por tipo de utilizador
@@ -20,6 +20,7 @@ const menuConfigs = {
     { id: 'locais', label: 'Locais', icon: MapPin },
     { id: 'horarios', label: 'Horários', icon: Clock },
     { id: 'configuracoes', label: 'Configurações', icon: Settings },
+    { id: 'suporte', label: 'Suporte', icon: HelpCircle },
   ],
   barbeiro: [
     { id: 'marcacoes', label: 'Marcações', icon: Calendar },
