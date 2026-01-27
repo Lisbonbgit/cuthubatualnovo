@@ -1,8 +1,91 @@
 'use client';
 
-import { CheckCircle2, AlertCircle, X, AlertTriangle, Calendar, User, Scissors, Clock, Euro, Phone, Mail, MapPin } from 'lucide-react';
+import { CheckCircle2, AlertCircle, X, AlertTriangle, Calendar, User, Scissors, Clock, Euro, Phone, Mail, MapPin, Copy, Link, ExternalLink } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
+import { useEffect, useState } from 'react';
+
+// Copy Success Modal - Beautiful toast-like modal for URL copy feedback
+export function CopySuccessModal({ isOpen, onClose, url, autoClose = true, autoCloseDelay = 2500 }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      if (autoClose) {
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }, autoCloseDelay);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isOpen, autoClose, autoCloseDelay, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div 
+        className={`transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            {/* Success Animation */}
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Animated Check Icon */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <CheckCircle2 className="h-8 w-8 text-white" />
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">URL Copiada!</h3>
+                <p className="text-zinc-400 text-sm">O link foi copiado para a área de transferência</p>
+              </div>
+
+              {/* URL Preview */}
+              {url && (
+                <div className="w-full bg-zinc-950 rounded-lg p-3 border border-zinc-700">
+                  <div className="flex items-center gap-2">
+                    <Link className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                    <p className="text-amber-400 text-sm font-mono truncate">{url}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 w-full pt-2">
+                <Button
+                  onClick={() => window.open(url, '_blank')}
+                  variant="outline"
+                  className="flex-1 border-zinc-700 hover:bg-zinc-800"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Abrir
+                </Button>
+                <Button
+                  onClick={() => {
+                    setIsVisible(false);
+                    setTimeout(onClose, 300);
+                  }}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  Fechar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export function SuccessModal({ isOpen, onClose, title, message, details }) {
   if (!isOpen) return null;
