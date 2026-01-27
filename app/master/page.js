@@ -58,6 +58,14 @@ export default function MasterBackoffice() {
     checkAuth();
   }, []);
 
+  // Atualizar tickets quando o filtro de status mudar
+  useEffect(() => {
+    if (user && activeTab === 'suporte') {
+      const token = localStorage.getItem('token');
+      fetchSuporteTickets(token);
+    }
+  }, [filtroStatusSuporte, activeTab]);
+
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
