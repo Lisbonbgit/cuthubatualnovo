@@ -208,6 +208,18 @@ export default function AdminPanel() {
     setLocais(data.locais || []);
   };
 
+  const fetchSuporteTickets = async (token) => {
+    try {
+      const response = await fetch('/api/suporte', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      setSuporteTickets(data.tickets || []);
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     router.push('/');
