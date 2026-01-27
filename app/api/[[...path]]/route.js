@@ -231,6 +231,14 @@ export async function POST(request, { params }) {
       const barbeariaResult = await db.collection('barbearias').insertOne(barbearia);
       const barbeariaId = barbeariaResult.insertedId.toString();
 
+      // Atualizar o owner com o barbearia_id
+      if (userId) {
+        await db.collection('utilizadores').updateOne(
+          { _id: new ObjectId(userId) },
+          { $set: { barbearia_id: barbeariaId } }
+        );
+      }
+
       const hashedPassword = await bcrypt.hash(password_admin, 10);
       const admin = {
         email: email_admin,
