@@ -20,8 +20,6 @@ export default function SetupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(true);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successData, setSuccessData] = useState(null);
 
   useEffect(() => {
     setMounted(true);
