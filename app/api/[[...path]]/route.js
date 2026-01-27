@@ -237,6 +237,12 @@ export async function POST(request, { params }) {
           { _id: new ObjectId(userId) },
           { $set: { barbearia_id: barbeariaId } }
         );
+        
+        // Atualizar a subscription com o barbearia_id
+        await db.collection('subscriptions').updateOne(
+          { user_id: userId, status: { $in: ['active', 'trialing'] } },
+          { $set: { barbearia_id: barbeariaId } }
+        );
       }
 
       const hashedPassword = await bcrypt.hash(password_admin, 10);
