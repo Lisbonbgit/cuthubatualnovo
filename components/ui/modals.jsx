@@ -131,11 +131,11 @@ export function SuccessModal({ isOpen, onClose, title, message, details, autoClo
 
               {/* Details Section */}
               {details && (
-                <div className="w-full space-y-3">
+                <div className="w-full space-y-2">
                   {details.map((detail, index) => (
-                    <div key={index} className="bg-zinc-950 p-3 rounded-lg border border-zinc-700">
-                      <p className="text-zinc-400 text-sm mb-1">{detail.label}</p>
-                      <p className="text-white font-medium">{detail.value}</p>
+                    <div key={index} className="bg-zinc-950 rounded-lg p-3 border border-zinc-700">
+                      <p className="text-zinc-500 text-xs mb-1">{detail.label}</p>
+                      <p className="text-white font-medium text-sm">{detail.value}</p>
                     </div>
                   ))}
                 </div>
