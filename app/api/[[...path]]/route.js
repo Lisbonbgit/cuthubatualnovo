@@ -84,7 +84,7 @@ export async function POST(request, { params }) {
     const path = params?.path ? params.path.join('/') : '';
     const body = await request.json();
     const client = await connectToDatabase();
-    const db = client.db('barbearia_saas');
+    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
 
     // AUTH - Register
     if (path === 'auth/register') {
