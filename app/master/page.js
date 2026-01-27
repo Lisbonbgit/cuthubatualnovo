@@ -328,6 +328,7 @@ export default function MasterBackoffice() {
               { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
               { id: 'barbearias', label: 'Barbearias', icon: Store },
               { id: 'atividade', label: 'Atividade', icon: Activity },
+              { id: 'suporte', label: 'Suporte', icon: HelpCircle },
               { id: 'configuracoes', label: 'Configurações', icon: Settings },
             ].map((tab) => (
               <button
