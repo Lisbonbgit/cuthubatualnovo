@@ -586,7 +586,7 @@ Até breve!`;
 
     // HORÁRIOS - Update
     if (path === 'horarios') {
-      if (decoded.tipo !== 'admin') {
+      if (decoded.tipo !== 'admin' && decoded.tipo !== 'owner') {
         return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
       }
 
