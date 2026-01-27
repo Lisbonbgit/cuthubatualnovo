@@ -1937,6 +1937,8 @@ function ProdutosTab({ produtos, fetchProdutos }) {
     setPreco('');
     setDescricao('');
     setImagem('');
+    setImagemFile(null);
+    setImagemPreview('');
     setEditingProduto(null);
   };
 
@@ -1946,7 +1948,56 @@ function ProdutosTab({ produtos, fetchProdutos }) {
     setPreco(produto.preco?.toString() || '');
     setDescricao(produto.descricao || '');
     setImagem(produto.imagem || '');
+    setImagemPreview(produto.imagem || '');
+    setImagemFile(null);
     setShowForm(true);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        alert('Formato inválido! Use JPG, PNG ou WebP');
+        return;
+      }
+      
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Imagem muito grande! Máximo 5MB');
+        return;
+      }
+
+      setImagemFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagemPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = async () => {
+    if (editingProduto && editingProduto.imagem) {
+      try {
+        await fetch(`/app/api/produtos/${editingProduto._id}/upload-image`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        setImagem('');
+        setImagemPreview('');
+        setImagemFile(null);
+        fetchProdutos();
+      } catch (error) {
+        console.error('Error removing image:', error);
+      }
+    } else {
+      setImagemFile(null);
+      setImagemPreview('');
+    }
   };
 
   const handleSubmit = async (e) => {
