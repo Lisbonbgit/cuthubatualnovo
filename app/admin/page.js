@@ -3469,3 +3469,256 @@ function LocaisTab({ locais, fetchLocais }) {
     </div>
   );
 }
+
+function SuporteTab({ tickets, fetchTickets }) {
+  const [showForm, setShowForm] = useState(false);
+  const [assunto, setAssunto] = useState('');
+  const [mensagem, setMensagem] = useState('');
+  const [prioridade, setPrioridade] = useState('normal');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const [error, setError] = useState('');
+  const [selectedTicket, setSelectedTicket] = useState(null);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/suporte', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ assunto, mensagem, prioridade })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSuccess(data.message);
+        setAssunto('');
+        setMensagem('');
+        setPrioridade('normal');
+        setShowForm(false);
+        fetchTickets();
+      } else {
+        setError(data.error || 'Erro ao enviar ticket');
+      }
+    } catch (error) {
+      setError('Erro de conexão. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const styles = {
+      aberto: 'bg-yellow-900/50 text-yellow-400',
+      em_andamento: 'bg-blue-900/50 text-blue-400',
+      resolvido: 'bg-green-900/50 text-green-400',
+      fechado: 'bg-zinc-700 text-zinc-400'
+    };
+    const labels = {
+      aberto: 'Aberto',
+      em_andamento: 'Em Andamento',
+      resolvido: 'Resolvido',
+      fechado: 'Fechado'
+    };
+    return (
+      <span className={`px-2 py-1 rounded text-xs ${styles[status] || styles.aberto}`}>
+        {labels[status] || status}
+      </span>
+    );
+  };
+
+  const getPrioridadeBadge = (prioridade) => {
+    const styles = {
+      baixa: 'bg-zinc-700 text-zinc-300',
+      normal: 'bg-blue-900/50 text-blue-400',
+      alta: 'bg-orange-900/50 text-orange-400',
+      urgente: 'bg-red-900/50 text-red-400'
+    };
+    return (
+      <span className={`px-2 py-1 rounded text-xs ${styles[prioridade] || styles.normal}`}>
+        {prioridade.charAt(0).toUpperCase() + prioridade.slice(1)}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card className="bg-zinc-800 border-zinc-700">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-white flex items-center gap-2">
+                <HelpCircle className="h-5 w-5 text-amber-500" />
+                Suporte
+              </CardTitle>
+              <CardDescription className="text-zinc-400">
+                Precisa de ajuda? Envie um pedido de suporte
+              </CardDescription>
+            </div>
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Novo Pedido
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {success && (
+            <div className="bg-green-900/20 border border-green-700 text-green-400 px-4 py-3 rounded mb-4">
+              {success}
+            </div>
+          )}
+
+          {/* Formulário de novo ticket */}
+          {showForm && (
+            <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
+              <h3 className="text-white font-semibold text-lg mb-4">Novo Pedido de Suporte</h3>
+              
+              {error && (
+                <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
+                  {error}
+                </div>
+              )}
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Assunto *</Label>
+                  <Input
+                    value={assunto}
+                    onChange={(e) => setAssunto(e.target.value)}
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                    placeholder="Ex: Problema com marcações"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-zinc-300">Prioridade</Label>
+                  <select
+                    value={prioridade}
+                    onChange={(e) => setPrioridade(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2"
+                  >
+                    <option value="baixa">Baixa</option>
+                    <option value="normal">Normal</option>
+                    <option value="alta">Alta</option>
+                    <option value="urgente">Urgente</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-zinc-300">Mensagem *</Label>
+                <textarea
+                  value={mensagem}
+                  onChange={(e) => setMensagem(e.target.value)}
+                  className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 min-h-[120px]"
+                  placeholder="Descreva o seu problema em detalhe..."
+                  required
+                />
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={loading}>
+                  <Send className="mr-2 h-4 w-4" />
+                  {loading ? 'A enviar...' : 'Enviar Pedido'}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="border-zinc-700"
+                  onClick={() => setShowForm(false)}
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Lista de tickets */}
+          {tickets.length === 0 ? (
+            <div className="text-center py-12">
+              <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
+              <p className="text-zinc-400">Nenhum pedido de suporte</p>
+              <p className="text-zinc-500 text-sm mt-2">
+                Clique em "Novo Pedido" para enviar uma questão ou reportar um problema
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {tickets.map((ticket) => (
+                <Card 
+                  key={ticket._id} 
+                  className={`bg-zinc-900 border-zinc-700 cursor-pointer hover:border-zinc-600 transition-colors ${
+                    selectedTicket?._id === ticket._id ? 'border-amber-600' : ''
+                  }`}
+                  onClick={() => setSelectedTicket(selectedTicket?._id === ticket._id ? null : ticket)}
+                >
+                  <CardContent className="py-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="text-white font-medium">{ticket.assunto}</h4>
+                          {getStatusBadge(ticket.status)}
+                          {getPrioridadeBadge(ticket.prioridade)}
+                        </div>
+                        <p className="text-zinc-400 text-sm line-clamp-2">{ticket.mensagem}</p>
+                        <p className="text-zinc-500 text-xs mt-2">
+                          Criado em {new Date(ticket.criado_em).toLocaleDateString('pt-PT')} às{' '}
+                          {new Date(ticket.criado_em).toLocaleTimeString('pt-PT', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      {ticket.respostas?.length > 0 && (
+                        <div className="bg-amber-900/30 text-amber-400 px-2 py-1 rounded text-xs">
+                          {ticket.respostas.length} resposta(s)
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Detalhes expandidos */}
+                    {selectedTicket?._id === ticket._id && (
+                      <div className="mt-4 pt-4 border-t border-zinc-700">
+                        <h5 className="text-zinc-300 text-sm font-medium mb-2">Mensagem completa:</h5>
+                        <p className="text-zinc-400 text-sm whitespace-pre-wrap bg-zinc-800 p-3 rounded">
+                          {ticket.mensagem}
+                        </p>
+
+                        {ticket.respostas?.length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="text-zinc-300 text-sm font-medium mb-2">Respostas:</h5>
+                            <div className="space-y-2">
+                              {ticket.respostas.map((resposta, idx) => (
+                                <div key={idx} className="bg-amber-900/20 border border-amber-900/50 p-3 rounded">
+                                  <div className="flex justify-between items-center mb-2">
+                                    <span className="text-amber-400 text-sm font-medium">{resposta.autor}</span>
+                                    <span className="text-zinc-500 text-xs">
+                                      {new Date(resposta.data).toLocaleDateString('pt-PT')}
+                                    </span>
+                                  </div>
+                                  <p className="text-zinc-300 text-sm">{resposta.texto}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
