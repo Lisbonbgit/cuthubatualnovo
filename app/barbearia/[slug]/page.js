@@ -946,36 +946,39 @@ export default function BarbeariaPublicPage() {
                     )}
 
                     <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label className="text-zinc-300">Profissional</Label>
-                        <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
-                          <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
-                            <SelectValue placeholder="Selecione um barbeiro" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-800 border-zinc-700">
-                            {barbeirosDisponiveis.length === 0 ? (
-                              <div className="px-2 py-1 text-zinc-400 text-sm">
-                                {locais.length > 1 && !selectedLocal 
-                                  ? 'Selecione um local primeiro' 
-                                  : 'Nenhum barbeiro disponível'}
-                              </div>
-                            ) : (
-                              barbeirosDisponiveis.map((b) => (
-                                <SelectItem key={b._id} value={b._id} className="text-white">
-                                  {b.nome}
-                                  {b.local_id && locais.length > 1 && (
-                                    <span className="text-zinc-400 ml-2 text-xs">
-                                      ({locais.find(l => l._id === b.local_id)?.nome || 'Local'})
-                                    </span>
-                                  )}
-                                </SelectItem>
-                              ))
-                            )}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {/* Mostrar seleção de profissional apenas se permitido pela barbearia */}
+                      {barbearia.permitir_escolha_profissional !== false && (
+                        <div className="space-y-2">
+                          <Label className="text-zinc-300">Profissional</Label>
+                          <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
+                            <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
+                              <SelectValue placeholder="Selecione um profissional" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-800 border-zinc-700">
+                              {barbeirosDisponiveis.length === 0 ? (
+                                <div className="px-2 py-1 text-zinc-400 text-sm">
+                                  {locais.length > 1 && !selectedLocal 
+                                    ? 'Selecione um local primeiro' 
+                                    : 'Nenhum profissional disponível'}
+                                </div>
+                              ) : (
+                                barbeirosDisponiveis.map((b) => (
+                                  <SelectItem key={b._id} value={b._id} className="text-white">
+                                    {b.nome}
+                                    {b.local_id && locais.length > 1 && (
+                                      <span className="text-zinc-400 ml-2 text-xs">
+                                        ({locais.find(l => l._id === b.local_id)?.nome || 'Local'})
+                                      </span>
+                                    )}
+                                  </SelectItem>
+                                ))
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
 
-                      <div className="space-y-2">
+                      <div className={`space-y-2 ${barbearia.permitir_escolha_profissional === false ? 'md:col-span-2' : ''}`}>
                         <Label className="text-zinc-300">Serviço</Label>
                         <Select value={selectedServico} onValueChange={setSelectedServico}>
                           <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
