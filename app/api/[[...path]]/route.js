@@ -1852,7 +1852,14 @@ export async function GET(request, { params }) {
         barbearias.map(async (b) => {
           const totalUtilizadores = await db.collection('utilizadores').countDocuments({ barbearia_id: b._id.toString() });
           const totalMarcacoes = await db.collection('marcacoes').countDocuments({ barbearia_id: b._id.toString() });
-          const subscription = await db.collection('subscriptions').findOne({ barbearia_id: b._id.toString() });
+          
+          // Buscar subscription - primeiro por barbearia_id, depois por user_id do owner
+          let subscription = await db.collection('subscriptions').findOne({ barbearia_id: b._id.toString() });
+          
+          if (!subscription && b.owner_id) {
+            subscription = await db.collection('subscriptions').findOne({ user_id: b.owner_id });
+          }
+          
           const owner = await db.collection('utilizadores').findOne({ 
             barbearia_id: b._id.toString(), 
             tipo: { $in: ['admin', 'owner'] } 
