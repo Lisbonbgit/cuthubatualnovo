@@ -87,52 +87,74 @@ export function CopySuccessModal({ isOpen, onClose, url, autoClose = true, autoC
   );
 }
 
-export function SuccessModal({ isOpen, onClose, title, message, details }) {
+export function SuccessModal({ isOpen, onClose, title, message, details, autoClose = true, autoCloseDelay = 2500 }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+      if (autoClose && !details) {
+        const timer = setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(onClose, 300);
+        }, autoCloseDelay);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isOpen, autoClose, autoCloseDelay, onClose, details]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-green-500" />
-            </div>
-            <CardTitle className="text-white text-xl">{title}</CardTitle>
-          </div>
-          {message && (
-            <CardDescription className="text-zinc-300 text-base">
-              {message}
-            </CardDescription>
-          )}
-        </CardHeader>
-        {details && (
-          <CardContent className="space-y-3">
-            {details.map((detail, index) => (
-              <div key={index} className="bg-zinc-900 p-3 rounded-lg">
-                <p className="text-zinc-400 text-sm mb-1">{detail.label}</p>
-                <p className="text-white font-medium">{detail.value}</p>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div 
+        className={`transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Animated Check Icon */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                  <CheckCircle2 className="h-8 w-8 text-white" />
+                </div>
               </div>
-            ))}
-            <Button
-              onClick={onClose}
-              className="w-full bg-green-600 hover:bg-green-700 mt-4"
-            >
-              Continuar
-            </Button>
+
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+                {message && <p className="text-zinc-400 text-sm">{message}</p>}
+              </div>
+
+              {/* Details Section */}
+              {details && (
+                <div className="w-full space-y-3">
+                  {details.map((detail, index) => (
+                    <div key={index} className="bg-zinc-950 p-3 rounded-lg border border-zinc-700">
+                      <p className="text-zinc-400 text-sm mb-1">{detail.label}</p>
+                      <p className="text-white font-medium">{detail.value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Close Button */}
+              <Button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onClose, 300);
+                }}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {details ? 'Continuar' : 'OK'}
+              </Button>
+            </div>
           </CardContent>
-        )}
-        {!details && (
-          <CardContent>
-            <Button
-              onClick={onClose}
-              className="w-full bg-green-600 hover:bg-green-700"
-            >
-              OK
-            </Button>
-          </CardContent>
-        )}
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
