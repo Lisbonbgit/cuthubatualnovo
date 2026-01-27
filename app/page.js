@@ -60,7 +60,7 @@ export default function App() {
     } else if (user.tipo === 'admin') {
       window.location.href = '/admin';
     } else if (user.tipo === 'barbeiro') {
-      window.location.href = '/admin'; // Barbeiros também vão para o admin (versão limitada)
+      window.location.href = '/barbeiro'; // Barbeiros vão para o seu perfil
     } else if (user.tipo === 'cliente') {
       window.location.href = '/cliente';
     } else if (user.tipo === 'owner') {
