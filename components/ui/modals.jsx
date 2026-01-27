@@ -880,41 +880,95 @@ export function ClienteDetailModal({ isOpen, onClose, cliente }) {
 
 // Modal de Alerta (substitui window.alert)
 export function AlertModal({ isOpen, onClose, title, message, type = 'info' }) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsVisible(true);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const getTypeStyles = () => {
+  const getTypeConfig = () => {
     switch(type) {
-      case 'success': return { bg: 'bg-green-500/20', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, button: 'bg-green-600 hover:bg-green-700' };
-      case 'error': return { bg: 'bg-red-500/20', icon: <AlertCircle className="h-6 w-6 text-red-500" />, button: 'bg-red-600 hover:bg-red-700' };
-      case 'warning': return { bg: 'bg-amber-500/20', icon: <AlertTriangle className="h-6 w-6 text-amber-500" />, button: 'bg-amber-600 hover:bg-amber-700' };
-      default: return { bg: 'bg-blue-500/20', icon: <AlertCircle className="h-6 w-6 text-blue-500" />, button: 'bg-blue-600 hover:bg-blue-700' };
+      case 'success':
+        return {
+          gradient: 'from-green-500 to-green-600',
+          shadow: 'shadow-green-500/30',
+          button: 'bg-green-600 hover:bg-green-700',
+          icon: <CheckCircle2 className="h-8 w-8 text-white" />,
+          ping: true
+        };
+      case 'error':
+        return {
+          gradient: 'from-red-500 to-red-600',
+          shadow: 'shadow-red-500/30',
+          button: 'bg-red-600 hover:bg-red-700',
+          icon: <AlertCircle className="h-8 w-8 text-white" />,
+          ping: false
+        };
+      case 'warning':
+        return {
+          gradient: 'from-amber-500 to-amber-600',
+          shadow: 'shadow-amber-500/30',
+          button: 'bg-amber-600 hover:bg-amber-700',
+          icon: <AlertTriangle className="h-8 w-8 text-white" />,
+          ping: false
+        };
+      default:
+        return {
+          gradient: 'from-blue-500 to-blue-600',
+          shadow: 'shadow-blue-500/30',
+          button: 'bg-blue-600 hover:bg-blue-700',
+          icon: <AlertCircle className="h-8 w-8 text-white" />,
+          ping: false
+        };
     }
   };
 
-  const styles = getTypeStyles();
+  const config = getTypeConfig();
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <Card className="bg-zinc-800 border-zinc-700 max-w-md w-full">
-        <CardHeader>
-          <div className="flex items-center gap-3 mb-2">
-            <div className={`h-12 w-12 rounded-full ${styles.bg} flex items-center justify-center`}>
-              {styles.icon}
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div 
+        className={`transform transition-all duration-300 ${
+          isVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0'
+        }`}
+      >
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Icon with optional ping animation */}
+              <div className="relative">
+                {config.ping && (
+                  <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                )}
+                <div className={`relative h-16 w-16 rounded-full bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg ${config.shadow}`}>
+                  {config.icon}
+                </div>
+              </div>
+
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
+                <p className="text-zinc-400 text-sm whitespace-pre-line">{message}</p>
+              </div>
+
+              {/* Close Button */}
+              <Button
+                onClick={() => {
+                  setIsVisible(false);
+                  setTimeout(onClose, 300);
+                }}
+                className={`w-full ${config.button}`}
+              >
+                OK
+              </Button>
             </div>
-            <CardTitle className="text-white text-xl">{title}</CardTitle>
-          </div>
-          {message && (
-            <CardDescription className="text-zinc-300 text-base">
-              {message}
-            </CardDescription>
-          )}
-        </CardHeader>
-        <CardContent>
-          <Button onClick={onClose} className={`w-full ${styles.button}`}>
-            OK
-          </Button>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
