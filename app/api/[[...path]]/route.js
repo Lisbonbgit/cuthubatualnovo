@@ -255,7 +255,8 @@ export async function POST(request, { params }) {
         criado_em: new Date()
       };
 
-      await db.collection('utilizadores').insertOne(admin);
+      const adminResult = await db.collection('utilizadores').insertOne(admin);
+      const adminId = adminResult.insertedId.toString();
 
       const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
       const horariosPadrao = diasSemana.map(dia => ({
@@ -271,7 +272,7 @@ export async function POST(request, { params }) {
       // Gerar token para o admin criado (para login automático)
       const adminToken = jwt.sign(
         { 
-          userId: admin._id.toString(),
+          userId: adminId,
           email: admin.email,
           tipo: admin.tipo,
           barbearia_id: barbeariaId
