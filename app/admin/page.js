@@ -649,7 +649,7 @@ function MarcacoesTab({ marcacoes, fetchMarcacoes, lastUpdate, isRefreshing, onM
                 onChange={(e) => setFiltroBarbeiro(e.target.value)}
                 className="bg-zinc-900 border border-zinc-700 text-white rounded px-3 py-1.5 text-sm"
               >
-                <option value="todos">Todos Barbeiros</option>
+                <option value="todos">Todos Profissionais</option>
                 {barbeiros.map(b => (
                   <option key={b._id} value={b._id}>{b.nome}</option>
                 ))}
@@ -1468,7 +1468,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle className="text-white">Profissionais</CardTitle>
-              <CardDescription className="text-zinc-400">Gerir equipa de barbeiros - criar contas de acesso</CardDescription>
+              <CardDescription className="text-zinc-400">Gerir equipa de profissionais - criar contas de acesso</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -1478,7 +1478,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
               className="bg-amber-600 hover:bg-amber-700"
             >
               <Plus className="mr-2 h-4 w-4" />
-              Adicionar Barbeiro
+              Adicionar Profissional
             </Button>
           </div>
         </CardHeader>
@@ -1486,7 +1486,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
           {showForm && (
             <form onSubmit={handleSubmit} className="mb-6 space-y-4 p-4 bg-zinc-900 rounded-lg">
               <h3 className="text-white font-semibold text-lg mb-4">
-                {editingBarbeiro ? 'Editar Barbeiro' : 'Novo Barbeiro'}
+                {editingBarbeiro ? 'Editar Profissional' : 'Novo Profissional'}
               </h3>
               {error && (
                 <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded">
@@ -1567,7 +1567,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
                     ))}
                   </select>
                   <p className="text-zinc-500 text-xs">
-                    Selecione o local onde este barbeiro trabalha. Se não selecionar, ele poderá atender em qualquer local.
+                    Selecione o local onde este profissional trabalha. Se não selecionar, ele poderá atender em qualquer local.
                   </p>
                 </div>
               )}
@@ -1591,7 +1591,7 @@ function BarbeirosTab({ barbeiros, fetchBarbeiros }) {
                   value={biografia}
                   onChange={(e) => setBiografia(e.target.value)}
                   className="w-full bg-zinc-800 border border-zinc-700 text-white rounded-md px-3 py-2 min-h-[80px]"
-                  placeholder="Breve descrição sobre o barbeiro..."
+                  placeholder="Breve descrição sobre o profissional..."
                 />
               </div>
 
