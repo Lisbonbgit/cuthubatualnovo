@@ -342,7 +342,7 @@ export default function App() {
             <Button
               size="lg"
               className="bg-amber-600 hover:bg-amber-700 text-lg px-10"
-              onClick={() => router.push('/register/owner')}
+              onClick={() => router.push('/planos')}
             >
               Ver Todos os Planos
             </Button>
