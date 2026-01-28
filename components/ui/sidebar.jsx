@@ -41,10 +41,19 @@ export function Sidebar({
   userName = '', 
   userEmail = '',
   barbeariaName = '',
-  onLogout 
+  onLogout,
+  onCollapsedChange
 }) {
   const [collapsed, setCollapsed] = useState(false);
   const menuItems = menuConfigs[userType] || menuConfigs.admin;
+
+  const handleToggleCollapse = () => {
+    const newState = !collapsed;
+    setCollapsed(newState);
+    if (onCollapsedChange) {
+      onCollapsedChange(newState);
+    }
+  };
 
   return (
     <aside 
