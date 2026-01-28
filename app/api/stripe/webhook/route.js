@@ -82,6 +82,19 @@ export async function POST(request) {
         // Buscar usuário para enviar email
         const user = await db.collection('utilizadores').findOne({ _id: new ObjectId(userId) });
 
+        // Atualizar user com barbearia_id se necessário
+        if (user) {
+          await db.collection('utilizadores').updateOne(
+            { _id: new ObjectId(userId) },
+            { $set: { stripe_customer_id: subscription.customer } }
+          );
+        }
+
+        // Marcar que subscription foi criada com sucesso
+        console.log('[STRIPE WEBHOOK] Subscription created successfully for user:', userId);
+        console.log('[STRIPE WEBHOOK] Status:', subscription.status);
+        console.log('[STRIPE WEBHOOK] Trial end:', subscription.trial_end ? new Date(subscription.trial_end * 1000) : 'No trial');
+
         // Enviar emails (não bloquear)
         try {
           if (user?.email) {
