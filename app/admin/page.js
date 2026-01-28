@@ -304,10 +304,11 @@ export default function AdminPanel() {
         userEmail={user?.email || ''}
         barbeariaName={barbeariaSettings?.nome || 'Barbearia'}
         onLogout={handleLogout}
+        onCollapsedChange={setSidebarCollapsed}
       />
 
       {/* Main Content */}
-      <main className="ml-64 p-6">
+      <main className={`p-6 transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
         {/* Page Title */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white capitalize">
