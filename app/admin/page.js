@@ -98,6 +98,15 @@ export default function AdminPanel() {
       
       if (response.ok) {
         const data = await response.json();
+        
+        // Verificar se email está confirmado
+        if (data.user.email_confirmado === false) {
+          setUser(data.user);
+          setLoading(false);
+          // Mostrar apenas mensagem de confirmação de email (não carregar dados)
+          return;
+        }
+        
         // Apenas admin e owner podem acessar o painel admin
         if (!['admin', 'owner'].includes(data.user.tipo)) {
           // Barbeiro vai para a sua página específica
