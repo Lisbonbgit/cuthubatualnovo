@@ -52,25 +52,42 @@ function CreateBarbeariaContent() {
       if (response.ok) {
         const data = await response.json();
         
+        console.log('[CRIAR-BARBEARIA] Subscription status:', data);
+        
         if (!data.has_subscription) {
-          // Sem subscription - redirecionar para escolher plano
+          // Sem subscription ainda - pode estar aguardando webhook
+          const paymentParam = searchParams.get('payment');
+          const sessionId = searchParams.get('session_id');
+          
+          if (paymentParam === 'success' && sessionId) {
+            // Voltou do Stripe com sucesso, aguardar webhook (polling)
+            console.log('[CRIAR-BARBEARIA] Payment success, waiting for webhook...');
+            setTimeout(() => checkSubscription(), 2000); // Tentar novamente em 2s
+            return;
+          }
+          
+          // Sem payment success - redirecionar para escolher plano
+          console.log('[CRIAR-BARBEARIA] No subscription and no payment - redirect to planos');
           window.location.href = '/planos';
           return;
         }
 
         if (data.has_barbearia) {
           // Já tem barbearia - ir para admin
+          console.log('[CRIAR-BARBEARIA] Already has barbearia - redirect to admin');
           window.location.href = '/admin';
           return;
         }
 
         // Tem subscription mas não tem barbearia - OK para criar
+        console.log('[CRIAR-BARBEARIA] Valid subscription, ready to create barbearia');
         setHasValidSubscription(true);
       } else {
+        console.error('[CRIAR-BARBEARIA] Error checking subscription');
         window.location.href = '/planos';
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('[CRIAR-BARBEARIA] Exception:', error);
       window.location.href = '/planos';
     } finally {
       setChecking(false);
