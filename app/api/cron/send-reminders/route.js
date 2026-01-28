@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { MongoClient, ObjectId } from 'mongodb';
-import { EmailService } from '../../../lib/email-service.js';
+import { EmailService } from '@/lib/email-service';
 
 const MONGO_URL = process.env.MONGO_URL;
 const CRON_SECRET = process.env.CRON_SECRET || 'cron-secret-key';
