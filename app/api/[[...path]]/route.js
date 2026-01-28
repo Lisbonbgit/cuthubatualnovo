@@ -94,7 +94,7 @@ export async function POST(request, { params }) {
     const path = params?.path ? params.path.join('/') : '';
     const body = await request.json();
     const client = await connectToDatabase();
-    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+    const db = client.db(process.env.DB_NAME);
 
     // AUTH - Register
     if (path === 'auth/register') {
@@ -1326,7 +1326,7 @@ export async function GET(request, { params }) {
     const path = params?.path ? params.path.join('/') : '';
     const { searchParams } = new URL(request.url);
     const client = await connectToDatabase();
-    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+    const db = client.db(process.env.DB_NAME);
 
     // Public routes
     // GET Available Plans (public - no auth required)

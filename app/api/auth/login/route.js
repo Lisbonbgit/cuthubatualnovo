@@ -27,7 +27,7 @@ export async function POST(request) {
     }
 
     const client = await connectToDatabase();
-    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+    const db = client.db(process.env.DB_NAME);
 
     const user = await db.collection('utilizadores').findOne({ email });
     if (!user) {
