@@ -48,7 +48,7 @@ export default function RegisterOwnerPage() {
       } else {
         setError(data.error || 'Erro ao registar');
       }
-    } catch (error) {
+    } catch (err) {
       setError('Erro de conexão');
     } finally {
       setLoading(false);
