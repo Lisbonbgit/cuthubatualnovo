@@ -252,11 +252,34 @@ export async function POST(request, { params }) {
         nome: 'Administrador',
         tipo: 'admin',
         barbearia_id: barbeariaId,
+        email_confirmado: false,
         criado_em: new Date()
       };
 
       const adminResult = await db.collection('utilizadores').insertOne(admin);
       const adminId = adminResult.insertedId.toString();
+
+      // Gerar token de confirmação de email (válido por 24h)
+      const confirmToken = jwt.sign(
+        { userId: adminId, type: 'email_confirmation' },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      // Enviar email de confirmação (não bloquear se falhar)
+      try {
+        const { EmailService } = await import('../../../lib/email-service.js');
+        await EmailService.sendEmailConfirmation(email_admin, 'Administrador', confirmToken);
+        
+        // Notificar admin do SaaS sobre nova barbearia
+        await EmailService.notifyAdminNewBarbearia({
+          nome,
+          slug,
+          ownerEmail: email_admin
+        });
+      } catch (emailError) {
+        console.error('[EMAIL] Error sending emails (non-blocking):', emailError);
+      }
 
       const diasSemana = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
       const horariosPadrao = diasSemana.map(dia => ({
