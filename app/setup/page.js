@@ -133,12 +133,13 @@ function SetupContent() {
     }
 
     try {
-      // Step 1: Create owner account using admin credentials
+      // NOVO FLUXO: Apenas criar conta e redirecionar para Stripe
+      // Step 1: Create owner account
       const registerResponse = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          nome: nomeBarbearia, // Use barbershop name as owner name
+          nome: nomeBarbearia,
           email: emailAdmin, 
           password: passwordAdmin, 
           tipo: 'owner' 
@@ -156,73 +157,27 @@ function SetupContent() {
       const token = registerData.token;
       localStorage.setItem('token', token);
 
-      // Step 2: Subscribe to plan
-      const subResponse = await fetch('/api/subscriptions', {
+      // Step 2: Criar Stripe Checkout Session e redirecionar
+      const checkoutResponse = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ 
-          plan_id: selectedPlan,
-          payment_method: 'mock_card'
-        })
+        body: JSON.stringify({ plan_id: selectedPlan })
       });
 
-      const subData = await subResponse.json();
+      const checkoutData = await checkoutResponse.json();
 
-      if (!subResponse.ok) {
-        setError(subData.error || 'Erro ao ativar plano');
-        setLoading(false);
-        return;
-      }
-
-      // Step 3: Create barbershop (admin will use same email/password)
-      const barbeariaResponse = await fetch('/api/barbearias', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          nome: nomeBarbearia,
-          descricao,
-          email_admin: emailAdmin,
-          password_admin: passwordAdmin
-        })
-      });
-
-      const barbeariaData = await barbeariaResponse.json();
-
-      if (barbeariaResponse.ok) {
-        // Clear owner token and set admin token
-        localStorage.removeItem('token');
-        
-        if (barbeariaData.admin_token) {
-          localStorage.setItem('token', barbeariaData.admin_token);
-          
-          // Show success modal with details
-          setSuccessDetails([
-            { label: 'Email de Login', value: emailAdmin },
-            { label: 'Barbearia', value: nomeBarbearia },
-            { label: 'Próximo Passo', value: 'Adicionar barbeiros e serviços' }
-          ]);
-          setShowSuccessModal(true);
-          
-          // Redirect after modal closes (3s)
-          setTimeout(() => {
-            window.location.href = '/admin';
-          }, 3000);
-        } else {
-          // Fallback: redirect to login
-          window.location.href = '/';
-        }
+      if (checkoutResponse.ok && checkoutData.url) {
+        // Redirecionar para Stripe Checkout
+        window.location.href = checkoutData.url;
       } else {
-        setError(barbeariaData.error || 'Erro ao criar barbearia');
+        setError(checkoutData.error || 'Erro ao criar sessão de checkout');
+        setLoading(false);
       }
     } catch (error) {
       setError('Erro de conexão. Tente novamente.');
-    } finally {
       setLoading(false);
     }
   };
