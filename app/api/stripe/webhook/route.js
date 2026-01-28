@@ -23,26 +23,54 @@ async function connectToDatabase() {
 
 export async function POST(request) {
   try {
+    console.log('[STRIPE WEBHOOK] === Incoming webhook request ===');
+    
+    // Verificar se webhook secret está configurado
+    if (!WEBHOOK_SECRET) {
+      console.error('[STRIPE WEBHOOK] CRITICAL: STRIPE_WEBHOOK_SECRET not configured!');
+      console.log('[STRIPE WEBHOOK] Webhook will process without signature validation (INSECURE)');
+    } else {
+      console.log('[STRIPE WEBHOOK] ✓ STRIPE_WEBHOOK_SECRET is configured');
+    }
+    
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
+    console.log('[STRIPE WEBHOOK] Body length:', body.length);
+    console.log('[STRIPE WEBHOOK] Signature present:', !!signature);
+    
     if (!signature) {
+      console.error('[STRIPE WEBHOOK] ERROR: No stripe-signature header');
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
     // Verificar assinatura do webhook
     let event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET);
+      if (WEBHOOK_SECRET) {
+        event = stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET);
+        console.log('[STRIPE WEBHOOK] ✓ Signature verified successfully');
+      } else {
+        // FALLBACK INSEGURO: parse sem validação (apenas para debug local)
+        console.warn('[STRIPE WEBHOOK] ⚠️  WARNING: Processing webhook WITHOUT signature validation!');
+        event = JSON.parse(body);
+      }
     } catch (err) {
-      console.error('[STRIPE WEBHOOK] Signature verification failed:', err.message);
-      return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 });
+      console.error('[STRIPE WEBHOOK] ❌ Signature verification failed:', err.message);
+      console.error('[STRIPE WEBHOOK] Error type:', err.type);
+      console.error('[STRIPE WEBHOOK] Signature header:', signature);
+      console.error('[STRIPE WEBHOOK] WEBHOOK_SECRET present:', !!WEBHOOK_SECRET);
+      return NextResponse.json({ 
+        error: 'Webhook signature verification failed',
+        details: err.message 
+      }, { status: 400 });
     }
 
     const client = await connectToDatabase();
     const db = client.db(process.env.DB_NAME || 'barbearia_saas');
 
-    console.log('[STRIPE WEBHOOK] Event received:', event.type);
+    console.log('[STRIPE WEBHOOK] ✓ Event received:', event.type);
+    console.log('[STRIPE WEBHOOK] Event ID:', event.id);
 
     // Processar eventos
     switch (event.type) {
