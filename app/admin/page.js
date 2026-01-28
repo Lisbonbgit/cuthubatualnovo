@@ -36,6 +36,7 @@ export default function AdminPanel() {
   
   // Sidebar navigation
   const [activeTab, setActiveTab] = useState('marcacoes');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
