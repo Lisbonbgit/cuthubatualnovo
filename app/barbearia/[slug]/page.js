@@ -198,7 +198,7 @@ export default function BarbeariaPublicPage() {
 
   const fetchAvailableSlots = async () => {
     // Se não permite escolha de profissional, apenas verificar servico e data
-    if (barbearia.permitir_escolha_profissional === false) {
+    if (barbearia?.permitir_escolha_profissional === false) {
       if (!selectedData || !selectedServico) return;
       // Pegar qualquer profissional disponível ou null
       const token = localStorage.getItem('token');
@@ -220,7 +220,7 @@ export default function BarbeariaPublicPage() {
   };
 
   useEffect(() => {
-    if (barbearia.permitir_escolha_profissional === false) {
+    if (barbearia?.permitir_escolha_profissional === false) {
       // Se não permite escolha, buscar slots assim que tiver servico e data
       if (selectedData && selectedServico) {
         fetchAvailableSlots();
@@ -263,7 +263,7 @@ export default function BarbeariaPublicPage() {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify({
-          barbeiro_id: barbearia.permitir_escolha_profissional === false 
+          barbeiro_id: barbearia?.permitir_escolha_profissional === false 
             ? (barbeirosDisponiveis[0]?._id || null) 
             : selectedBarbeiro,
           servico_id: selectedServico,
@@ -968,7 +968,7 @@ export default function BarbeariaPublicPage() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       {/* Mostrar seleção de profissional apenas se permitido pela barbearia */}
-                      {barbearia.permitir_escolha_profissional !== false && (
+                      {barbearia?.permitir_escolha_profissional !== false && (
                         <div className="space-y-2">
                           <Label className="text-zinc-300">Profissional</Label>
                           <Select value={selectedBarbeiro} onValueChange={setSelectedBarbeiro}>
@@ -999,7 +999,7 @@ export default function BarbeariaPublicPage() {
                         </div>
                       )}
 
-                      <div className={`space-y-2 ${barbearia.permitir_escolha_profissional === false ? 'md:col-span-2' : ''}`}>
+                      <div className={`space-y-2 ${barbearia?.permitir_escolha_profissional === false ? 'md:col-span-2' : ''}`}>
                         <Label className="text-zinc-300">Serviço</Label>
                         <Select value={selectedServico} onValueChange={setSelectedServico}>
                           <SelectTrigger className="bg-zinc-900 border-zinc-700 text-white">
