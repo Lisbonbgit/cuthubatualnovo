@@ -632,8 +632,30 @@ Até breve!`;
         // Don't fail the request if WhatsApp fails
       }
 
-      // Mock email notification
-      console.log(`[MOCK EMAIL] Nova marcação confirmada automaticamente para ${data} às ${hora}`);
+      // Send Email notification
+      try {
+        const { EmailService } = await import('../../lib/email-service.js');
+        
+        // Buscar dados já obtidos acima
+        const cliente = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
+        const barbeiro = barbeiro_id ? await db.collection('utilizadores').findOne({ _id: new ObjectId(barbeiro_id) }) : null;
+        const barbearia = await db.collection('barbearias').findOne({ _id: new ObjectId(marcacao.barbearia_id) });
+        const local = local_id ? await db.collection('locais').findOne({ _id: new ObjectId(local_id) }) : null;
+        
+        if (cliente?.email) {
+          await EmailService.sendBookingConfirmation(cliente.email, {
+            clienteName: cliente.nome,
+            data,
+            hora,
+            servicoName: servicoObj.nome,
+            profissionalName: barbeiro?.nome || null,
+            barbeariaName: barbearia?.nome || 'CutHub',
+            localMorada: local?.morada || null
+          });
+        }
+      } catch (emailError) {
+        console.error('[EMAIL] Error sending booking confirmation (non-blocking):', emailError);
+      }
 
       return NextResponse.json({ marcacao: { ...marcacao, _id: result.insertedId } });
     }
