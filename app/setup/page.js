@@ -39,7 +39,19 @@ function SetupContent() {
     setMounted(true);
     fetchPlans();
     checkIfAlreadyHasBarbearia();
+    checkStripePayment();
   }, []);
+
+  const checkStripePayment = () => {
+    // Verificar se voltou do Stripe com sucesso
+    const paymentStatus = searchParams.get('payment');
+    const sessionId = searchParams.get('session_id');
+    
+    if (paymentStatus === 'success' && sessionId) {
+      // Pagamento confirmado pelo Stripe, mas subscription é criada via webhook
+      console.log('[STRIPE] Payment successful, waiting for webhook confirmation');
+    }
+  };
 
   const fetchPlans = async () => {
     try {
