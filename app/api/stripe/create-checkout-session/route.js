@@ -19,11 +19,25 @@ function verifyToken(token) {
 
 export async function POST(request) {
   try {
+    console.log('[STRIPE CHECKOUT] === Starting checkout session creation ===');
+    
+    // Verificar se Stripe está configurado
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('[STRIPE CHECKOUT] ERROR: STRIPE_SECRET_KEY not configured!');
+      return NextResponse.json({ 
+        error: 'Stripe não configurado. Contacte o administrador.',
+        details: 'STRIPE_SECRET_KEY missing'
+      }, { status: 500 });
+    }
+    console.log('[STRIPE CHECKOUT] ✓ STRIPE_SECRET_KEY is configured');
+
     const { plan_id } = await request.json();
+    console.log('[STRIPE CHECKOUT] Plan requested:', plan_id);
 
     // Verificar autenticação
     const authHeader = request.headers.get('authorization');
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('[STRIPE CHECKOUT] ERROR: No authorization header');
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
@@ -31,8 +45,11 @@ export async function POST(request) {
     const decoded = verifyToken(token);
 
     if (!decoded) {
+      console.error('[STRIPE CHECKOUT] ERROR: Invalid token');
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
+    
+    console.log('[STRIPE CHECKOUT] User authenticated:', decoded.email);
 
     // Mapear plan_id para Stripe Price ID
     const priceMapping = {
@@ -42,10 +59,22 @@ export async function POST(request) {
     };
 
     const priceId = priceMapping[plan_id];
+    
+    console.log('[STRIPE CHECKOUT] Price mapping:', {
+      plan_id,
+      priceId,
+      STRIPE_PRICE_ID_BASIC: process.env.STRIPE_PRICE_ID_BASIC ? 'SET' : 'NOT SET',
+      STRIPE_PRICE_ID_PRO: process.env.STRIPE_PRICE_ID_PRO ? 'SET' : 'NOT SET',
+      STRIPE_PRICE_ID_ENTERPRISE: process.env.STRIPE_PRICE_ID_ENTERPRISE ? 'SET' : 'NOT SET',
+    });
 
     if (!priceId) {
-      return NextResponse.json({ error: 'Plano inválido' }, { status: 400 });
+      console.error('[STRIPE CHECKOUT] ERROR: Invalid plan_id or price not configured');
+      return NextResponse.json({ error: 'Plano inválido ou não configurado' }, { status: 400 });
     }
+
+    console.log('[STRIPE CHECKOUT] Using price_id:', priceId);
+    console.log('[STRIPE CHECKOUT] Creating Stripe session...');
 
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -75,16 +104,24 @@ export async function POST(request) {
       },
     });
 
+    console.log('[STRIPE CHECKOUT] ✓ Session created successfully:', session.id);
+    console.log('[STRIPE CHECKOUT] Checkout URL:', session.url);
+
     return NextResponse.json({ 
       sessionId: session.id,
       url: session.url 
     });
 
   } catch (error) {
-    console.error('[STRIPE] Error creating checkout session:', error);
+    console.error('[STRIPE CHECKOUT] ❌ CRITICAL ERROR:', error);
+    console.error('[STRIPE CHECKOUT] Error name:', error.name);
+    console.error('[STRIPE CHECKOUT] Error message:', error.message);
+    console.error('[STRIPE CHECKOUT] Error stack:', error.stack);
+    
     return NextResponse.json({ 
       error: 'Erro ao criar sessão de checkout',
-      details: error.message 
+      details: error.message,
+      errorType: error.type || error.name
     }, { status: 500 });
   }
 }
