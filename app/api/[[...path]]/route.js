@@ -268,7 +268,7 @@ export async function POST(request, { params }) {
 
       // Enviar email de confirmação (não bloquear se falhar)
       try {
-        const { EmailService } = await import('../../../lib/email-service.js');
+        const { EmailService } = await import('@/lib/email-service');
         await EmailService.sendEmailConfirmation(email_admin, 'Administrador', confirmToken);
         
         // Notificar admin do SaaS sobre nova barbearia
