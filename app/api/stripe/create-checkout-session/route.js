@@ -51,6 +51,36 @@ export async function POST(request) {
     
     console.log('[STRIPE CHECKOUT] User authenticated:', decoded.email);
 
+    // VERIFICAR SE EMAIL FOI VERIFICADO COM CÓDIGO
+    const client = await connectToDatabase();
+    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+    
+    const emailVerification = await db.collection('verified_emails').findOne({ 
+      email: decoded.email 
+    });
+    
+    if (!emailVerification) {
+      console.error('[STRIPE CHECKOUT] ERROR: Email not verified with code');
+      return NextResponse.json({ 
+        error: 'Email não verificado',
+        message: 'Por favor, verifique o seu email com o código de 4 dígitos antes de continuar.',
+        requires_verification: true
+      }, { status: 403 });
+    }
+    
+    // Verificar se verificação ainda é válida (30 minutos)
+    if (new Date() > new Date(emailVerification.expires_at)) {
+      console.error('[STRIPE CHECKOUT] ERROR: Email verification expired');
+      await db.collection('verified_emails').deleteOne({ email: decoded.email });
+      return NextResponse.json({ 
+        error: 'Verificação de email expirada',
+        message: 'A verificação de email expirou. Solicite um novo código.',
+        requires_verification: true
+      }, { status: 403 });
+    }
+    
+    console.log('[STRIPE CHECKOUT] ✓ Email verified successfully');
+
     // Mapear plan_id para Stripe Price ID
     const priceMapping = {
       basic: process.env.STRIPE_PRICE_ID_BASIC,
