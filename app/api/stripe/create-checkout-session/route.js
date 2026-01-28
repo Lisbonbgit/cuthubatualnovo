@@ -126,7 +126,7 @@ export async function POST(request) {
       },
       customer_email: decoded.email,
       client_reference_id: decoded.userId,
-      success_url: `${BASE_URL}/setup?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${BASE_URL}/criar-barbearia?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/planos?payment=cancelled`,
       metadata: {
         user_id: decoded.userId,

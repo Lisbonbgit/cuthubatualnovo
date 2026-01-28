@@ -23,43 +23,33 @@ function verifyToken(token) {
 }
 
 export async function GET(request) {
-  try {
-    const auth = request.headers.get('authorization');
+  const auth = request.headers.get('authorization');
 
-    if (!auth || !auth.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
-    const token = auth.replace('Bearer ', '');
-    const decoded = verifyToken(token);
-
-    if (!decoded || !decoded.userId) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-    }
-
-    const client = await connectToDatabase();
-    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
-
-    // 1️⃣ Verificar subscrição válida
-    const subscription = await db.collection('subscriptions').findOne({
-      user_id: decoded.userId,
-      status: { $in: ['trialing', 'active'] },
-    });
-
-    // 2️⃣ Verificar se já existe barbearia
-    const barbearia = await db.collection('barbearias').findOne({
-      owner_id: new ObjectId(decoded.userId),
-    });
-
-    return NextResponse.json({
-      has_subscription: !!subscription,
-      has_barbearia: !!barbearia,
-    });
-  } catch (error) {
-    console.error('[SUBSCRIPTION STATUS ERROR]', error);
-    return NextResponse.json(
-      { error: 'Erro ao verificar subscrição' },
-      { status: 500 }
-    );
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
+
+  const token = auth.replace('Bearer ', '');
+  const decoded = verifyToken(token);
+
+  if (!decoded) {
+    return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+  }
+
+  const client = await connectToDatabase();
+  const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+
+  const subscription = await db.collection('subscriptions').findOne({
+    user_id: decoded.userId,
+    status: { $in: ['trialing', 'active'] },
+  });
+
+  const barbearia = await db.collection('barbearias').findOne({
+    owner_id: new ObjectId(decoded.userId),
+  });
+
+  return NextResponse.json({
+    has_subscription: !!subscription,
+    has_barbearia: !!barbearia,
+  });
 }
