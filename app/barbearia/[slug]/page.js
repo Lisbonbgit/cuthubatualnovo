@@ -231,7 +231,7 @@ export default function BarbeariaPublicPage() {
         fetchAvailableSlots();
       }
     }
-  }, [selectedBarbeiro, selectedData, selectedServico, barbearia.permitir_escolha_profissional]);
+  }, [selectedBarbeiro, selectedData, selectedServico, barbearia?.permitir_escolha_profissional]);
 
   // Reset barbeiro selection when local changes
   useEffect(() => {
