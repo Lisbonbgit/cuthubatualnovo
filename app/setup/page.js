@@ -6,373 +6,315 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Scissors, Loader2, Check, ArrowLeft } from 'lucide-react';
+import { Scissors, Loader2, Check } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
-import { SuccessModal } from '@/components/ui/modals';
 
 function SetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const planFromUrl = searchParams.get('plan');
-  
+  useEffect(() => {
+  const payment = searchParams.get('payment');
+  const sessionId = searchParams.get('session_id');
+
+  if (payment === 'success' && sessionId) {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    // a cada 2 segundos pergunta ao backend se a subscrição já existe
+    const interval = setInterval(async () => {
+      const res = await fetch('/api/subscriptions/status', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (data.ready) {
+        clearInterval(interval);
+        window.location.href = '/admin';
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }
+}, [searchParams]);
+
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
   const [error, setError] = useState('');
-  
-  // Success modal state
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successDetails, setSuccessDetails] = useState([]);
-  
-  // Plan state
-  const [selectedPlan, setSelectedPlan] = useState(planFromUrl || 'pro');
+
   const [plans, setPlans] = useState([]);
-  
-  // Barbershop fields
+  const [selectedPlan, setSelectedPlan] = useState('pro');
+
+  // dados
   const [nomeBarbearia, setNomeBarbearia] = useState('');
   const [descricao, setDescricao] = useState('');
   const [emailAdmin, setEmailAdmin] = useState('');
   const [passwordAdmin, setPasswordAdmin] = useState('');
 
+  // verificação
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+
   useEffect(() => {
     setMounted(true);
     fetchPlans();
-    checkIfAlreadyHasBarbearia();
-    checkStripePayment();
   }, []);
 
-  const checkStripePayment = () => {
-    // Verificar se voltou do Stripe com sucesso
-    const paymentStatus = searchParams.get('payment');
-    const sessionId = searchParams.get('session_id');
-    
-    if (paymentStatus === 'success' && sessionId) {
-      // Pagamento confirmado pelo Stripe, mas subscription é criada via webhook
-      console.log('[STRIPE] Payment successful, waiting for webhook confirmation');
-    }
-  };
-
   const fetchPlans = async () => {
-    try {
-      const response = await fetch('/api/plans');
-      const data = await response.json();
-      setPlans(data.plans || []);
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-    }
+    const res = await fetch('/api/plans');
+    const data = await res.json();
+    setPlans(data.plans || []);
   };
 
-  const checkIfAlreadyHasBarbearia = async () => {
-    // Only run on client side
-    if (typeof window === 'undefined') {
-      setChecking(false);
-      return;
-    }
-    
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      setChecking(false);
-      return;
-    }
-
-    try {
-      const meResponse = await fetch('/api/auth/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!meResponse.ok) {
-        localStorage.removeItem('token');
-        setChecking(false);
-        return;
-      }
-
-      const meData = await meResponse.json();
-
-      // If user is admin or barbeiro, redirect to admin
-      if (meData.user.tipo === 'admin' || meData.user.tipo === 'barbeiro') {
-        window.location.href = '/admin';
-        return;
-      }
-
-      // If user is cliente, redirect to home
-      if (meData.user.tipo === 'cliente') {
-        window.location.href = '/';
-        return;
-      }
-
-      // Check if owner already has barbershop
-      const subResponse = await fetch('/api/subscriptions/status', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (subResponse.ok) {
-        const subData = await subResponse.json();
-        
-        if (subData.has_barbearia) {
-          window.location.href = '/';
-          return;
-        }
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setChecking(false);
-    }
-  };
-
+  // PASSO 1 — enviar código (NÃO cria utilizador)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    // Safety check for browser environment
-    if (typeof window === 'undefined') {
-      return;
-    }
-
     try {
-      // NOVO FLUXO: Apenas criar conta e redirecionar para Stripe
-      // Step 1: Create owner account
-      const registerResponse = await fetch('/api/auth/register', {
+      const res = await fetch('/api/auth/send-verification-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
+          email: emailAdmin,
           nome: nomeBarbearia,
-          email: emailAdmin, 
-          password: passwordAdmin, 
-          tipo: 'owner' 
-        })
+        }),
       });
 
-      const registerData = await registerResponse.json();
+      const data = await res.json();
 
-      if (!registerResponse.ok) {
-        setError(registerData.error || 'Erro ao criar conta');
+      if (!res.ok) {
+        setError(data.error || 'Erro ao enviar código');
         setLoading(false);
         return;
       }
 
-      const token = registerData.token;
-      localStorage.setItem('token', token);
-
-      // Step 2: Criar Stripe Checkout Session e redirecionar
-      const checkoutResponse = await fetch('/api/stripe/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ plan_id: selectedPlan })
-      });
-
-      const checkoutData = await checkoutResponse.json();
-
-      if (checkoutResponse.ok && checkoutData.url) {
-        // Redirecionar para Stripe Checkout
-        window.location.href = checkoutData.url;
-      } else {
-        setError(checkoutData.error || 'Erro ao criar sessão de checkout');
-        setLoading(false);
-      }
-    } catch (error) {
-      setError('Erro de conexão. Tente novamente.');
+      setShowVerification(true);
+      setLoading(false);
+    } catch {
+      setError('Erro de ligação');
       setLoading(false);
     }
   };
 
-  const selectedPlanData = plans.find(p => p.id === selectedPlan);
+  // PASSO 2 — validar código → criar conta → Stripe
+  const handleVerifyCode = async () => {
+    setVerificationError('');
 
-  if (!mounted || checking) {
+    try {
+      const verifyRes = await fetch('/api/auth/verify-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailAdmin,
+          code: verificationCode,
+        }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        setVerificationError(verifyData.error || 'Código inválido');
+        return;
+      }
+
+      // criar utilizador
+      const registerRes = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nome: nomeBarbearia,
+          email: emailAdmin,
+          password: passwordAdmin,
+          tipo: 'owner',
+        }),
+      });
+
+      const registerData = await registerRes.json();
+
+      if (!registerRes.ok) {
+        setVerificationError(registerData.error || 'Erro ao criar conta');
+        return;
+      }
+
+      localStorage.setItem('token', registerData.token);
+
+      // stripe
+      const checkoutRes = await fetch('/api/stripe/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${registerData.token}`,
+        },
+        body: JSON.stringify({ plan_id: selectedPlan }),
+      });
+
+      const checkoutData = await checkoutRes.json();
+
+      if (checkoutRes.ok && checkoutData.url) {
+        window.location.href = checkoutData.url;
+      } else {
+        setVerificationError(checkoutData.error || 'Erro no pagamento');
+      }
+    } catch {
+      setVerificationError('Erro inesperado');
+    }
+  };
+
+  if (!mounted) {
     return (
-      <div className="min-h-screen min-h-[100dvh] bg-zinc-950 flex items-center justify-center">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <Loader2 className="h-8 w-8 text-amber-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-zinc-950 flex flex-col">
-      {/* Navbar */}
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
       <Navbar />
-      
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-xl mx-auto">
-          <div className="text-center mb-6">
-            <Scissors className="h-12 w-12 text-amber-600 mx-auto mb-3" />
-            <h1 className="text-3xl font-bold text-white mb-2">Criar Sua Barbearia</h1>
-            <p className="text-zinc-400 text-sm">
-              Preencha os dados para criar sua barbearia
-            </p>
-          </div>
 
-          <Card className="bg-zinc-800 border-zinc-700">
-            <CardContent className="pt-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-2 rounded text-sm">
-                    {error}
-                  </div>
-                )}
+      <main className="flex-1 flex items-center justify-center px-4 py-10">
+        <Card className="w-full max-w-xl bg-zinc-900 border-zinc-800 shadow-xl">
+          <CardContent className="p-6 space-y-6">
+            <div className="text-center">
+              <Scissors className="h-12 w-12 text-amber-500 mx-auto mb-2" />
+              <h1 className="text-2xl font-bold text-white">Criar Barbearia</h1>
+              <p className="text-zinc-400 text-sm">
+                Comece com 7 dias grátis
+              </p>
+            </div>
 
-                {/* Plan Selection */}
-                <div className="space-y-3">
-                  <Label className="text-zinc-300 text-base font-semibold">1. Escolha seu Plano</Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {plans.map((plan) => (
-                      <button
-                        key={plan.id}
-                        type="button"
-                        onClick={() => setSelectedPlan(plan.id)}
-                        className={`p-3 rounded-lg border-2 text-left transition-all ${
-                          selectedPlan === plan.id
-                            ? 'border-amber-500 bg-amber-900/20'
-                            : 'border-zinc-700 bg-zinc-900 hover:border-zinc-600'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-white font-medium text-sm">{plan.name}</span>
-                          {selectedPlan === plan.id && (
-                            <Check className="h-4 w-4 text-amber-500" />
-                          )}
-                        </div>
-                        <span className="text-amber-500 font-bold">{plan.price}€</span>
-                        <span className="text-zinc-500 text-xs">/mês</span>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="bg-amber-900/20 rounded-lg p-3">
-                    <p className="text-amber-400 text-sm font-medium">🎉 7 dias grátis incluídos</p>
-                    <p className="text-zinc-400 text-xs mt-1">
-                      Após o período de teste, será cobrado {selectedPlanData?.price || 49}€/mês
-                    </p>
-                  </div>
-                </div>
+            {error && (
+              <div className="bg-red-900/30 border border-red-700 text-red-300 p-3 rounded">
+                {error}
+              </div>
+            )}
 
-                {/* Barbershop Data */}
-                <div className="space-y-4 pt-4 border-t border-zinc-700">
-                  <Label className="text-zinc-300 text-base font-semibold">2. Dados da Barbearia</Label>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nomeBarbearia" className="text-zinc-400 text-sm">Nome da Barbearia *</Label>
-                      <Input
-                        id="nomeBarbearia"
-                        type="text"
-                        value={nomeBarbearia}
-                        onChange={(e) => setNomeBarbearia(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="Ex: Barbearia Premium Lisboa"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="descricao" className="text-zinc-400 text-sm">Descrição (opcional)</Label>
-                      <Input
-                        id="descricao"
-                        type="text"
-                        value={descricao}
-                        onChange={(e) => setDescricao(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="Ex: A melhor barbearia da cidade"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Login Credentials */}
-                <div className="space-y-4 pt-4 border-t border-zinc-700">
-                  <Label className="text-zinc-300 text-base font-semibold">3. Dados de Acesso</Label>
-                  <p className="text-zinc-500 text-xs -mt-2">
-                    Use estes dados para fazer login e gerir a barbearia
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="emailAdmin" className="text-zinc-400 text-sm">Email *</Label>
-                      <Input
-                        id="emailAdmin"
-                        type="email"
-                        value={emailAdmin}
-                        onChange={(e) => setEmailAdmin(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="seu@email.com"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="passwordAdmin" className="text-zinc-400 text-sm">Palavra-passe *</Label>
-                      <Input
-                        id="passwordAdmin"
-                        type="password"
-                        value={passwordAdmin}
-                        onChange={(e) => setPasswordAdmin(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="Mínimo 6 caracteres"
-                        minLength="6"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit */}
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-amber-600 hover:bg-amber-700 h-12 text-base"
-                    disabled={loading}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Label className="text-zinc-300">Plano</Label>
+              <div className="grid grid-cols-3 gap-3">
+                {plans.map((plan) => (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    onClick={() => setSelectedPlan(plan.id)}
+                    className={`p-3 rounded-lg border ${
+                      selectedPlan === plan.id
+                        ? 'border-amber-500 bg-amber-900/20'
+                        : 'border-zinc-700 bg-zinc-800'
+                    }`}
                   >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A criar...
-                      </>
-                    ) : (
-                      'Criar Barbearia'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                    <div className="text-white font-semibold">{plan.name}</div>
+                    <div className="text-amber-400 text-sm">
+                      {plan.price}€/mês
+                    </div>
+                  </button>
+                ))}
+              </div>
 
-          <div className="mt-6 text-center">
-            <p className="text-zinc-500 text-sm">
-              Já tem conta?{' '}
-              <button
-                onClick={() => router.push('/')}
-                className="text-amber-600 hover:text-amber-500 font-medium"
+              <Input
+                placeholder="Nome da Barbearia"
+                value={nomeBarbearia}
+                onChange={(e) => setNomeBarbearia(e.target.value)}
+                required
+              />
+
+              <Input
+                placeholder="Descrição (opcional)"
+                value={descricao}
+                onChange={(e) => setDescricao(e.target.value)}
+              />
+
+              <Input
+                type="email"
+                placeholder="Email"
+                value={emailAdmin}
+                onChange={(e) => setEmailAdmin(e.target.value)}
+                required
+              />
+
+              <Input
+                type="password"
+                placeholder="Palavra-passe"
+                value={passwordAdmin}
+                onChange={(e) => setPasswordAdmin(e.target.value)}
+                required
+              />
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-amber-600 hover:bg-amber-700"
               >
-                Fazer Login
-              </button>
-            </p>
-          </div>
-        </div>
+                {loading ? 'A enviar código…' : 'Continuar'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </main>
 
+      {/* MODAL VERIFICAÇÃO */}
+      {showVerification && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <Card className="w-full max-w-sm bg-zinc-900 border-zinc-700">
+            <CardContent className="p-6 space-y-4">
+              <h2 className="text-lg font-bold text-white">
+                Confirme o seu email
+              </h2>
+              <p className="text-zinc-400 text-sm">
+                Enviámos um código de 4 dígitos para:
+                <br />
+                <strong>{emailAdmin}</strong>
+              </p>
+
+              {verificationError && (
+                <div className="bg-red-900/30 text-red-300 p-2 rounded text-sm">
+                  {verificationError}
+                </div>
+              )}
+
+              <Input
+                placeholder="0000"
+                maxLength={4}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                className="text-center tracking-widest text-lg"
+              />
+
+              <Button
+                onClick={handleVerifyCode}
+                className="w-full bg-amber-600 hover:bg-amber-700"
+              >
+                Confirmar Código
+              </Button>
+
+              <button
+                onClick={() => {
+                  setShowVerification(false);
+                  setVerificationCode('');
+                }}
+                className="text-zinc-400 text-sm underline w-full"
+              >
+                Email errado? Recomeçar
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <FooterSimple variant="dark" />
-      
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Barbearia Criada com Sucesso!"
-        message="A redirecionar para o painel admin..."
-        details={successDetails}
-      />
     </div>
   );
 }
 
 export default function SetupPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
-      </div>
-    }>
+    <Suspense>
       <SetupContent />
     </Suspense>
   );

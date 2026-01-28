@@ -1,331 +1,124 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Scissors, Loader2, CheckCircle2 } from 'lucide-react';
-import { FooterSimple } from '@/components/ui/footer';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
-import { SuccessModal } from '@/components/ui/modals';
+import { FooterSimple } from '@/components/ui/footer';
 
-function CreateBarbeariaContent() {
-  const router = useRouter();
+function CriarBarbeariaContent() {
   const searchParams = useSearchParams();
-  
-  const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
   const [checking, setChecking] = useState(true);
-  const [error, setError] = useState('');
-  const [hasValidSubscription, setHasValidSubscription] = useState(false);
-  
-  // Success modal state
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successDetails, setSuccessDetails] = useState([]);
-  
-  // Barbershop fields
-  const [nomeBarbearia, setNomeBarbearia] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [emailAdmin, setEmailAdmin] = useState('');
-  const [passwordAdmin, setPasswordAdmin] = useState('');
+  const [hasSubscription, setHasSubscription] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    checkSubscription();
-  }, []);
+    const check = async () => {
+      const token = localStorage.getItem('token');
 
-  const checkSubscription = async () => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      window.location.href = '/planos';
-      return;
-    }
+      if (!token) {
+        router.push('/planos');
+        return;
+      }
 
-    try {
-      const response = await fetch('/api/subscriptions/status', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      try {
+        const res = await fetch('/api/subscriptions/status', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        
-        console.log('[CRIAR-BARBEARIA] Subscription status:', data);
-        
+        if (!res.ok) {
+          router.push('/planos');
+          return;
+        }
+
+        const data = await res.json();
+
+        // ainda sem subscrição → aguarda webhook
         if (!data.has_subscription) {
-          // Sem subscription ainda - pode estar aguardando webhook
-          const paymentParam = searchParams.get('payment');
-          const sessionId = searchParams.get('session_id');
-          
-          if (paymentParam === 'success' && sessionId) {
-            // Voltou do Stripe com sucesso, aguardar webhook (polling)
-            console.log('[CRIAR-BARBEARIA] Payment success, waiting for webhook...');
-            setTimeout(() => checkSubscription(), 2000); // Tentar novamente em 2s
+          const payment = searchParams.get('payment');
+          if (payment === 'success') {
+            setTimeout(check, 2000);
             return;
           }
-          
-          // Sem payment success - redirecionar para escolher plano
-          console.log('[CRIAR-BARBEARIA] No subscription and no payment - redirect to planos');
-          window.location.href = '/planos';
+          router.push('/planos');
           return;
         }
 
+        // já tem barbearia → admin
         if (data.has_barbearia) {
-          // Já tem barbearia - ir para admin
-          console.log('[CRIAR-BARBEARIA] Already has barbearia - redirect to admin');
-          window.location.href = '/admin';
+          router.push('/admin');
           return;
         }
 
-        // Tem subscription mas não tem barbearia - OK para criar
-        console.log('[CRIAR-BARBEARIA] Valid subscription, ready to create barbearia');
-        setHasValidSubscription(true);
-      } else {
-        console.error('[CRIAR-BARBEARIA] Error checking subscription');
-        window.location.href = '/planos';
+        // tem subscrição mas não tem barbearia
+        setHasSubscription(true);
+      } catch {
+        router.push('/planos');
+      } finally {
+        setChecking(false);
       }
-    } catch (error) {
-      console.error('[CRIAR-BARBEARIA] Exception:', error);
-      window.location.href = '/planos';
-    } finally {
-      setChecking(false);
-    }
-  };
+    };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    check();
+  }, [router, searchParams]);
 
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Criar barbearia (com subscription já validada)
-      const barbeariaResponse = await fetch('/api/barbearias', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          nome: nomeBarbearia,
-          descricao,
-          email_admin: emailAdmin,
-          password_admin: passwordAdmin
-        })
-      });
-
-      const barbeariaData = await barbeariaResponse.json();
-
-      if (barbeariaResponse.ok) {
-        // Login automático com admin
-        localStorage.removeItem('token');
-        
-        if (barbeariaData.admin_token) {
-          localStorage.setItem('token', barbeariaData.admin_token);
-          
-          // Show success modal
-          setSuccessDetails([
-            { label: 'Email de Login', value: emailAdmin },
-            { label: 'Barbearia', value: nomeBarbearia },
-            { label: 'Próximo Passo', value: 'Adicionar profissionais e serviços' }
-          ]);
-          setShowSuccessModal(true);
-          
-          // Redirect after 3s
-          setTimeout(() => {
-            window.location.href = '/admin';
-          }, 3000);
-        } else {
-          window.location.href = '/';
-        }
-      } else {
-        setError(barbeariaData.error || 'Erro ao criar barbearia');
-        setLoading(false);
-      }
-    } catch (error) {
-      setError('Erro de conexão. Tente novamente.');
-      setLoading(false);
-    }
-  };
-
-  if (!mounted || checking) {
-    const paymentSuccess = searchParams.get('payment') === 'success';
-    
+  if (checking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
-        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
-          <CardContent className="pt-6 pb-6">
-            <div className="flex flex-col items-center text-center space-y-4">
-              {paymentSuccess ? (
-                <>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
-                    <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
-                      <CheckCircle2 className="h-8 w-8 text-white" />
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-white mb-1">Pagamento Confirmado!</h3>
-                    <p className="text-zinc-400 text-sm">A processar a sua subscrição...</p>
-                  </div>
-                  <div className="w-full bg-zinc-950 rounded-lg p-4 border border-zinc-700">
-                    <p className="text-zinc-300 text-sm">
-                      Aguarde enquanto confirmamos o pagamento com o Stripe. Isto pode demorar alguns segundos.
-                    </p>
-                  </div>
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-600"></div>
-                </>
-              ) : (
-                <>
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
-                  <p className="text-zinc-400">A carregar...</p>
-                </>
-              )}
-            </div>
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <Card className="bg-zinc-900 border-zinc-700 p-6">
+          <CardContent className="flex flex-col items-center gap-4">
+            <CheckCircle2 className="h-10 w-10 text-green-500" />
+            <p className="text-white">Pagamento confirmado</p>
+            <p className="text-zinc-400 text-sm">
+              A verificar a subscrição…
+            </p>
+            <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  if (!hasValidSubscription) {
-    return null;
-  }
+  if (!hasSubscription) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900">
+    <div className="min-h-screen bg-zinc-950">
       <Navbar />
+      <main className="flex items-center justify-center py-20">
+        <Card className="bg-zinc-900 border-zinc-700 max-w-md w-full">
+          <CardContent className="p-6 text-center text-white">
+            <h1 className="text-2xl font-bold mb-2">
+              Tudo pronto 🎉
+            </h1>
+            <p className="text-zinc-400">
+              A sua subscrição está ativa.
+            </p>
+            <p className="text-zinc-400 mt-2">
+              Vá para o painel para continuar.
+            </p>
 
-      <main className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Success Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-500/20 mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-500" />
-            </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Pagamento Confirmado!</h1>
-            <p className="text-zinc-400">Agora configure a sua barbearia</p>
-          </div>
-
-          <Card className="bg-zinc-800 border-zinc-700">
-            <CardContent className="pt-6">
-              {error && (
-                <div className="bg-red-900/20 border border-red-900 text-red-400 px-4 py-3 rounded mb-6">
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Dados da Barbearia */}
-                <div className="space-y-4">
-                  <h3 className="text-white font-semibold text-lg">Dados da Barbearia</h3>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400 text-sm">Nome da Barbearia *</Label>
-                    <Input
-                      value={nomeBarbearia}
-                      onChange={(e) => setNomeBarbearia(e.target.value)}
-                      className="bg-zinc-900 border-zinc-700 text-white h-11"
-                      placeholder="Ex: Barbearia Premium Lisboa"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400 text-sm">Descrição (opcional)</Label>
-                    <Input
-                      value={descricao}
-                      onChange={(e) => setDescricao(e.target.value)}
-                      className="bg-zinc-900 border-zinc-700 text-white h-11"
-                      placeholder="Ex: A melhor barbearia de Lisboa"
-                    />
-                  </div>
-                </div>
-
-                {/* Dados de Acesso */}
-                <div className="space-y-4">
-                  <h3 className="text-white font-semibold text-lg">Dados de Acesso ao Painel Admin</h3>
-                  <p className="text-zinc-500 text-sm">
-                    Use estes dados para fazer login e gerir a barbearia
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="emailAdmin" className="text-zinc-400 text-sm">Email *</Label>
-                      <Input
-                        id="emailAdmin"
-                        type="email"
-                        value={emailAdmin}
-                        onChange={(e) => setEmailAdmin(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="seu@email.com"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="passwordAdmin" className="text-zinc-400 text-sm">Palavra-passe *</Label>
-                      <Input
-                        id="passwordAdmin"
-                        type="password"
-                        value={passwordAdmin}
-                        onChange={(e) => setPasswordAdmin(e.target.value)}
-                        className="bg-zinc-900 border-zinc-700 text-white h-11"
-                        placeholder="Mínimo 6 caracteres"
-                        minLength="6"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Submit */}
-                <div className="pt-4">
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-amber-600 hover:bg-amber-700 h-12 text-base"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A criar...
-                      </>
-                    ) : (
-                      'Criar Barbearia'
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            <button
+              onClick={() => router.push('/admin')}
+              className="mt-6 w-full bg-amber-600 hover:bg-amber-700 py-3 rounded text-black font-semibold"
+            >
+              Ir para o Painel
+            </button>
+          </CardContent>
+        </Card>
       </main>
-
       <FooterSimple variant="dark" />
-      
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="Barbearia Criada com Sucesso!"
-        message="A redirecionar para o painel admin..."
-        details={successDetails}
-      />
     </div>
   );
 }
 
-export default function CreateBarbeariaPage() {
+export default function CriarBarbeariaPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
-      </div>
-    }>
-      <CreateBarbeariaContent />
+    <Suspense>
+      <CriarBarbeariaContent />
     </Suspense>
   );
 }

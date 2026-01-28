@@ -1,3 +1,8 @@
+import { redirect } from 'next/navigation';
+
+export default function RegisterOwnerPage() {
+  redirect('/setup');
+}
 'use client';
 
 import { useState } from 'react';

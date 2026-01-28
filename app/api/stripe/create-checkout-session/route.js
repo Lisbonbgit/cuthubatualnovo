@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
-
+import { connectToDatabase } from '@/lib/mongodb';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
@@ -126,7 +126,7 @@ export async function POST(request) {
       },
       customer_email: decoded.email,
       client_reference_id: decoded.userId,
-      success_url: `${BASE_URL}/criar-barbearia?session_id={CHECKOUT_SESSION_ID}&payment=success`,
+      success_url: `${BASE_URL}/setup?payment=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${BASE_URL}/planos?payment=cancelled`,
       metadata: {
         user_id: decoded.userId,

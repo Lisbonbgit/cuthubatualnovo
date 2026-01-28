@@ -25,7 +25,6 @@ export async function POST(request) {
   try {
     console.log('[STRIPE WEBHOOK] === Incoming webhook request ===');
     
-    // Verificar se webhook secret está configurado
     if (!WEBHOOK_SECRET) {
       console.error('[STRIPE WEBHOOK] CRITICAL: STRIPE_WEBHOOK_SECRET not configured!');
       console.log('[STRIPE WEBHOOK] Webhook will process without signature validation (INSECURE)');
@@ -44,46 +43,35 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No signature' }, { status: 400 });
     }
 
-    // Verificar assinatura do webhook
     let event;
     try {
       if (WEBHOOK_SECRET) {
         event = stripe.webhooks.constructEvent(body, signature, WEBHOOK_SECRET);
         console.log('[STRIPE WEBHOOK] ✓ Signature verified successfully');
       } else {
-        // FALLBACK INSEGURO: parse sem validação (apenas para debug local)
-        console.warn('[STRIPE WEBHOOK] ⚠️  WARNING: Processing webhook WITHOUT signature validation!');
+        console.warn('[STRIPE WEBHOOK] ⚠️ Processing webhook WITHOUT signature validation!');
         event = JSON.parse(body);
       }
     } catch (err) {
       console.error('[STRIPE WEBHOOK] ❌ Signature verification failed:', err.message);
-      console.error('[STRIPE WEBHOOK] Error type:', err.type);
-      console.error('[STRIPE WEBHOOK] Signature header:', signature);
-      console.error('[STRIPE WEBHOOK] WEBHOOK_SECRET present:', !!WEBHOOK_SECRET);
-      return NextResponse.json({ 
-        error: 'Webhook signature verification failed',
-        details: err.message 
-      }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     const client = await connectToDatabase();
     const db = client.db(process.env.DB_NAME || 'barbearia_saas');
 
     console.log('[STRIPE WEBHOOK] ✓ Event received:', event.type);
-    console.log('[STRIPE WEBHOOK] Event ID:', event.id);
 
-    // Processar eventos
     switch (event.type) {
+
       case 'checkout.session.completed': {
         const session = event.data.object;
-        
-        // Obter subscription do Stripe
+
         const subscription = await stripe.subscriptions.retrieve(session.subscription);
-        
+
         const userId = session.metadata.user_id || session.client_reference_id;
         const planId = session.metadata.plan_id;
 
-        // Criar ou atualizar subscription no MongoDB
         await db.collection('subscriptions').updateOne(
           { user_id: userId },
           {
@@ -95,7 +83,7 @@ export async function POST(request) {
               stripe_subscription_id: subscription.id,
               stripe_customer_id: subscription.customer,
               stripe_price_id: subscription.items.data[0].price.id,
-              status: subscription.status, // 'trialing' or 'active'
+              status: subscription.status,
               trial_end: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
               current_period_start: new Date(subscription.current_period_start * 1000),
               current_period_end: new Date(subscription.current_period_end * 1000),
@@ -107,10 +95,8 @@ export async function POST(request) {
           { upsert: true }
         );
 
-        // Buscar usuário para enviar email
         const user = await db.collection('utilizadores').findOne({ _id: new ObjectId(userId) });
 
-        // Atualizar user com barbearia_id se necessário
         if (user) {
           await db.collection('utilizadores').updateOne(
             { _id: new ObjectId(userId) },
@@ -118,17 +104,32 @@ export async function POST(request) {
           );
         }
 
-        // Marcar que subscription foi criada com sucesso
-        console.log('[STRIPE WEBHOOK] Subscription created successfully for user:', userId);
-        console.log('[STRIPE WEBHOOK] Status:', subscription.status);
-        console.log('[STRIPE WEBHOOK] Trial end:', subscription.trial_end ? new Date(subscription.trial_end * 1000) : 'No trial');
+        // ✅ ADIÇÃO CRÍTICA: CRIAR BARBEARIA AUTOMATICAMENTE
+        const existingBarbearia = await db.collection('barbearias').findOne({
+          owner_id: userId
+        });
 
-        // Enviar emails (não bloquear)
+        if (!existingBarbearia) {
+          await db.collection('barbearias').insertOne({
+            owner_id: userId,
+            nome: user?.nome || 'Minha Barbearia',
+            descricao: '',
+            plano: planId,
+            stripe_subscription_id: subscription.id,
+            criada_em: new Date(),
+            ativa: true
+          });
+
+          console.log('[STRIPE WEBHOOK] Barbearia criada automaticamente para user:', userId);
+        } else {
+          console.log('[STRIPE WEBHOOK] Barbearia já existia para user:', userId);
+        }
+
         try {
           if (user?.email) {
             const planNames = { basic: 'Básico', pro: 'Pro', enterprise: 'Enterprise' };
             const planPrices = { basic: 29, pro: 49, enterprise: 99 };
-            
+
             await EmailService.sendSubscriptionConfirmation(user.email, user.nome, {
               name: planNames[planId] || planId,
               price: planPrices[planId] || 0
@@ -145,14 +146,13 @@ export async function POST(request) {
           console.error('[STRIPE WEBHOOK] Error sending emails:', emailError);
         }
 
-        console.log('[STRIPE WEBHOOK] Subscription created for user:', userId);
+        console.log('[STRIPE WEBHOOK] Subscription + Barbearia processadas com sucesso');
         break;
       }
 
       case 'customer.subscription.updated': {
         const subscription = event.data.object;
-        
-        // Atualizar subscription no MongoDB
+
         await db.collection('subscriptions').updateOne(
           { stripe_subscription_id: subscription.id },
           {
@@ -166,15 +166,12 @@ export async function POST(request) {
             }
           }
         );
-
-        console.log('[STRIPE WEBHOOK] Subscription updated:', subscription.id);
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object;
-        
-        // Marcar subscription como cancelada
+
         await db.collection('subscriptions').updateOne(
           { stripe_subscription_id: subscription.id },
           {
@@ -185,15 +182,12 @@ export async function POST(request) {
             }
           }
         );
-
-        console.log('[STRIPE WEBHOOK] Subscription cancelled:', subscription.id);
         break;
       }
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object;
-        
-        // Marcar subscription como past_due
+
         if (invoice.subscription) {
           await db.collection('subscriptions').updateOne(
             { stripe_subscription_id: invoice.subscription },
@@ -205,8 +199,6 @@ export async function POST(request) {
             }
           );
         }
-
-        console.log('[STRIPE WEBHOOK] Payment failed for invoice:', invoice.id);
         break;
       }
 
@@ -218,9 +210,6 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('[STRIPE WEBHOOK] Error processing webhook:', error);
-    return NextResponse.json({ 
-      error: 'Webhook processing failed',
-      details: error.message 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Webhook failed' }, { status: 500 });
   }
 }
