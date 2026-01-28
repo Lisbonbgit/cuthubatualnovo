@@ -152,9 +152,41 @@ function CreateBarbeariaContent() {
   };
 
   if (!mounted || checking) {
+    const paymentSuccess = searchParams.get('payment') === 'success';
+    
     return (
-      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
+      <div className="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 flex items-center justify-center p-4">
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {paymentSuccess ? (
+                <>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
+                    <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg shadow-green-500/30">
+                      <CheckCircle2 className="h-8 w-8 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">Pagamento Confirmado!</h3>
+                    <p className="text-zinc-400 text-sm">A processar a sua subscrição...</p>
+                  </div>
+                  <div className="w-full bg-zinc-950 rounded-lg p-4 border border-zinc-700">
+                    <p className="text-zinc-300 text-sm">
+                      Aguarde enquanto confirmamos o pagamento com o Stripe. Isto pode demorar alguns segundos.
+                    </p>
+                  </div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-amber-600"></div>
+                </>
+              ) : (
+                <>
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-600"></div>
+                  <p className="text-zinc-400">A carregar...</p>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
