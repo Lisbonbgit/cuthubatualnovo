@@ -730,7 +730,7 @@ Até breve!`;
 
       // Send emails (non-blocking)
       try {
-        const { EmailService } = await import('../../lib/email-service.js');
+        const { EmailService } = await import('@/lib/email-service');
         const user = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
         
         // Email ao cliente
