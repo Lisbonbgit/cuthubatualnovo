@@ -634,7 +634,7 @@ Até breve!`;
 
       // Send Email notification
       try {
-        const { EmailService } = await import('../../lib/email-service.js');
+        const { EmailService } = await import('@/lib/email-service');
         
         // Buscar dados já obtidos acima
         const cliente = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
