@@ -243,6 +243,55 @@ export default function AdminPanel() {
     );
   }
 
+  // Verificar se email está confirmado
+  if (user && user.email_confirmado === false) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-4">
+        <Card className="bg-gradient-to-br from-zinc-800 to-zinc-900 border-zinc-700 max-w-md w-full shadow-2xl">
+          <CardContent className="pt-6 pb-6">
+            <div className="flex flex-col items-center text-center space-y-4">
+              {/* Email Icon */}
+              <div className="relative h-16 w-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                <Mail className="h-8 w-8 text-white" />
+              </div>
+
+              {/* Title and Message */}
+              <div>
+                <h3 className="text-xl font-bold text-white mb-1">Confirme o seu Email</h3>
+                <p className="text-zinc-400 text-sm">
+                  Enviámos um email de confirmação para:
+                </p>
+                <p className="text-amber-400 font-medium mt-2">{user.email}</p>
+              </div>
+
+              <div className="w-full bg-zinc-950 rounded-lg p-4 border border-zinc-700">
+                <p className="text-zinc-300 text-sm">
+                  Por favor, verifique a sua caixa de entrada e clique no link de confirmação para aceder ao painel administrativo.
+                </p>
+              </div>
+
+              <div className="flex gap-2 w-full">
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="flex-1 border-zinc-700"
+                >
+                  Sair
+                </Button>
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="flex-1 bg-amber-600 hover:bg-amber-700"
+                >
+                  Já Confirmei
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Sidebar */}
