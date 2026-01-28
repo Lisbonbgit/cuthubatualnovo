@@ -728,6 +728,30 @@ Até breve!`;
 
       const result = await db.collection('subscriptions').insertOne(subscription);
 
+      // Send emails (non-blocking)
+      try {
+        const { EmailService } = await import('../../lib/email-service.js');
+        const user = await db.collection('utilizadores').findOne({ _id: new ObjectId(decoded.userId) });
+        
+        // Email ao cliente
+        if (user?.email) {
+          await EmailService.sendSubscriptionConfirmation(user.email, user.nome, {
+            name: plans[plan_id].name,
+            price: plans[plan_id].price
+          });
+        }
+        
+        // Email interno ao admin do SaaS
+        await EmailService.notifyAdminNewSubscription({
+          userEmail: user?.email || decoded.email,
+          planName: plans[plan_id].name,
+          price: plans[plan_id].price,
+          paymentMethod: payment_method || 'mock'
+        });
+      } catch (emailError) {
+        console.error('[EMAIL] Error sending subscription emails (non-blocking):', emailError);
+      }
+
       console.log(`[MOCK PAYMENT] Payment successful! Subscription activated for ${decoded.email}`);
       console.log(`[MOCK PAYMENT] Trial period: 7 days (ends ${trialEndDate.toLocaleDateString('pt-PT')})`);
 
