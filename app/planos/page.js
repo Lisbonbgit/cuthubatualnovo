@@ -155,36 +155,27 @@ export default function PlanosPage() {
     setSubscribing(planId);
 
     try {
-      const response = await fetch('/api/subscriptions', {
+      // Criar Stripe Checkout Session
+      const response = await fetch('/api/stripe/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ 
-          plan_id: planId,
-          payment_method: 'mock_card',
-          skip_trial: hasActiveSubscription
-        })
+        body: JSON.stringify({ plan_id: planId })
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        if (hasBarbearia) {
-          // Already has barbershop, go to admin
-          alert('✅ Plano atualizado com sucesso!');
-          window.location.href = '/admin';
-        } else {
-          // Go to setup to create barbershop
-          window.location.href = '/setup';
-        }
+      if (response.ok && data.url) {
+        // Redirecionar para Stripe Checkout
+        window.location.href = data.url;
       } else {
-        alert(`❌ ${data.error}`);
+        alert(`❌ ${data.error || 'Erro ao criar sessão de checkout'}`);
+        setSubscribing(null);
       }
     } catch (error) {
-      alert('Erro ao processar assinatura');
-    } finally {
+      alert('❌ Erro de conexão. Tente novamente.');
       setSubscribing(null);
     }
   };
