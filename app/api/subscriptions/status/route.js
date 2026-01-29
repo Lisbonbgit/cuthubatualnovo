@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URL = process.env.MONGO_URL;
@@ -23,33 +23,41 @@ function verifyToken(token) {
 }
 
 export async function GET(request) {
-  const auth = request.headers.get('authorization');
+  try {
+    const auth = request.headers.get('authorization');
 
-  if (!auth || !auth.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    if (!auth || !auth.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const token = auth.replace('Bearer ', '');
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
+    }
+
+    const client = await connectToDatabase();
+    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
+
+    const subscription = await db.collection('subscriptions').findOne({
+      user_id: decoded.userId,
+      status: { $in: ['trialing', 'active'] },
+    });
+
+    const barbearia = await db.collection('barbearias').findOne({
+      owner_id: decoded.userId,
+    });
+
+    return NextResponse.json({
+      has_subscription: !!subscription,
+      has_barbearia: !!barbearia,
+    });
+  } catch (error) {
+    console.error('[SUBSCRIPTION STATUS ERROR]', error);
+    return NextResponse.json(
+      { error: 'Erro ao verificar subscrição' },
+      { status: 500 }
+    );
   }
-
-  const token = auth.replace('Bearer ', '');
-  const decoded = verifyToken(token);
-
-  if (!decoded) {
-    return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
-  }
-
-  const client = await connectToDatabase();
-  const db = client.db(process.env.DB_NAME || 'barbearia_saas');
-
-  const subscription = await db.collection('subscriptions').findOne({
-    user_id: decoded.userId,
-    status: { $in: ['trialing', 'active'] },
-  });
-
-  const barbearia = await db.collection('barbearias').findOne({
-    owner_id: new ObjectId(decoded.userId),
-  });
-
-  return NextResponse.json({
-    has_subscription: !!subscription,
-    has_barbearia: !!barbearia,
-  });
 }
