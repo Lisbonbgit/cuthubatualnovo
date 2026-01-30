@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { MongoClient } from 'mongodb';
 
+// ✅ ADICIONADO: Forçar rota dinâmica
+export const dynamic = 'force-dynamic';
+
 const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URL = process.env.MONGO_URL;
 
@@ -53,7 +56,7 @@ export async function GET(request) {
     return NextResponse.json({
       has_subscription: !!subscription,
       has_barbearia: !!barbearia,
-      ready: !!barbearia  // ← LINHA ADICIONADA
+      ready: !!barbearia  // → LINHA ADICIONADA
     });
 
   } catch (error) {
