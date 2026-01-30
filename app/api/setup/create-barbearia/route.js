@@ -1,20 +1,48 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import pool from '@/lib/db';
+import { MongoClient } from 'mongodb';
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const MONGO_URL = process.env.MONGO_URL;
+
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) return cachedClient;
+  const client = await MongoClient.connect(MONGO_URL);
+  cachedClient = client;
+  return client;
+}
+
+function verifyToken(token) {
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch {
+    return null;
+  }
+}
 
 export async function POST(request) {
   try {
-    const token = request.cookies.get('token')?.value;
-    
-    if (!token) {
+    const auth = request.headers.get('authorization');
+
+    if (!auth || !auth.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Não autenticado' },
         { status: 401 }
       );
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
+    const token = auth.replace('Bearer ', '');
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return NextResponse.json(
+        { error: 'Token inválido' },
+        { status: 401 }
+      );
+    }
+
     if (decoded.tipo !== 'owner') {
       return NextResponse.json(
         { error: 'Apenas owners podem criar barbearias' },
@@ -32,48 +60,38 @@ export async function POST(request) {
       );
     }
 
-    const connection = await pool.getConnection();
-    
-    try {
-      await connection.beginTransaction();
+    const client = await connectToDatabase();
+    const db = client.db(process.env.DB_NAME || 'barbearia_saas');
 
-      // Verificar se já existe barbearia para este owner
-      const [existing] = await connection.query(
-        'SELECT id FROM barbearias WHERE owner_id = ?',
-        [decoded.userId]
-      );
+    // Verificar se já existe barbearia para este owner
+    const existing = await db.collection('barbearias').findOne({
+      owner_id: decoded.userId,
+    });
 
-      if (existing.length > 0) {
-        await connection.rollback();
-        return NextResponse.json({
-          success: true,
-          message: 'Barbearia já existe',
-          barbearia_id: existing[0].id
-        });
-      }
-
-      // Criar nova barbearia
-      const [result] = await connection.query(
-        `INSERT INTO barbearias 
-         (nome, descricao, email, palavra_passe, owner_id, ativo, criado_em) 
-         VALUES (?, ?, ?, ?, ?, 1, NOW())`,
-        [nome, descricao || null, email, palavra_passe, decoded.userId]
-      );
-
-      await connection.commit();
-
+    if (existing) {
       return NextResponse.json({
         success: true,
-        message: 'Barbearia criada com sucesso',
-        barbearia_id: result.insertId
+        message: 'Barbearia já existe',
+        barbearia_id: existing._id.toString()
       });
-
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
+
+    // Criar nova barbearia
+    const result = await db.collection('barbearias').insertOne({
+      nome,
+      descricao: descricao || null,
+      email,
+      palavra_passe,
+      owner_id: decoded.userId,
+      ativo: true,
+      criado_em: new Date()
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Barbearia criada com sucesso',
+      barbearia_id: result.insertedId.toString()
+    });
 
   } catch (error) {
     console.error('Erro ao criar barbearia:', error);
