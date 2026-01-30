@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 import { MongoClient } from 'mongodb';
 
-// ✅ Função para inicializar Stripe apenas quando necessário (lazy initialization)
-function getStripeInstance() {
+// ✅ SOLUÇÃO: Usar dynamic import para carregar Stripe apenas em runtime
+async function getStripeInstance() {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error('STRIPE_SECRET_KEY not configured');
   }
+
+  // Dynamic import - só carrega durante runtime, não durante build
+  const Stripe = (await import('stripe')).default;
+
   return new Stripe(process.env.STRIPE_SECRET_KEY, {
     apiVersion: '2023-10-16',
   });
@@ -123,8 +126,8 @@ export async function POST(request) {
     console.log('[STRIPE CHECKOUT] Using price_id:', priceId);
     console.log('[STRIPE CHECKOUT] Creating Stripe session...');
 
-    // ✅ Inicializar Stripe aqui (dentro da função, não no escopo global)
-    const stripe = getStripeInstance();
+    // ✅ Inicializar Stripe com dynamic import (só carrega em runtime)
+    const stripe = await getStripeInstance();
 
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
