@@ -49,14 +49,17 @@ export async function GET(request) {
       owner_id: decoded.userId,
     });
 
+    // ✅ AQUI É O LUGAR CERTO!
     return NextResponse.json({
       has_subscription: !!subscription,
       has_barbearia: !!barbearia,
+      ready: !!barbearia  // ← LINHA ADICIONADA
     });
+
   } catch (error) {
     console.error('[SUBSCRIPTION STATUS ERROR]', error);
     return NextResponse.json(
-      { error: 'Erro ao verificar subscrição' },
+      { error: 'Erro ao verificar status' },
       { status: 500 }
     );
   }
