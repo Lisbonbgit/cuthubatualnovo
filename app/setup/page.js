@@ -6,40 +6,77 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Scissors, Loader2, Check } from 'lucide-react';
+import { Scissors, Loader2 } from 'lucide-react';
 import { FooterSimple } from '@/components/ui/footer';
 import { Navbar } from '@/components/ui/navbar';
 
 function SetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // ✅ NOVO: Criar barbearia após pagamento
   useEffect(() => {
-  const payment = searchParams.get('payment');
-  const sessionId = searchParams.get('session_id');
+    const createBarbeariaAfterPayment = async () => {
+      const payment = searchParams.get('payment');
+      const sessionId = searchParams.get('session_id');
 
-  if (payment === 'success' && sessionId) {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+      if (payment === 'success' && sessionId) {
+        const token = localStorage.getItem('token');
+        const savedData = localStorage.getItem('barbeariaData');
 
-    // a cada 2 segundos pergunta ao backend se a subscrição já existe
-    const interval = setInterval(async () => {
-      const res = await fetch('/api/subscriptions/status', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+        if (!token || !savedData) return;
 
-      const data = await res.json();
+        try {
+          const data = JSON.parse(savedData);
 
-      if (data.ready) {
-        clearInterval(interval);
-        window.location.href = '/admin';
+          // Criar a barbearia
+          const response = await fetch('/api/setup/create-barbearia', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              nome: data.nome,
+              descricao: data.descricao,
+              email: data.email,
+              palavra_passe: data.palavra_passe
+            })
+          });
+
+          if (response.ok) {
+            localStorage.removeItem('barbeariaData');
+            
+            // Polling para verificar se está tudo pronto
+            const interval = setInterval(async () => {
+              const res = await fetch('/api/subscriptions/status', {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              });
+
+              const statusData = await res.json();
+
+              if (statusData.ready) {
+                clearInterval(interval);
+                window.location.href = '/admin';
+              }
+            }, 2000);
+
+            // Timeout de 30 segundos
+            setTimeout(() => {
+              clearInterval(interval);
+              window.location.href = '/admin';
+            }, 30000);
+          }
+        } catch (error) {
+          console.error('Erro ao criar barbearia:', error);
+        }
       }
-    }, 2000);
+    };
 
-    return () => clearInterval(interval);
-  }
-}, [searchParams]);
+    createBarbeariaAfterPayment();
+  }, [searchParams, router]);
 
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -143,6 +180,15 @@ function SetupContent() {
       }
 
       localStorage.setItem('token', registerData.token);
+
+      // ✅ SALVAR dados da barbearia no localStorage ANTES do Stripe
+      localStorage.setItem('barbeariaData', JSON.stringify({
+        nome: nomeBarbearia,
+        descricao: descricao,
+        email: emailAdmin,
+        palavra_passe: passwordAdmin,
+        plano: selectedPlan
+      }));
 
       // stripe
       const checkoutRes = await fetch('/api/stripe/create-checkout-session', {
