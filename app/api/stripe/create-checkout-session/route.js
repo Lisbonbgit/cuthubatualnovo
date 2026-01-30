@@ -1,13 +1,24 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
-import { connectToDatabase } from '@/lib/mongodb';
+import { MongoClient } from 'mongodb';
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2023-10-16',
 });
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const MONGO_URL = process.env.MONGO_URL;
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+let cachedClient = null;
+
+async function connectToDatabase() {
+  if (cachedClient) return cachedClient;
+  const client = await MongoClient.connect(MONGO_URL);
+  cachedClient = client;
+  return client;
+}
 
 function verifyToken(token) {
   try {
