@@ -126,4 +126,3 @@ export default function CriarBarbeariaPage() {
     </Suspense>
   );
 }
-Fix: Aumentar tempo de retry após pagamento para 30 segundos
