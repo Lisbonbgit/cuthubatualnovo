@@ -13,6 +13,8 @@ function CriarBarbeariaContent() {
 
   const [checking, setChecking] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 15; // 15 tentativas = 30 segundos
 
   useEffect(() => {
     const check = async () => {
@@ -40,10 +42,12 @@ function CriarBarbeariaContent() {
         // ainda sem subscrição → aguarda webhook
         if (!data.has_subscription) {
           const payment = searchParams.get('payment');
-          if (payment === 'success') {
-            setTimeout(check, 2000);
+          if (payment === 'success' && retryCount < MAX_RETRIES) {
+            setRetryCount(prev => prev + 1);
+            setTimeout(check, 2000); // Tenta novamente em 2 segundos
             return;
           }
+          // Se excedeu tentativas ou não veio do pagamento
           router.push('/planos');
           return;
         }
@@ -64,7 +68,7 @@ function CriarBarbeariaContent() {
     };
 
     check();
-  }, [router, searchParams]);
+  }, [router, searchParams, retryCount]);
 
   if (checking) {
     return (
@@ -74,7 +78,7 @@ function CriarBarbeariaContent() {
             <CheckCircle2 className="h-10 w-10 text-green-500" />
             <p className="text-white">Pagamento confirmado</p>
             <p className="text-zinc-400 text-sm">
-              A verificar a subscrição…
+              A verificar a subscrição… ({retryCount}/{MAX_RETRIES})
             </p>
             <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
           </CardContent>
@@ -122,3 +126,4 @@ export default function CriarBarbeariaPage() {
     </Suspense>
   );
 }
+Fix: Aumentar tempo de retry após pagamento para 30 segundos
