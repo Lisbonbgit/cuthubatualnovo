@@ -14,8 +14,33 @@ function SetupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // ✅ NOVO: Criar barbearia após pagamento
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const [plans, setPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState('pro');
+
+  // dados
+  const [nomeBarbearia, setNomeBarbearia] = useState('');
+  const [descricao, setDescricao] = useState('');
+  const [emailAdmin, setEmailAdmin] = useState('');
+  const [passwordAdmin, setPasswordAdmin] = useState('');
+
+  // verificação
+  const [showVerification, setShowVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  const [verificationError, setVerificationError] = useState('');
+
   useEffect(() => {
+    setMounted(true);
+    fetchPlans();
+  }, []);
+
+  // ✅ NOVO: Criar barbearia após pagamento (COM VERIFICAÇÃO MOUNTED)
+  useEffect(() => {
+    if (!mounted) return; // ✅ ADICIONADO: Só executa se estiver montado
+
     const createBarbeariaAfterPayment = async () => {
       const payment = searchParams.get('payment');
       const sessionId = searchParams.get('session_id');
@@ -76,30 +101,7 @@ function SetupContent() {
     };
 
     createBarbeariaAfterPayment();
-  }, [searchParams, router]);
-
-  const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const [plans, setPlans] = useState([]);
-  const [selectedPlan, setSelectedPlan] = useState('pro');
-
-  // dados
-  const [nomeBarbearia, setNomeBarbearia] = useState('');
-  const [descricao, setDescricao] = useState('');
-  const [emailAdmin, setEmailAdmin] = useState('');
-  const [passwordAdmin, setPasswordAdmin] = useState('');
-
-  // verificação
-  const [showVerification, setShowVerification] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
-  const [verificationError, setVerificationError] = useState('');
-
-  useEffect(() => {
-    setMounted(true);
-    fetchPlans();
-  }, []);
+  }, [searchParams, mounted]); // ✅ ADICIONADO: mounted nas dependências
 
   const fetchPlans = async () => {
     const res = await fetch('/api/plans');
@@ -107,7 +109,7 @@ function SetupContent() {
     setPlans(data.plans || []);
   };
 
-  // PASSO 1 — enviar código (NÃO cria utilizador)
+  // PASSO 1 ℔ enviar código (NÃO cria utilizador)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
