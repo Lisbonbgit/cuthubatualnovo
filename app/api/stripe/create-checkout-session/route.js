@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 import { MongoClient } from 'mongodb';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2023-10-16',
-});
+// ✅ SOLUÇÃO: Usar dynamic import para carregar Stripe apenas em runtime
+async function getStripeInstance() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+
+  // Dynamic import - só carrega durante runtime, não durante build
+  const Stripe = (await import('stripe')).default;
+
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2023-10-16',
+  });
+}
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_URL = process.env.MONGO_URL;
@@ -31,7 +40,7 @@ function verifyToken(token) {
 export async function POST(request) {
   try {
     console.log('[STRIPE CHECKOUT] === Starting checkout session creation ===');
-    
+
     // Verificar se Stripe está configurado
     if (!process.env.STRIPE_SECRET_KEY) {
       console.error('[STRIPE CHECKOUT] ERROR: STRIPE_SECRET_KEY not configured!');
@@ -59,17 +68,17 @@ export async function POST(request) {
       console.error('[STRIPE CHECKOUT] ERROR: Invalid token');
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 });
     }
-    
+
     console.log('[STRIPE CHECKOUT] User authenticated:', decoded.email);
 
     // VERIFICAR SE EMAIL FOI VERIFICADO COM CÓDIGO
     const client = await connectToDatabase();
     const db = client.db(process.env.DB_NAME || 'barbearia_saas');
-    
+
     const emailVerification = await db.collection('verified_emails').findOne({ 
       email: decoded.email 
     });
-    
+
     if (!emailVerification) {
       console.error('[STRIPE CHECKOUT] ERROR: Email not verified with code');
       return NextResponse.json({ 
@@ -78,7 +87,7 @@ export async function POST(request) {
         requires_verification: true
       }, { status: 403 });
     }
-    
+
     // Verificar se verificação ainda é válida (30 minutos)
     if (new Date() > new Date(emailVerification.expires_at)) {
       console.error('[STRIPE CHECKOUT] ERROR: Email verification expired');
@@ -89,7 +98,7 @@ export async function POST(request) {
         requires_verification: true
       }, { status: 403 });
     }
-    
+
     console.log('[STRIPE CHECKOUT] ✓ Email verified successfully');
 
     // Mapear plan_id para Stripe Price ID
@@ -100,7 +109,7 @@ export async function POST(request) {
     };
 
     const priceId = priceMapping[plan_id];
-    
+
     console.log('[STRIPE CHECKOUT] Price mapping:', {
       plan_id,
       priceId,
@@ -116,6 +125,9 @@ export async function POST(request) {
 
     console.log('[STRIPE CHECKOUT] Using price_id:', priceId);
     console.log('[STRIPE CHECKOUT] Creating Stripe session...');
+
+    // ✅ Inicializar Stripe com dynamic import (só carrega em runtime)
+    const stripe = await getStripeInstance();
 
     // Criar Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -158,7 +170,7 @@ export async function POST(request) {
     console.error('[STRIPE CHECKOUT] Error name:', error.name);
     console.error('[STRIPE CHECKOUT] Error message:', error.message);
     console.error('[STRIPE CHECKOUT] Error stack:', error.stack);
-    
+
     return NextResponse.json({ 
       error: 'Erro ao criar sessão de checkout',
       details: error.message,
